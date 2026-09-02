@@ -24,13 +24,12 @@ The platform includes:
 
 | Member | Module |
 |---|---|
-| [TBA] | Consumer Ordering & Delivery Portal |
-| [TBA] | Merchant & Restaurant Management Portal |
-| [TBA] | Food Discovery & Information Portal (incl. Job Board) |
-| [TBA] | Logistics & GPS |
-| [TBA] | AI Assistant (Speech-to-Text, Text-to-Speech, LLM) |
+| Nathan | Consumer Ordering & Delivery Portal |
+| David | Merchant & Restaurant Management Portal |
+| Michael | Food Discovery & Information Portal (incl. Job Board) |
+| Badrul | Logistics & GPS |
+| Harris | AI Assistant (Speech-to-Text, Text-to-Speech, LLM) |
 
-> Update this table with actual names once module ownership is finalized.
 
 ---
 
