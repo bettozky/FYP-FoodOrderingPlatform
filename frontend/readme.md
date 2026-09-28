@@ -1,156 +1,58 @@
-# Food Ordering Platform
+# ScootMeal — Frontend (React Native / Expo)
 
-Centralized food ordering platform connecting consumers, restaurants/merchants, and delivery riders — built as a Final Year Project for **Quest Marketing**.
+Dish-first food ordering app for university canteen vendors. This is the
+frontend only, wired up with mock data so every screen and flow works
+end-to-end without a backend.
 
-The platform includes:
-- **Consumer Ordering & Delivery Portal** — browsing, ordering, reservations, payments, loyalty rewards
-- **Merchant & Restaurant Management Portal** — menu management, order handling, analytics
-- **Food Discovery & Information Portal** — restaurant directory, crowdsourced reviews, F&B job board
-- **Logistics & GPS Module** — live delivery tracking and rider assignment
-- **AI Assistant** — multilingual (English, Malay, Mandarin) chatbot with speech-to-text and text-to-speech
+## What's included
 
----
+**Customer app**
+- Login / Signup
+- Home — dish-first search & category browse (the core differentiator)
+- Dish detail — quantity selector, add to cart
+- Cart — Dine-in / Takeaway / Delivery mode switch
+- Checkout — payment method picker (mock Stripe/TnG/Cash), order summary
+- Order tracking — live status stepper with ETA
+- Orders — active + past order history
+- Loyalty — points, tier progress, redeemable vouchers
+- Account — profile, and a "Switch to merchant view" entry point
 
-## Client & Supervisor
+**Merchant app (thin slice)**
+- Dashboard — today's orders/revenue/prep-time stats
+- Incoming order queue — advance orders through placed → preparing → ready → out for delivery
+- Menu management — toggle dishes sold out/available
 
-| Role | Name |
-|---|---|
-| Client | Mr. Felix Ling, Quest Marketing |
-| Supervisor | Dr. Sim Kwan Hua |
+All data lives in `src/data/mockData.ts` — swap that for real API calls
+when the backend is ready; the screens themselves don't need to change.
 
----
-
-## Team
-
-| Member | Module |
-|---|---|
-| [TBA] | Consumer Ordering & Delivery Portal |
-| [TBA] | Merchant & Restaurant Management Portal |
-| [TBA] | Food Discovery & Information Portal (incl. Job Board) |
-| [TBA] | Logistics & GPS |
-| [TBA] | AI Assistant (Speech-to-Text, Text-to-Speech, LLM) |
-
-> Update this table with actual names once module ownership is finalized.
-
----
-
-## Tech Stack
-
-> To be confirmed after client scoping meeting. Placeholder based on current plan:
-
-| Layer | Technology |
-|---|---|
-| Frontend | *TBD (e.g. React / Next.js)* |
-| Mobile | *TBD (e.g. Flutter / React Native)* |
-| Backend | *TBD (e.g. Node.js / Django / FastAPI)* |
-| Database | *TBD (e.g. PostgreSQL)* |
-| Maps / GPS | *TBD (e.g. Google Maps / Mapbox)* |
-| Payments | *TBD (sandbox/test mode)* |
-| Speech-to-Text | *TBD (e.g. Whisper / Google Cloud STT)* |
-| Text-to-Speech | *TBD (e.g. Google Cloud TTS / Azure TTS)* |
-| LLM / Chatbot | *TBD* |
-
----
-
-## Features
-
-### Consumer Ordering & Delivery Portal
-- Browse restaurants and menus
-- Cart, checkout, mobile payments
-- Order-ahead, dine-in, and takeaway
-- Table reservations
-- Vouchers and loyalty rewards
-- Real-time order tracking
-
-### Merchant & Restaurant Management Portal
-- Menu management (CRUD)
-- Order management dashboard
-- Promotion and voucher tools
-- Business analytics reporting
-- F&B job board posting
-
-### Food Discovery & Information Portal
-- Restaurant directory with search and filters
-- Crowdsourced reviews and ratings
-- F&B job board browsing
-
-### Logistics & GPS
-- Live delivery tracking
-- Rider assignment
-- ETA calculation
-
-### AI Assistant
-- Multilingual chatbot (English, Malay, Mandarin)
-- Speech-to-text input
-- Text-to-speech output
-- Order help, FAQs, and recommendations
-
----
-
-## Repository Structure
-
-```
-FYP-FoodOrderingPlatform/
-├── docs/                   # Proposal, design diagrams, wireframes, meeting notes
-├── backend/                # Backend services/modules
-│   ├── consumer-service/
-│   ├── merchant-service/
-│   ├── discovery-service/
-│   ├── logistics-service/
-│   └── ai-assistant-service/
-├── frontend/                # Web and/or mobile frontend
-├── database/                 # Schema and migrations
-└── README.md
-```
-
----
-
-## Getting Started
-
-> Setup instructions will be added once the tech stack is finalized.
+## Running it
 
 ```bash
-git clone https://github.com/bettozky/FYP-FoodOrderingPlatform.git
-cd FYP-FoodOrderingPlatform
+npm install
+npm run web       # opens in a browser — fastest way to check it
+npm run android    # requires Android Studio / emulator or a device with Expo Go
+npm run ios        # requires a Mac
 ```
 
----
+Any email/password logs you in (no real auth yet — that's backend work).
 
-## Branching Strategy
+## Project structure
 
-- `main` — stable, always working
-- `dev` — integration branch; merge feature work here first
-- `feature/<module>-<task>` — one branch per feature (e.g. `feature/consumer-checkout`)
-
-Workflow:
-```bash
-git checkout dev
-git pull
-git checkout -b feature/your-task-name
-# ...make changes...
-git add .
-git commit -m "Describe your change"
-git push -u origin feature/your-task-name
 ```
-Open a Pull Request into `dev` for review before merging.
+src/
+  screens/customer/   customer-facing screens
+  screens/merchant/    merchant-facing screens
+  navigation/          React Navigation stack + tabs wiring
+  context/             CartContext, AuthContext (in-memory app state)
+  data/mockData.ts      mock dishes, merchants, orders, loyalty data
+  theme/theme.ts        shared colours, spacing, typography tokens
+  components/          shared UI: buttons, cards, badges, headers
+```
 
----
+## Next steps
 
-## Project Status
-
-- [x] Project brief reviewed
-- [x] Repository initialized
-- [ ] Client scoping meeting completed
-- [ ] Project proposal submitted
-- [ ] System design (ER diagram, architecture, wireframes)
-- [ ] Core backend & database
-- [ ] Portal development
-- [ ] AI assistant integration
-- [ ] Testing & final report
-
----
-
-## Documentation
-
-- `docs/design/` — ER diagrams, architecture diagrams, wireframes
-- `docs/meeting-notes/` — Client and supervisor meeting notes
+- Replace `mockData.ts` reads with real API calls (the Node.js/Express
+  backend mentioned in the project plan)
+- Wire real Stripe payment element into Checkout
+- Wire real Lalamove tracking into Order Tracking
+- Add persistent auth (JWT/session) in AuthContext
