@@ -49,7 +49,7 @@ export default function OrdersScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.md },
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 140 },
   activeCard: {
     flexDirection: "row",
     alignItems: "center",

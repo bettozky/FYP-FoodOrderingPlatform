@@ -21,29 +21,30 @@ export type Dish = {
   image: string; // emoji placeholder, swap for real photo later
   description: string;
   category: string;
+  calories: number;
   soldOut?: boolean;
   spicy?: boolean;
 };
 
 export const merchants: Merchant[] = [
-  { id: "m1", name: "Ah Seng Noodle House", stallNo: "Canteen A, Stall 3", rating: 4.6, distanceKm: 0.2, prepMinutes: 12, tags: ["Noodles", "Halal-friendly"], color: "#F2A65A" },
-  { id: "m2", name: "Nasi Kak Yah", stallNo: "Canteen A, Stall 7", rating: 4.8, distanceKm: 0.2, prepMinutes: 15, tags: ["Malay", "Rice"], color: "#7FB685" },
-  { id: "m3", name: "Golden Wok", stallNo: "Canteen B, Stall 2", rating: 4.3, distanceKm: 0.4, prepMinutes: 10, tags: ["Chinese", "Fried"], color: "#E8998D" },
-  { id: "m4", name: "Curry Corner", stallNo: "Canteen B, Stall 5", rating: 4.5, distanceKm: 0.4, prepMinutes: 18, tags: ["Indian", "Curry"], color: "#C97B63" },
-  { id: "m5", name: "Boba & Brew", stallNo: "Canteen A, Stall 1", rating: 4.7, distanceKm: 0.2, prepMinutes: 6, tags: ["Drinks", "Dessert"], color: "#8E7CC3" },
+  { id: "m1", name: "Ah Seng Noodle House", stallNo: "Canteen A, Stall 3", rating: 4.6, distanceKm: 0.2, prepMinutes: 12, tags: ["Noodles", "Halal-friendly"], color: "#C97F03" },
+  { id: "m2", name: "Nasi Kak Yah", stallNo: "Canteen A, Stall 7", rating: 4.8, distanceKm: 0.2, prepMinutes: 15, tags: ["Malay", "Rice"], color: "#3F5B34" },
+  { id: "m3", name: "Golden Wok", stallNo: "Canteen B, Stall 2", rating: 4.3, distanceKm: 0.4, prepMinutes: 10, tags: ["Chinese", "Fried"], color: "#A8362B" },
+  { id: "m4", name: "Curry Corner", stallNo: "Canteen B, Stall 5", rating: 4.5, distanceKm: 0.4, prepMinutes: 18, tags: ["Indian", "Curry"], color: "#9C6402" },
+  { id: "m5", name: "Boba & Brew", stallNo: "Canteen A, Stall 1", rating: 4.7, distanceKm: 0.2, prepMinutes: 6, tags: ["Drinks", "Dessert"], color: "#211D18" },
 ];
 
 export const dishes: Dish[] = [
-  { id: "d1", name: "Beef Noodle Soup", merchantId: "m1", price: 8.5, image: "🍜", description: "Slow-braised beef brisket, flat rice noodles, house broth.", category: "Noodles" },
-  { id: "d2", name: "Dry Wantan Mee", merchantId: "m1", price: 7.0, image: "🍝", description: "Springy egg noodles tossed in dark sauce, char siu, wantan.", category: "Noodles" },
-  { id: "d3", name: "Nasi Lemak Ayam Goreng", merchantId: "m2", price: 7.5, image: "🍛", description: "Coconut rice, fried chicken, sambal, egg, peanuts.", category: "Rice" },
-  { id: "d4", name: "Beef Rendang Rice", merchantId: "m2", price: 9.0, image: "🍚", description: "Rich, slow-cooked beef rendang over steamed rice.", category: "Rice", spicy: true },
-  { id: "d5", name: "Beef Hor Fun", merchantId: "m3", price: 8.0, image: "🍲", description: "Wok-fried flat noodles with tender beef slices, egg gravy.", category: "Noodles" },
-  { id: "d6", name: "Sweet & Sour Chicken", merchantId: "m3", price: 8.5, image: "🍗", description: "Crispy chicken, pineapple, capsicum, tangy sauce.", category: "Rice", soldOut: true },
-  { id: "d7", name: "Beef Curry with Rice", merchantId: "m4", price: 9.5, image: "🍛", description: "Slow-simmered beef curry, potatoes, steamed rice.", category: "Rice", spicy: true },
-  { id: "d8", name: "Chicken Briyani", merchantId: "m4", price: 9.0, image: "🍛", description: "Fragrant spiced rice, roasted chicken leg, raita.", category: "Rice" },
-  { id: "d9", name: "Brown Sugar Boba Milk", merchantId: "m5", price: 6.5, image: "🧋", description: "Fresh milk, chewy boba, brown sugar syrup.", category: "Drinks" },
-  { id: "d10", name: "Iced Lemon Tea", merchantId: "m5", price: 3.5, image: "🍹", description: "Classic housemade lemon tea, not too sweet.", category: "Drinks" },
+  { id: "d1", name: "Beef Noodle Soup", merchantId: "m1", price: 8.5, image: "🍜", description: "Slow-braised beef brisket, flat rice noodles, house broth.", category: "Noodles", calories: 520 },
+  { id: "d2", name: "Dry Wantan Mee", merchantId: "m1", price: 7.0, image: "🍝", description: "Springy egg noodles tossed in dark sauce, char siu, wantan.", category: "Noodles", calories: 470 },
+  { id: "d3", name: "Nasi Lemak Ayam Goreng", merchantId: "m2", price: 7.5, image: "🍛", description: "Coconut rice, fried chicken, sambal, egg, peanuts.", category: "Rice", calories: 650 },
+  { id: "d4", name: "Beef Rendang Rice", merchantId: "m2", price: 9.0, image: "🍚", description: "Rich, slow-cooked beef rendang over steamed rice.", category: "Rice", calories: 610, spicy: true },
+  { id: "d5", name: "Beef Hor Fun", merchantId: "m3", price: 8.0, image: "🍲", description: "Wok-fried flat noodles with tender beef slices, egg gravy.", category: "Noodles", calories: 540 },
+  { id: "d6", name: "Sweet & Sour Chicken", merchantId: "m3", price: 8.5, image: "🍗", description: "Crispy chicken, pineapple, capsicum, tangy sauce.", category: "Rice", calories: 590, soldOut: true },
+  { id: "d7", name: "Beef Curry with Rice", merchantId: "m4", price: 9.5, image: "🍛", description: "Slow-simmered beef curry, potatoes, steamed rice.", category: "Rice", calories: 630, spicy: true },
+  { id: "d8", name: "Chicken Briyani", merchantId: "m4", price: 9.0, image: "🍛", description: "Fragrant spiced rice, roasted chicken leg, raita.", category: "Rice", calories: 600 },
+  { id: "d9", name: "Brown Sugar Boba Milk", merchantId: "m5", price: 6.5, image: "🧋", description: "Fresh milk, chewy boba, brown sugar syrup.", category: "Drinks", calories: 320 },
+  { id: "d10", name: "Iced Lemon Tea", merchantId: "m5", price: 3.5, image: "🍹", description: "Classic housemade lemon tea, not too sweet.", category: "Drinks", calories: 110 },
 ];
 
 export const categories = ["All", "Noodles", "Rice", "Drinks"];

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { merchantStats, merchantIncomingOrders } from "../../data/mockData";
 import { useAuth } from "../../context/AuthContext";
 import Badge from "../../components/Badge";
-import { colors, radius, spacing, type } from "../../theme/theme";
+import { colors, radius, spacing, type, fonts } from "../../theme/theme";
 
 export default function MerchantDashboardScreen({ navigation }: any) {
   const { setRole } = useAuth();
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  exitBtnText: { fontSize: 13, fontWeight: "600", color: colors.text },
+  exitBtnText: { fontSize: 13, fontFamily: fonts.display, color: colors.text },
   statsRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xl },
   statCard: {
     flex: 1,
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: 2,
   },
-  statValue: { fontSize: 18, fontWeight: "800", color: colors.text },
+  statValue: { fontSize: 18, fontFamily: fonts.displayExtraBold, color: colors.text },
   navCard: {
     flexDirection: "row",
     alignItems: "center",

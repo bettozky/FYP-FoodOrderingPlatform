@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { loyalty } from "../../data/mockData";
-import { colors, radius, spacing, type } from "../../theme/theme";
+import { colors, radius, spacing, type, fonts } from "../../theme/theme";
 
 const menuItems = [
   { icon: "📍", label: "Delivery addresses" },
@@ -41,7 +41,7 @@ export default function AccountScreen({ navigation }: any) {
           style={styles.merchantSwitch}
           onPress={() => {
             setRole("merchant");
-            navigation.getParent()?.navigate("MerchantDashboard");
+            navigation.navigate("MerchantDashboard");
           }}
         >
           <Text style={{ fontSize: 18 }}>🏪</Text>
@@ -61,7 +61,7 @@ export default function AccountScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg },
+  wrap: { padding: spacing.lg, paddingBottom: 140 },
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { fontSize: 20, fontWeight: "800", color: colors.primaryDark },
+  avatarText: { fontSize: 20, fontFamily: fonts.displayExtraBold, color: colors.primaryDark },
   section: { marginTop: spacing.xl, gap: spacing.sm },
   menuRow: {
     flexDirection: "row",
@@ -102,5 +102,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   logoutBtn: { marginTop: spacing.xl, alignItems: "center", paddingVertical: spacing.md },
-  logoutText: { color: colors.danger, fontWeight: "700" },
+  logoutText: { color: colors.danger, fontFamily: fonts.displayBold },
 });

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors, radius, spacing } from "../theme/theme";
+import { colors, radius, spacing, fonts } from "../theme/theme";
 
 type Props = {
   label: string;
@@ -8,11 +8,11 @@ type Props = {
 };
 
 const toneMap = {
-  primary: { bg: colors.primarySoft, fg: colors.primaryDark },
-  success: { bg: colors.secondarySoft, fg: colors.secondary },
-  warning: { bg: "#FBF0D9", fg: colors.warning },
-  danger: { bg: "#FBE7E7", fg: colors.danger },
-  neutral: { bg: colors.surfaceAlt, fg: colors.textMuted },
+  primary: { bg: colors.primarySoft, fg: colors.turmericDeep },
+  success: { bg: colors.secondarySoft, fg: colors.herb },
+  warning: { bg: "#F3E4C4", fg: colors.turmericDeep },
+  danger: { bg: "#F1DAD6", fg: colors.chili },
+  neutral: { bg: colors.paperDim, fg: colors.stone },
 };
 
 export default function Badge({ label, tone = "neutral" }: Props) {
@@ -31,5 +31,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignSelf: "flex-start",
   },
-  label: { fontSize: 11, fontWeight: "700" },
+  label: { fontSize: 11, fontFamily: fonts.displayBold },
 });

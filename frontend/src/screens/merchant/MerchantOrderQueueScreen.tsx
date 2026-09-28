@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { merchantIncomingOrders, MerchantOrder, OrderStatus } from "../../data/mockData";
 import ScreenHeader from "../../components/ScreenHeader";
 import Badge from "../../components/Badge";
-import { colors, radius, spacing, type } from "../../theme/theme";
+import { colors, radius, spacing, type, fonts } from "../../theme/theme";
 
 const nextStatus: Partial<Record<OrderStatus, OrderStatus>> = {
   placed: "preparing",
@@ -93,5 +93,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.pill,
   },
-  advanceBtnText: { color: colors.white, fontWeight: "700", fontSize: 12 },
+  advanceBtnText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 12 },
 });

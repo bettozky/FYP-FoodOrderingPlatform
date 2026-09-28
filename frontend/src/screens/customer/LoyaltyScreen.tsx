@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { loyalty, vouchers } from "../../data/mockData";
-import { colors, radius, spacing, type } from "../../theme/theme";
+import { colors, radius, spacing, type, fonts } from "../../theme/theme";
 
 export default function LoyaltyScreen() {
   const progress = Math.min(1, loyalty.points / loyalty.nextTierAt);
@@ -50,15 +50,15 @@ export default function LoyaltyScreen() {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.md },
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 140 },
   pointsCard: {
     backgroundColor: colors.secondary,
     borderRadius: radius.lg,
     padding: spacing.lg,
     marginBottom: spacing.lg,
   },
-  pointsLabel: { color: "#CDEAE0", fontSize: 13, fontWeight: "600" },
-  points: { color: colors.white, fontSize: 32, fontWeight: "800", marginTop: 4 },
+  pointsLabel: { color: "#CDEAE0", fontSize: 13, fontFamily: fonts.display },
+  points: { color: colors.white, fontSize: 32, fontFamily: fonts.displayExtraBold, marginTop: 4 },
   progressTrack: {
     height: 8,
     borderRadius: 4,
@@ -86,5 +86,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   redeemBtnDisabled: { backgroundColor: colors.surfaceAlt },
-  redeemBtnText: { color: colors.primaryDark, fontWeight: "700", fontSize: 12 },
+  redeemBtnText: { color: colors.primaryDark, fontFamily: fonts.displayBold, fontSize: 12 },
 });

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, spacing, type } from "../theme/theme";
 
 type Props = {
@@ -12,8 +13,9 @@ type Props = {
 
 export default function ScreenHeader({ title, subtitle, showBack = true, right }: Props) {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.left}>
         {showBack && navigation.canGoBack() && (
           <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.backBtn}>

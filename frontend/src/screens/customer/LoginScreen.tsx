@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import PrimaryButton from "../../components/PrimaryButton";
-import { colors, spacing, type, radius } from "../../theme/theme";
+import { colors, spacing, type, radius, fonts } from "../../theme/theme";
 
 export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth();
@@ -60,7 +60,7 @@ export default function LoginScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   wrap: { flexGrow: 1, padding: spacing.xl, justifyContent: "center" },
-  logo: { fontSize: 32, fontWeight: "800", color: colors.text, marginBottom: 4 },
+  logo: { fontSize: 32, fontFamily: fonts.displayExtraBold, color: colors.text, marginBottom: 4 },
   form: { marginTop: spacing.xxl, gap: spacing.xs },
   label: { ...type.small, marginBottom: 4, marginTop: spacing.md },
   input: {

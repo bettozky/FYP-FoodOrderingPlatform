@@ -4,9 +4,11 @@ type Role = "customer" | "merchant";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
+  isGuest: boolean;
   name: string;
   role: Role;
   login: (name: string) => void;
+  loginAsGuest: () => void;
   logout: () => void;
   setRole: (role: Role) => void;
 };
@@ -15,20 +17,28 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState<Role>("customer");
 
   const login = (n: string) => {
     setName(n || "Badrul");
+    setIsGuest(false);
+    setIsLoggedIn(true);
+  };
+  const loginAsGuest = () => {
+    setName("Guest");
+    setIsGuest(true);
     setIsLoggedIn(true);
   };
   const logout = () => {
     setIsLoggedIn(false);
+    setIsGuest(false);
     setRole("customer");
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, name, role, login, logout, setRole }}>
+    <AuthContext.Provider value={{ isLoggedIn, isGuest, name, role, login, loginAsGuest, logout, setRole }}>
       {children}
     </AuthContext.Provider>
   );

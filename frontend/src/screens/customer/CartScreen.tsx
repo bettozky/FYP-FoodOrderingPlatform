@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { useCart } from "../../context/CartContext";
 import ScreenHeader from "../../components/ScreenHeader";
 import PrimaryButton from "../../components/PrimaryButton";
-import { colors, radius, spacing, type } from "../../theme/theme";
+import { colors, radius, spacing, type, fonts } from "../../theme/theme";
 
 const modes = ["Dine-in", "Takeaway", "Delivery"] as const;
 
@@ -25,7 +25,7 @@ export default function CartScreen({ navigation }: any) {
           <PrimaryButton
             label="Browse dishes"
             style={{ marginTop: spacing.lg }}
-            onPress={() => navigation.navigate("MainTabs", { screen: "Home" })}
+            onPress={() => navigation.navigate("MainTabs")}
           />
         </View>
       </View>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   modeChipActive: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
-  modeChipText: { fontSize: 13, fontWeight: "600", color: colors.textMuted },
+  modeChipText: { fontSize: 13, fontFamily: fonts.display, color: colors.textMuted },
   modeChipTextActive: { color: colors.primaryDark },
   line: {
     flexDirection: "row",
@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stepBtnText: { fontSize: 16, fontWeight: "700", color: colors.text, marginTop: -1 },
-  qty: { minWidth: 18, textAlign: "center", fontWeight: "700" },
+  stepBtnText: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.text, marginTop: -1 },
+  qty: { minWidth: 18, textAlign: "center", fontFamily: fonts.displayBold },
   footer: {
     padding: spacing.lg,
     borderTopWidth: 1,
