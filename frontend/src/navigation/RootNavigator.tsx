@@ -12,6 +12,8 @@ import LiveTrackingScreen from "../screens/customer/LiveTrackingScreen";
 import MerchantDashboardScreen from "../screens/merchant/MerchantDashboardScreen";
 import MerchantOrderQueueScreen from "../screens/merchant/MerchantOrderQueueScreen";
 import MerchantMenuScreen from "../screens/merchant/MerchantMenuScreen";
+import MerchantVouchersScreen from "../screens/merchant/MerchantVouchersScreen";
+import MerchantAnalyticsScreen from "../screens/merchant/MerchantAnalyticsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +37,8 @@ export default function RootNavigator() {
           <Stack.Screen name="MerchantDashboard" component={MerchantDashboardScreen} />
           <Stack.Screen name="MerchantOrderQueue" component={MerchantOrderQueueScreen} />
           <Stack.Screen name="MerchantMenu" component={MerchantMenuScreen} />
+          <Stack.Screen name="MerchantVouchers" component={MerchantVouchersScreen} />
+          <Stack.Screen name="MerchantAnalytics" component={MerchantAnalyticsScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>
