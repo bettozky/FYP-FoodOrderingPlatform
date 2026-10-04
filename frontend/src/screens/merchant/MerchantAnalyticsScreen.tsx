@@ -319,7 +319,7 @@ export default function MerchantAnalyticsScreen() {
           </View>
         </View>
 
-        {/* ================= 5. BEST-SELLING ITEMS (LAST MONTH COMPARISON) ================= */}
+        {/* ================= 5. BEST-SELLING ITEMS (RESPONSIVE PHONE FIX) ================= */}
         <View style={styles.card}>
           <Text style={type.h3}>Best-Selling Items & Growth</Text>
           <Text style={type.bodyMuted}>
@@ -334,27 +334,43 @@ export default function MerchantAnalyticsScreen() {
               return (
                 <View key={item.id} style={styles.sellerRow}>
                   <View style={styles.sellerTopRow}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    {/* Left Section: Rank + Name + Orders (flex: 1 prevents pushing right side out) */}
+                    <View style={styles.sellerLeftCol}>
                       <Text style={styles.rankNum}>#{index + 1}</Text>
-                      <View>
-                        <Text style={[type.body, { fontWeight: "700" }]}>{item.name}</Text>
-                        <Text style={type.small}>{item.category} · {item.soldQty} orders</Text>
+                      <View style={styles.sellerTitleWrap}>
+                        <Text
+                          style={[type.body, { fontWeight: "700" }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.name}
+                        </Text>
+                        <Text style={type.small}>
+                          {item.category} · {item.soldQty} orders
+                        </Text>
                       </View>
                     </View>
 
-                    <View style={{ alignItems: "flex-end" }}>
-                      <Text style={[type.body, { fontWeight: "700" }]}>
+                    {/* Right Section: Revenue + Compact Growth Badge (flexShrink: 0 keeps it locked in box) */}
+                    <View style={styles.sellerRightCol}>
+                      <Text style={styles.revenueText}>
                         RM {item.revenue.toFixed(2)}
                       </Text>
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          fontWeight: "700",
-                          color: isPositive ? "#10b981" : "#ef4444",
-                        }}
+                      <View
+                        style={[
+                          styles.growthBadge,
+                          isPositive ? styles.growthPos : styles.growthNeg,
+                        ]}
                       >
-                        {isPositive ? `▲ +${item.growthPct}%` : `▼ ${item.growthPct}%`} vs last month
-                      </Text>
+                        <Text
+                          style={[
+                            styles.growthBadgeText,
+                            { color: isPositive ? "#059669" : "#dc2626" },
+                          ]}
+                        >
+                          {isPositive ? `▲ +${item.growthPct}%` : `▼ ${item.growthPct}%`}
+                        </Text>
+                      </View>
                     </View>
                   </View>
 
@@ -503,6 +519,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
   },
 
+  /* Best Sellers List (Responsive Layout) */
   sellerRow: {
     gap: 6,
   },
@@ -511,11 +528,46 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  sellerLeftCol: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginRight: spacing.sm,
+  },
   rankNum: {
     fontSize: 14,
     fontFamily: fonts.displayExtraBold,
     color: colors.textMuted,
     width: 24,
+  },
+  sellerTitleWrap: {
+    flex: 1,
+  },
+  sellerRightCol: {
+    alignItems: "flex-end",
+    flexShrink: 0,
+    gap: 2,
+  },
+  revenueText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.text,
+  },
+  growthBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill || 12,
+  },
+  growthPos: {
+    backgroundColor: "#ecfdf5",
+  },
+  growthNeg: {
+    backgroundColor: "#fef2f2",
+  },
+  growthBadgeText: {
+    fontSize: 10.5,
+    fontWeight: "700",
   },
   proportionTrack: {
     height: 6,
