@@ -14,6 +14,8 @@ import MerchantOrderQueueScreen from "../screens/merchant/MerchantOrderQueueScre
 import MerchantMenuScreen from "../screens/merchant/MerchantMenuScreen";
 import MerchantVouchersScreen from "../screens/merchant/MerchantVouchersScreen";
 import MerchantAnalyticsScreen from "../screens/merchant/MerchantAnalyticsScreen";
+import MerchantReservationsScreen from "../screens/merchant/MerchantReservationsScreen";
+import MerchantJobBoardScreen from "../screens/merchant/MerchantJobBoardScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +41,8 @@ export default function RootNavigator() {
           <Stack.Screen name="MerchantMenu" component={MerchantMenuScreen} />
           <Stack.Screen name="MerchantVouchers" component={MerchantVouchersScreen} />
           <Stack.Screen name="MerchantAnalytics" component={MerchantAnalyticsScreen} />
+          <Stack.Screen name="MerchantReservations" component={MerchantReservationsScreen} />
+          <Stack.Screen name="MerchantJobBoard" component={MerchantJobBoardScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

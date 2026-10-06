@@ -248,6 +248,36 @@ export default function MerchantDashboardScreen({ navigation }: any) {
           </View>
           <Text style={{ color: colors.textFaint }}>{"›"}</Text>
         </Pressable>
+        
+        {/* Table Reservations Navigation Card */}
+        <Pressable
+          style={({ hovered }: any) => [styles.navCard, hovered && styles.btnHover]}
+          onPress={() => navigation.navigate("MerchantReservations")}
+        >
+          <Text style={{ fontSize: 22 }}>🪑</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={type.h3}>Table reservations</Text>
+            <Text style={type.bodyMuted}>
+              Manage table bookings, seating allocations & pre-orders
+            </Text>
+          </View>
+          <Text style={{ color: colors.textFaint }}>{"›"}</Text>
+        </Pressable>
+
+        {/* Job Board Navigation Card */}
+        <Pressable
+          style={({ hovered }: any) => [styles.navCard, hovered && styles.btnHover]}
+          onPress={() => navigation.navigate("MerchantJobBoard")}
+        >
+          <Text style={{ fontSize: 22 }}>💼</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={type.h3}>Restaurant Job Board</Text>
+            <Text style={type.bodyMuted}>
+              Recruit waitstaff, line cooks, and cashiers
+            </Text>
+          </View>
+          <Text style={{ color: colors.textFaint }}>{"›"}</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
