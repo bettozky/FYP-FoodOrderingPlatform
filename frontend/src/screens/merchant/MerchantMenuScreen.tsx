@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   Switch,
   Pressable,
   Modal,
@@ -13,37 +12,42 @@ import {
 import { merchantMenu, Dish } from "../../data/mockData";
 import ScreenHeader from "../../components/ScreenHeader";
 import Badge from "../../components/Badge";
-import { colors, radius, spacing, type, fonts } from "../../theme/theme";
+import { colors, spacing, type } from "../../theme/theme";
+import { merchantMenuStyles as styles } from "../../styles/Merchantstyles";
 
 export interface ExtendedDish extends Dish {
-  category?: "Mains" | "Drinks" | "Combos";
+  category: string; // Dynamic custom category string
   quantity: number; // Stock inventory count
   cost: number;     // Food preparation / ingredient cost (RM)
 }
 
-const CATEGORIES = ["All", "Mains", "Drinks", "Combos"] as const;
-type CategoryFilter = (typeof CATEGORIES)[number];
-
 export default function MerchantMenuScreen() {
-  // Initialize dishes with category, quantity, and default cost (~40% of price)
+  // Initialize dishes with categories, quantities, and costs
   const [menu, setMenu] = useState<ExtendedDish[]>(() =>
     merchantMenu.map((d, index) => {
       const initialQty = d.soldOut ? 0 : (index + 2) * 8;
-      const initialCost = parseFloat((d.price * 0.4).toFixed(2)); // default 40% cost
+      const initialCost = parseFloat((d.price * 0.4).toFixed(2));
+      const defaultCategories = ["Noodles", "Rice", "Beverages", "Snacks"];
 
       return {
         ...d,
+        category: (d as any).category || defaultCategories[index % defaultCategories.length],
         cost: (d as any).cost !== undefined ? (d as any).cost : initialCost,
         quantity: initialQty,
         soldOut: initialQty === 0 ? true : Boolean(d.soldOut),
-        category:
-          (d as any).category ||
-          (index % 3 === 0 ? "Mains" : index % 3 === 1 ? "Drinks" : "Combos"),
       };
     })
   );
 
-  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("All");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  // Dynamically extract all unique categories in the menu for the filter bar
+  const dynamicCategories = useMemo(() => {
+    const unique = Array.from(
+      new Set(menu.map((d) => d.category).filter(Boolean))
+    );
+    return ["All", ...unique];
+  }, [menu]);
 
   // Modal State for Add / Edit Dish
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,21 +56,21 @@ export default function MerchantMenuScreen() {
   // Form Fields
   const [dishName, setDishName] = useState("");
   const [dishPrice, setDishPrice] = useState("");
-  const [dishCost, setDishCost] = useState(""); // Ingredient Cost field
+  const [dishCost, setDishCost] = useState("");
   const [dishQuantity, setDishQuantity] = useState("10");
-  const [dishCategory, setDishCategory] = useState<"Mains" | "Drinks" | "Combos">("Mains");
+  const [dishCategory, setDishCategory] = useState("Noodles");
   const [dishEmoji, setDishEmoji] = useState("🍜");
 
-  // Filtered menu list based on category
+  // Filtered menu list based on selected category
   const filteredMenu =
     selectedCategory === "All"
       ? menu
-      : menu.filter((d) => d.category === selectedCategory);
+      : menu.filter((d) => d.category.toLowerCase() === selectedCategory.toLowerCase());
 
   // Manual Stock Toggle with Guardrail
   const toggleSoldOut = (dish: ExtendedDish) => {
     if (dish.soldOut && dish.quantity <= 0) {
-      alert("Cannot mark In Stock with 0 quantity. Please click 'Edit' and restock the quantity first.");
+      alert("Cannot mark In Stock with 0 quantity. Please click 'Edit Price, Cost & Stock' and restock the quantity first.");
       return;
     }
 
@@ -89,7 +93,7 @@ export default function MerchantMenuScreen() {
     setDishPrice("");
     setDishCost("");
     setDishQuantity("20");
-    setDishCategory("Mains");
+    setDishCategory("Noodles");
     setDishEmoji("🍜");
     setIsModalOpen(true);
   };
@@ -101,7 +105,7 @@ export default function MerchantMenuScreen() {
     setDishPrice(dish.price.toString());
     setDishCost(dish.cost !== undefined ? dish.cost.toString() : "");
     setDishQuantity(dish.quantity.toString());
-    setDishCategory(dish.category || "Mains");
+    setDishCategory(dish.category || "General");
     setDishEmoji(dish.image || "🍜");
     setIsModalOpen(true);
   };
@@ -119,6 +123,7 @@ export default function MerchantMenuScreen() {
     const parsedCost = parseFloat(dishCost) || 0;
     const parsedQty = Math.max(0, parseInt(dishQuantity, 10) || 0);
     const isAutoSoldOut = parsedQty === 0;
+    const finalCategory = dishCategory.trim() || "General";
 
     if (editingDishId) {
       // Edit existing dish
@@ -132,23 +137,26 @@ export default function MerchantMenuScreen() {
                 cost: parsedCost,
                 quantity: parsedQty,
                 soldOut: isAutoSoldOut ? true : false,
-                category: dishCategory,
+                category: finalCategory,
                 image: dishEmoji.trim() || "🍽️",
               }
             : d
         )
       );
     } else {
-      // Add new dish
+      // Add new dish with all required Dish properties
       const newDish: ExtendedDish = {
         id: `dish-${Date.now()}`,
+        merchantId: (menu[0] as any)?.merchantId || "m1",
         name: dishName.trim(),
+        description: "Freshly prepared in house",
+        calories: 400,
         price: parsedPrice,
         cost: parsedCost,
         quantity: parsedQty,
         soldOut: isAutoSoldOut,
         image: dishEmoji.trim() || "🍽️",
-        category: dishCategory,
+        category: finalCategory,
       };
       setMenu((prev) => [newDish, ...prev]);
     }
@@ -156,10 +164,16 @@ export default function MerchantMenuScreen() {
     setIsModalOpen(false);
   };
 
-  // Modal profit preview calculations
+  // Profit preview calculation
   const numPrice = parseFloat(dishPrice) || 0;
   const numCost = parseFloat(dishCost) || 0;
   const numProfit = numPrice - numCost;
+
+  // List of existing categories to display as quick-picker chips in modal
+  const existingCategoriesList = useMemo(() => {
+    const list = Array.from(new Set(menu.map((d) => d.category).filter(Boolean)));
+    return list.length > 0 ? list : ["Noodles", "Rice", "Beverages", "Combos", "Desserts"];
+  }, [menu]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -182,14 +196,14 @@ export default function MerchantMenuScreen() {
               <Text style={styles.addBtnText}>+ Add New Dish</Text>
             </Pressable>
 
-            {/* Category Filter Chips */}
+            {/* Dynamic Category Filter Chips */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoryRow}
             >
-              {CATEGORIES.map((cat) => {
-                const isActive = selectedCategory === cat;
+              {dynamicCategories.map((cat) => {
+                const isActive = selectedCategory.toLowerCase() === cat.toLowerCase();
                 return (
                   <Pressable
                     key={cat}
@@ -226,7 +240,7 @@ export default function MerchantMenuScreen() {
 
                 {/* Dish Info & Financial Breakdown */}
                 <View style={{ flex: 1, gap: 3 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     <Text style={[type.h3, isUnavailable && styles.textMuted]}>
                       {item.name}
                     </Text>
@@ -309,17 +323,17 @@ export default function MerchantMenuScreen() {
           <View style={styles.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={type.h2}>
-                {editingDishId ? "Edit Dish & Costing" : "Add New Dish"}
+                {editingDishId ? "Edit Dish & Category" : "Add New Dish"}
               </Text>
-              <Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>
-                Set item pricing, ingredient costs, and stock inventory.
+              <Text style={[type.bodyMuted, styles.modalSubtitle]}>
+                Set item title, custom category, prices, and stock inventory.
               </Text>
 
               {/* Dish Name */}
               <Text style={styles.inputLabel}>Dish Name</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. Seafood Fried Rice"
+                placeholder="e.g. Claypot Chicken Rice"
                 value={dishName}
                 onChangeText={setDishName}
               />
@@ -333,32 +347,48 @@ export default function MerchantMenuScreen() {
                 onChangeText={setDishEmoji}
               />
 
-              {/* Category Selector */}
-              <Text style={styles.inputLabel}>Category</Text>
-              <View style={styles.categorySelectRow}>
-                {(["Mains", "Drinks", "Combos"] as const).map((cat) => (
-                  <Pressable
-                    key={cat}
-                    style={[
-                      styles.categoryChoice,
-                      dishCategory === cat && styles.categoryChoiceActive,
-                    ]}
-                    onPress={() => setDishCategory(cat)}
-                  >
-                    <Text
+              {/* Category: Manual Typing + Quick Pick Chips */}
+              <Text style={styles.inputLabel}>
+                Food Category (Type any custom category)
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Noodles, Desserts, Western, Breakfast"
+                value={dishCategory}
+                onChangeText={setDishCategory}
+              />
+
+              {/* Quick Pick Existing Categories */}
+              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4, marginBottom: 4 }}>
+                Or select from existing categories:
+              </Text>
+              <View style={styles.quickCategoryRow}>
+                {existingCategoriesList.map((cat) => {
+                  const isSelected = dishCategory.toLowerCase() === cat.toLowerCase();
+                  return (
+                    <Pressable
+                      key={cat}
                       style={[
-                        styles.categoryChoiceText,
-                        dishCategory === cat && styles.categoryChoiceTextActive,
+                        styles.quickCatChip,
+                        isSelected && styles.quickCatChipActive,
                       ]}
+                      onPress={() => setDishCategory(cat)}
                     >
-                      {cat}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text
+                        style={[
+                          styles.quickCatText,
+                          isSelected && styles.quickCatTextActive,
+                        ]}
+                      >
+                        {cat}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
 
               {/* Price & Cost in a 2-Column Row */}
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
+              <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm }}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.inputLabel}>Selling Price (RM)</Text>
                   <TextInput
@@ -400,7 +430,7 @@ export default function MerchantMenuScreen() {
               )}
 
               {/* Stock Quantity */}
-              <Text style={styles.inputLabel}>Available Stock Quantity</Text>
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Available Stock Quantity</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. 25 (0 = Sold Out)"
@@ -409,7 +439,7 @@ export default function MerchantMenuScreen() {
                 onChangeText={setDishQuantity}
               />
               <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
-                * Setting quantity to 0 will mark the dish as sold out.
+                * Setting quantity to 0 will automatically mark the dish as sold out.
               </Text>
 
               {/* Action Buttons */}
@@ -437,271 +467,3 @@ export default function MerchantMenuScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-
-  headerSection: {
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-
-  /* Add button */
-  addBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-  },
-  addBtnText: {
-    color: colors.white,
-    fontFamily: fonts?.displayBold || fonts?.display,
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  /* Category Filter Chips */
-  categoryRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    paddingVertical: 2,
-  },
-  categoryChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  categoryChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  categoryText: {
-    fontSize: 13,
-    color: colors.text,
-    fontFamily: fonts?.display,
-  },
-  categoryTextActive: {
-    color: colors.white,
-    fontWeight: "700",
-  },
-
-  /* Dish Card */
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
-  },
-  cardSoldOut: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
-    opacity: 0.85,
-  },
-  mainRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  emoji: { fontSize: 32 },
-  textMuted: {
-    color: colors.textMuted || "#64748b",
-    textDecorationLine: "line-through",
-  },
-
-  /* Pricing, Cost & Profit Styles */
-  pricingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  costLabel: {
-    fontSize: 12,
-    color: colors.textMuted || "#64748b",
-  },
-  profitLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  profitPos: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
-  },
-  profitNeg: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
-  },
-
-  qtyBadge: {
-    fontSize: 11,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontWeight: "600",
-  },
-  qtyActive: {
-    backgroundColor: "#ecfdf5",
-    color: "#065f46",
-  },
-  qtyZero: {
-    backgroundColor: "#fee2e2",
-    color: "#b91c1c",
-  },
-  toggleCol: {
-    alignItems: "center",
-    gap: 4,
-  },
-
-  /* Edit & Delete Action Buttons */
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.xs,
-  },
-  actionBtn: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
-  },
-  editBtn: {
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  editBtnText: {
-    fontSize: 12,
-    color: colors.text,
-    fontFamily: fonts?.display,
-  },
-  deleteBtn: {
-    backgroundColor: "#fef2f2",
-    borderWidth: 1,
-    borderColor: "#fecaca",
-  },
-  deleteBtnText: {
-    fontSize: 12,
-    color: "#dc2626",
-    fontFamily: fonts?.display,
-    fontWeight: "600",
-  },
-
-  /* Modal Form */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: spacing.lg,
-  },
-  modalCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    width: "100%",
-    maxWidth: 480,
-    maxHeight: "90%",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: 4,
-    marginTop: spacing.sm,
-  },
-  input: {
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.text,
-  },
-  previewBox: {
-    backgroundColor: "#f8fafc",
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginTop: spacing.xs,
-  },
-  categorySelectRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  categoryChoice: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bg,
-  },
-  categoryChoiceActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  categoryChoiceText: {
-    fontSize: 13,
-    color: colors.text,
-  },
-  categoryChoiceTextActive: {
-    color: colors.white,
-    fontWeight: "700",
-  },
-  modalBtnRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-  },
-  modalBtn: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    borderRadius: radius.md,
-  },
-  cancelBtn: {
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cancelBtnText: {
-    color: colors.text,
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  saveBtn: {
-    backgroundColor: colors.primary,
-  },
-  saveBtnText: {
-    color: colors.white,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  /* Mouse hover effect */
-  btnHover: {
-    transform: [{ translateY: -2 }],
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-});
