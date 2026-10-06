@@ -12,7 +12,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius, spacing, type, fonts, shadow } from "../../theme/theme";
-import { activeOrder } from "../../data/mockData";
+
+import {
+  merchants,
+  dishes,
+  activeOrder,
+  orderHistory,
+  loyalty,
+  vouchers,
+} from "../../data/mockData";
+
+const API_URL = "http://localhost:3001";
 
 // Frontend draft of the ScootMeal AI assistant. Replies are canned/keyword
 // matched for now so the interaction and layout can be reviewed before any
@@ -26,28 +36,10 @@ const SUGGESTIONS = ["Where's my order?", "I want a refund", "Recommend somethin
 const INTRO: Message = {
   id: "intro",
   from: "bot",
-  text: "Hi, I'm the ScootMeal Assistant (draft) 👋 Ask me about your order, a dish, or an account issue.",
+  text: "Hi, I'm the ScootMeal Assistant 👋 Ask me about your order, a dish, or an account issue.",
 };
 
-function craftReply(input: string): string {
-  const q = input.toLowerCase();
-  if (q.includes("order") || q.includes("where")) {
-    return `Order #${activeOrder.id} is ${activeOrder.status.replace("_", " ")} — about ${activeOrder.etaMinutes} min out. You can also check the live map from the tracking screen.`;
-  }
-  if (q.includes("refund") || q.includes("cancel")) {
-    return "I can flag this for a refund review. Orders can be cancelled free of charge before a merchant accepts them — after that it goes through the merchant.";
-  }
-  if (q.includes("spicy") || q.includes("recommend") || q.includes("suggest")) {
-    return "Beef Rendang Rice from Nasi Kak Yah and Beef Curry with Rice from Curry Corner are both spicy favourites — want me to add one to your cart?";
-  }
-  if (q.includes("human") || q.includes("agent") || q.includes("help")) {
-    return "Got it — I'll hand this over to a support teammate. For this draft build that's just a placeholder reply.";
-  }
-  if (q.includes("hi") || q.includes("hello") || q.includes("hey")) {
-    return "Hey! What can I help you with today — an order, a dish recommendation, or your account?";
-  }
-  return "Thanks — noted. This is still a draft assistant, so replies are canned for now, but the flow (typing, suggestions, chat history) is ready to connect to a real model.";
-}
+
 
 export default function AIAssistantScreen() {
   const insets = useSafeAreaInsets();
@@ -56,21 +48,76 @@ export default function AIAssistantScreen() {
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
-  function send(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    const userMsg: Message = { id: `u${Date.now()}`, from: "user", text: trimmed };
-    setMessages((m) => [...m, userMsg]);
-    setInput("");
-    setTyping(true);
-    setTimeout(() => {
-      const botMsg: Message = { id: `b${Date.now()}`, from: "bot", text: craftReply(trimmed) };
-      setMessages((m) => [...m, botMsg]);
-      setTyping(false);
-      requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
-    }, 700);
-    requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
+  async function send(text: string) {
+  const trimmed = text.trim();
+
+  if (!trimmed || typing) return;
+
+  const userMsg: Message = {
+    id: `u${Date.now()}`,
+    from: "user",
+    text: trimmed,
+  };
+
+  setMessages((m) => [...m, userMsg]);
+  setInput("");
+  setTyping(true);
+
+  requestAnimationFrame(() =>
+    scrollRef.current?.scrollToEnd({ animated: true })
+  );
+
+  try {
+    const response = await fetch(`${API_URL}/api/ai/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: trimmed,
+        history: messages,
+        context: {
+          merchants,
+          dishes,
+          activeOrder,
+          orderHistory,
+          loyalty,
+          vouchers,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("AI request failed");
+    }
+
+    const data = await response.json();
+
+    const botMsg: Message = {
+      id: `b${Date.now()}`,
+      from: "bot",
+      text: data.reply,
+    };
+
+    setMessages((m) => [...m, botMsg]);
+  } catch (error) {
+    console.error(error);
+
+    const botMsg: Message = {
+      id: `b${Date.now()}`,
+      from: "bot",
+      text: "Sorry, I couldn't connect to the ScootMeal AI service. Please try again.",
+    };
+
+    setMessages((m) => [...m, botMsg]);
+  } finally {
+    setTyping(false);
+
+    requestAnimationFrame(() =>
+      scrollRef.current?.scrollToEnd({ animated: true })
+    );
   }
+}
 
   return (
     <KeyboardAvoidingView
@@ -83,7 +130,7 @@ export default function AIAssistantScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={type.h2}>Assistant</Text>
-          <Text style={styles.draftBadgeText}>Draft · canned replies</Text>
+          <Text style={styles.draftBadgeText}>AI powered by OpenAI</Text>
         </View>
       </View>
 
