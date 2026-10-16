@@ -1,13 +1,15 @@
-# Food Ordering Platform
+# ScootMeal - Food Ordering Platform
 
-Centralized food ordering platform connecting consumers, restaurants/merchants, and delivery riders — built as a Final Year Project for **Quest Marketing**.
+Centralized food ordering platform connecting consumers, restaurants/merchants, and delivery riders, built as a Final Year Project for **Quest Marketing**.
 
-The platform includes:
-- **Consumer Ordering & Delivery Portal** — browsing, ordering, reservations, payments, loyalty rewards
-- **Merchant & Restaurant Management Portal** — menu management, order handling, analytics
-- **Food Discovery & Information Portal** — restaurant directory, crowdsourced reviews, F&B job board
-- **Logistics & GPS Module** — live delivery tracking and rider assignment
-- **AI Assistant** — multilingual (English, Malay, Mandarin) chatbot with speech-to-text and text-to-speech
+It is made of three applications that share one backend:
+
+| Application | Folder | Used by |
+|---|---|---|
+| Customer App (Expo / React Native) | `apps/customer-app` | Customers (iOS + Android) |
+| Merchant App (Expo / React Native) | `apps/merchant-app` | Restaurants and stalls (iOS + Android) |
+| Web Admin (React + Vite) | `apps/web-admin` | Platform administrators (browser) |
+| Backend API (Node.js + TypeScript + Express) | `backend` | All three apps |
 
 ---
 
@@ -35,83 +37,102 @@ The platform includes:
 
 ## Tech Stack
 
-> To be confirmed after client scoping meeting. Placeholder based on current plan:
-
 | Layer | Technology |
 |---|---|
-| Frontend | *TBD (e.g. React / Next.js)* |
-| Mobile | *TBD (e.g. Flutter / React Native)* |
-| Backend | *TBD (e.g. Node.js / Django / FastAPI)* |
-| Database | *TBD (e.g. PostgreSQL)* |
-| Maps / GPS | *TBD (e.g. Google Maps / Mapbox)* |
-| Payments | *TBD (sandbox/test mode)* |
-| Speech-to-Text | *TBD (e.g. Whisper / Google Cloud STT)* |
-| Text-to-Speech | *TBD (e.g. Google Cloud TTS / Azure TTS)* |
-| LLM / Chatbot | *TBD* |
-
----
-
-## Features
-
-### Consumer Ordering & Delivery Portal
-- Browse restaurants and menus
-- Cart, checkout, mobile payments
-- Order-ahead, dine-in, and takeaway
-- Table reservations
-- Vouchers and loyalty rewards
-- Real-time order tracking
-
-### Merchant & Restaurant Management Portal
-- Menu management (CRUD)
-- Order management dashboard
-- Promotion and voucher tools
-- Business analytics reporting
-- F&B job board posting
-
-### Food Discovery & Information Portal
-- Restaurant directory with search and filters
-- Crowdsourced reviews and ratings
-- F&B job board browsing
-
-### Logistics & GPS
-- Live delivery tracking
-- Rider assignment
-- ETA calculation
-
-### AI Assistant
-- Multilingual chatbot (English, Malay, Mandarin)
-- Speech-to-text input
-- Text-to-speech output
-- Order help, FAQs, and recommendations
+| Mobile apps | Expo / React Native, TypeScript |
+| Web admin | React + Vite, TypeScript |
+| Backend | Node.js, Express, TypeScript |
+| Database | PostgreSQL (planned) |
+| Maps / GPS | react-native-maps (OpenStreetMap tiles) |
+| Payments | Stripe, test mode (planned) |
+| Delivery | Simulated rider provider now; Lalamove planned |
+| LLM / Chatbot | OpenAI, called from the backend |
+| Speech-to-Text / Text-to-Speech | TBD |
 
 ---
 
 ## Repository Structure
 
+Each app and the backend are split into **modules** (one folder per feature area), so teammates can work in different folders without clashing.
+
 ```
 FYP-FoodOrderingPlatform/
-├── docs/                   # Proposal, design diagrams, wireframes, meeting notes
-├── backend/                # Backend services/modules
-│   ├── consumer-service/
-│   ├── merchant-service/
-│   ├── discovery-service/
-│   ├── logistics-service/
-│   └── ai-assistant-service/
-├── frontend/                # Web and/or mobile frontend
-├── database/                 # Schema and migrations
-└── README.md
+├── apps/
+│   ├── customer-app/            Expo app for customers
+│   │   └── src/
+│   │       ├── navigation/      root navigator + home tabs
+│   │       ├── modules/         auth, discovery, ordering, dine-in, delivery,
+│   │       │                    payment, loyalty, ai-assistant, account
+│   │       └── shared/          components, theme, mock data, config
+│   ├── merchant-app/            Expo app for merchants
+│   │   └── src/
+│   │       ├── navigation/
+│   │       ├── modules/         auth, onboarding, dashboard, orders, reservations,
+│   │       │                    menu, promotions, analytics, jobs
+│   │       └── shared/
+│   └── web-admin/               React + Vite admin dashboard
+│       └── src/
+│           ├── app/             routes and layout
+│           ├── modules/         auth, dashboard, merchants, users, orders,
+│           │                    disputes, moderation, analytics
+│           └── shared/
+├── backend/                     Node + TypeScript + Express API
+│   ├── src/
+│   │   ├── app.ts, server.ts
+│   │   ├── config/              environment settings
+│   │   ├── middleware/          auth, error handling, rate limiting
+│   │   ├── modules/             auth, merchants, ordering, dine-in, payment,
+│   │   │                        delivery, notifications, ai-assistant, admin
+│   │   └── jobs/                timers (order and reservation deadlines)
+│   └── tests/
+├── database/                    migrations and seed data
+└── docs/                        requirements, diagrams, planning, meeting notes, admin forms
 ```
+
+Modules named the same across the apps and backend belong together. For example, ordering lives in `apps/customer-app/src/modules/ordering` and `backend/src/modules/ordering`.
 
 ---
 
 ## Getting Started
 
-> Setup instructions will be added once the tech stack is finalized.
+Each folder is installed and run on its own.
 
 ```bash
 git clone https://github.com/bettozky/FYP-FoodOrderingPlatform.git
 cd FYP-FoodOrderingPlatform
 ```
+
+**Backend** (needs a `.env`; copy `backend/.env.example`)
+```bash
+cd backend
+npm install
+npm run dev          # http://localhost:3001
+```
+
+**Customer App**
+```bash
+cd apps/customer-app
+npm install
+npm run web          # fastest check, or: npm start (Expo Go), npm run android
+```
+To reach the backend from a real phone, use your PC's LAN IP instead of localhost:
+`EXPO_PUBLIC_API_URL=http://192.168.x.x:3001 npm start`
+
+**Merchant App**
+```bash
+cd apps/merchant-app
+npm install
+npm run web
+```
+
+**Web Admin**
+```bash
+cd apps/web-admin
+npm install
+npm run dev
+```
+
+Both mobile apps accept any email and password for now (no real auth yet).
 
 ---
 
@@ -135,6 +156,8 @@ Open a Pull Request into `dev` for review before merging.
 
 ---
 
+---
+
 ## Project Status
 
 - [x] Project brief reviewed
@@ -149,7 +172,17 @@ Open a Pull Request into `dev` for review before merging.
 
 ---
 
+---
+
 ## Documentation
 
-- `docs/design/` — ER diagrams, architecture diagrams, wireframes
-- `docs/meeting-notes/` — Client and supervisor meeting notes
+- `docs/requirements/` - requirements specification and module relationship diagram
+- `docs/diagrams/` - architecture, flowcharts, user flow, ERD, module diagram (PNG)
+- `docs/planning/` - FYP plan and team plan
+- `docs/meeting-notes/` - client and supervisor meeting notes
+- `docs/admin/` - claim forms and project agreement
+
+---
+
+## Running and requirement coverage
+See [docs/RUNNING.md](docs/RUNNING.md) and [docs/requirements/REQUIREMENT_COVERAGE.md](docs/requirements/REQUIREMENT_COVERAGE.md).
