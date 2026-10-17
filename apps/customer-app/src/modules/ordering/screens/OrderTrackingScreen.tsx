@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Linking } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../../shared/api/client";
 import { MODE_ICON, MODE_LABEL, Mode, Order, OrderItem } from "../../../shared/api/types";
@@ -9,6 +9,8 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { mmss, useCountdown } from "../../../shared/util/format";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
+import ChatButtons from "../../chat/ChatButton";
+import { formatCard } from "./CheckoutScreen";
 import { itemBadge, orderBadge } from "../orderStatus";
 
 function Waiting({ order }: { order: Order }) {
@@ -18,8 +20,42 @@ function Waiting({ order }: { order: Order }) {
       <Ionicons name="hourglass" size={20} color={colors.turmericDeep} />
       <View style={{ flex: 1 }}>
         <Text style={type.h3}>Waiting for {order.merchantName}</Text>
-        <Text style={type.bodyMuted}>They have {mmss(s)} left to accept. If they don't answer, your order is cancelled and refunded automatically.</Text>
+        <Text style={type.bodyMuted}>They have {mmss(s)} left to confirm. You have not been charged. You can pay once they confirm, and if they don't answer the order is cancelled.</Text>
       </View>
+    </View>
+  );
+}
+
+function PayPanel({ order, onDone }: { order: Order; onDone: () => Promise<void> }) {
+  const s = useCountdown(order.payBy ?? 0);
+  const [card, setCard] = useState("4242 4242 4242 4242");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function pay() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("POST", `/orders/${order.id}/pay`, { card: { number: card } });
+      await onDone();
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <View style={[styles.banner, { backgroundColor: colors.herbLight, flexDirection: "column" }]} testID="pay-panel">
+      <View style={{ flexDirection: "row", gap: spacing.md }}>
+        <Ionicons name="checkmark-circle" size={20} color={colors.herb} />
+        <View style={{ flex: 1 }}>
+          <Text style={type.h3}>{order.merchantName} confirmed your order</Text>
+          <Text style={type.bodyMuted}>Pay within {mmss(s)} to start preparation. Unpaid orders are cancelled automatically.</Text>
+        </View>
+      </View>
+      <TextInput style={[styles.input, { minHeight: 0, alignSelf: "stretch" }]} value={card} onChangeText={(t) => setCard(formatCard(t))} keyboardType="number-pad" placeholder="Card number" placeholderTextColor={colors.textFaint} testID="pay-card" />
+      <Text style={type.small}>Stripe (simulated). Test cards: 4242 4242 4242 4242 succeeds · 4000 0000 0000 0002 is declined.</Text>
+      {error ? <Text style={styles.error} testID="pay-error">{error}</Text> : null}
+      <PrimaryButton label={`Pay RM ${order.total.toFixed(2)}`} onPress={pay} loading={busy} testID="pay-button" style={{ alignSelf: "stretch" }} />
     </View>
   );
 }
@@ -59,6 +95,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   }
 
   const decide = (choice: "continue" | "cancel") => act(() => api("POST", `/orders/${order.id}/decision`, { choice }));
+  const cancelRequest = () => act(() => api("POST", `/orders/${order.id}/cancel`));
   const collect = (mode: "dine_in" | "takeaway") => act(() => api("POST", `/orders/${order.id}/collected`, { mode }));
   const sendReview = () =>
     rating &&
@@ -76,6 +113,10 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         </View>
 
         {order.status === "awaiting_merchant" && <Waiting order={order} />}
+        {order.status === "awaiting_payment" && <PayPanel order={order} onDone={refresh} />}
+        {(order.status === "awaiting_merchant" || order.status === "awaiting_payment") && (
+          <PrimaryButton label="Cancel this request" variant="outline" onPress={cancelRequest} disabled={busy} testID="cancel-request" />
+        )}
 
         {order.decision === "pending" && (
           <View style={[styles.banner, { backgroundColor: "#F3E4C4" }]}>
@@ -92,7 +133,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
           <View style={[styles.banner, { backgroundColor: "#F1DAD6" }]}>
             <Ionicons name="close-circle" size={20} color={colors.chili} />
             <Text style={[type.body, { flex: 1 }]}>
-              {order.status === "rejected" ? "The restaurant rejected this order." : "The restaurant did not reply in time."} You were refunded RM {order.refunded.toFixed(2)}.
+              {order.status === "rejected" ? "The restaurant declined this order." : order.cancelReason === "not_paid" ? "The payment window ran out, so the order was cancelled." : "The restaurant did not reply in time."} You were not charged.
             </Text>
           </View>
         )}
@@ -152,15 +193,15 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
           <View style={styles.line}><Text style={type.bodyMuted}>Subtotal</Text><Text style={type.body}>RM {order.subtotal.toFixed(2)}</Text></View>
           {order.deliveryFee > 0 && <View style={styles.line}><Text style={type.bodyMuted}>Delivery fee</Text><Text style={type.body}>RM {order.deliveryFee.toFixed(2)}</Text></View>}
           {order.discount > 0 && <View style={styles.line}><Text style={type.bodyMuted}>Voucher</Text><Text style={type.body}>– RM {order.discount.toFixed(2)}</Text></View>}
-          <View style={styles.line}><Text style={type.h3}>Paid</Text><Text style={type.h3}>RM {order.total.toFixed(2)}</Text></View>
+          <View style={styles.line}><Text style={type.h3}>{order.paidAt ? "Paid" : "Total"}</Text><Text style={type.h3}>RM {order.total.toFixed(2)}</Text></View>
           {order.refunded > 0 && <View style={styles.line}><Text style={[type.body, { color: colors.herb }]}>Refunded</Text><Text style={[type.body, { color: colors.herb }]} testID="refunded">RM {order.refunded.toFixed(2)}</Text></View>}
         </View>
 
-        {order.merchantPhone && order.status !== "rejected" && order.status !== "expired" && (
-          <Pressable style={styles.liveRow} onPress={() => Linking.openURL(`tel:${order.merchantPhone!.replace(/\s/g, "")}`)}>
-            <Ionicons name="call" size={14} color={colors.turmericDeep} />
-            <Text style={styles.liveText}>Call {order.merchantName}</Text>
-          </Pressable>
+        {!["rejected", "expired", "cancelled", "completed"].includes(order.status) && (
+          <View style={styles.card}>
+            <Text style={type.h3}>Contact {order.merchantName}</Text>
+            <ChatButtons kind="order" id={order.id} allowCall />
+          </View>
         )}
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>

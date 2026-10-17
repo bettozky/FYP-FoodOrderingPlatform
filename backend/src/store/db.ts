@@ -2,7 +2,7 @@
 // Swap this for a real database later: every module reads/writes through `db`.
 import { hashPassword } from "../lib/ids.js";
 import type {
-  Delivery, Dish, Job, Merchant, Notification, Order, Payment, Reservation, Review, User, Voucher,
+  Call, ChatMessage, Delivery, Dish, Job, Merchant, Notification, Order, Payment, Reservation, Review, User, Voucher,
 } from "./types.js";
 
 export interface Db {
@@ -18,12 +18,14 @@ export interface Db {
   deliveries: Map<string, Delivery>;
   jobs: Map<string, Job>;
   reviews: Review[];
+  messages: ChatMessage[];
+  calls: Map<string, Call>;
 }
 
 export const db: Db = {
   users: new Map(), tokens: new Map(), merchants: new Map(), dishes: new Map(), orders: new Map(),
   payments: new Map(), reservations: new Map(), vouchers: [], notifications: new Map(),
-  deliveries: new Map(), jobs: new Map(), reviews: [],
+  deliveries: new Map(), jobs: new Map(), reviews: [], messages: [], calls: new Map(),
 };
 
 export const CAMPUS = { lat: 1.5533, lng: 110.3592 };

@@ -11,8 +11,12 @@ export const env = {
   aiModel: process.env.AI_MODEL ?? "gpt-6-luna",
 
   // ---- business rules (FR / NFR references in docs/requirements) ----
-  // FR-5.5: merchant has 10 minutes to accept a new paid order.
+  // FR-5.5: merchant has 10 minutes to confirm a new order request. Payment only happens after that.
   orderResponseMs: num(process.env.ORDER_RESPONSE_MS, 10 * 60 * 1000),
+  // After the restaurant confirms, the customer has this long to pay before the request lapses.
+  paymentWindowMs: num(process.env.PAYMENT_WINDOW_MS, 10 * 60 * 1000),
+  // In-app calls: how long a call rings before it counts as missed.
+  callRingMs: num(process.env.CALL_RING_MS, 30 * 1000),
   // FR-5.8: restaurant has 30 minutes to reply to a reservation.
   reservationResponseMs: num(process.env.RESERVATION_RESPONSE_MS, 30 * 60 * 1000),
   // FR-1.2: minimum age at sign-up. The requirements do not give the number; 18 is an assumption to confirm.

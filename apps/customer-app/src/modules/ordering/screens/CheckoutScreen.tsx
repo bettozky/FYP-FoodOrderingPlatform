@@ -23,9 +23,6 @@ export default function CheckoutScreen({ navigation }: any) {
   const { refresh } = useLive();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [voucherId, setVoucherId] = useState<string>("");
-  const [card, setCard] = useState("4242 4242 4242 4242");
-  const [expiry, setExpiry] = useState("12/30");
-  const [cvc, setCvc] = useState("123");
   const [note, setNote] = useState("");
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
@@ -77,13 +74,12 @@ export default function CheckoutScreen({ navigation }: any) {
         items,
         address: hasDelivery ? { label: address.label, line: note.trim() ? `${address.line} (${note.trim()})` : address.line, lat: address.lat, lng: address.lng } : undefined,
         voucherId: voucherId || undefined,
-        card: { number: card },
       });
       clearCart();
       await refresh();
       navigation.reset({ index: 1, routes: [{ name: "MainTabs" }, { name: "OrderTracking", params: { orderId: r.order.id } }] });
     } catch (e) {
-      setError(errorText(e)); // e.g. "Your card was declined" - the cart is kept so the customer can retry (FR-2.4)
+      setError(errorText(e)); // the cart is kept so the customer can retry
     } finally {
       setPlacing(false);
     }
@@ -155,15 +151,11 @@ export default function CheckoutScreen({ navigation }: any) {
           {eligible.length === 0 && <Text style={type.small}>No voucher applies to this order yet.</Text>}
         </View>
 
-        <Text style={[type.h3, { marginTop: spacing.xl }]}>Pay with card</Text>
+        <Text style={[type.h3, { marginTop: spacing.xl }]}>How it works</Text>
         <View style={styles.card}>
-          <Text style={type.small}>Card payments are processed by Stripe (simulated here). Card details are never stored.</Text>
-          <TextInput style={styles.input} value={card} onChangeText={(t) => setCard(formatCard(t))} keyboardType="number-pad" placeholder="Card number" placeholderTextColor={colors.textFaint} testID="card-number" />
-          <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <TextInput style={[styles.input, { flex: 1 }]} value={expiry} onChangeText={setExpiry} placeholder="MM/YY" placeholderTextColor={colors.textFaint} />
-            <TextInput style={[styles.input, { flex: 1 }]} value={cvc} onChangeText={(t) => setCvc(t.replace(/\D/g, "").slice(0, 4))} placeholder="CVC" placeholderTextColor={colors.textFaint} keyboardType="number-pad" secureTextEntry />
-          </View>
-          <Text style={type.small}>Test cards: 4242 4242 4242 4242 succeeds · 4000 0000 0000 0002 is declined.</Text>
+          <Text style={type.body}>1. {merchant.name} gets your order request straight away and has 10 minutes to confirm it.</Text>
+          <Text style={type.body}>2. Once they confirm, you pay by card. You are not charged before that.</Text>
+          <Text style={type.small}>You can chat or call the restaurant from the order screen while you wait. If they decline or don't reply, nothing is charged.</Text>
         </View>
 
         {error ? (
@@ -172,13 +164,10 @@ export default function CheckoutScreen({ navigation }: any) {
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
-        <Text style={[type.small, { marginTop: spacing.md }]}>
-          After you pay, {merchant.name} has 10 minutes to accept. If they don't, the order is cancelled and refunded automatically.
-        </Text>
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton label={`Pay · RM ${total.toFixed(2)}`} loading={placing} onPress={placeOrder} />
+        <PrimaryButton label={`Send order to restaurant · RM ${total.toFixed(2)}`} loading={placing} onPress={placeOrder} />
       </View>
     </View>
   );

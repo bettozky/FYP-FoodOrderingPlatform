@@ -16,7 +16,10 @@ import { AuthProvider } from "./src/modules/auth/AuthContext";
 import { CartProvider } from "./src/modules/ordering/CartContext";
 import { LiveDataProvider } from "./src/modules/ordering/LiveDataContext";
 import { CatalogProvider } from "./src/modules/discovery/CatalogContext";
+import { ChatProvider } from "./src/modules/chat/ChatContext";
+import { CallProvider } from "./src/modules/calls/CallContext";
 import GlobalPopups from "./src/modules/notifications/GlobalPopups";
+import { navRef } from "./src/navigation/navRef";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { colors } from "./src/shared/theme/theme";
 
@@ -47,11 +50,15 @@ export default function App() {
         <CatalogProvider>
           <CartProvider>
             <LiveDataProvider>
-              <NavigationContainer>
+              <NavigationContainer ref={navRef}>
                 <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
                   <StatusBar style="dark" />
-                  <RootNavigator />
-                  <GlobalPopups />
+                  <CallProvider>
+                    <ChatProvider>
+                      <RootNavigator />
+                      <GlobalPopups />
+                    </ChatProvider>
+                  </CallProvider>
                 </View>
               </NavigationContainer>
             </LiveDataProvider>

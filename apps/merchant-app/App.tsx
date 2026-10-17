@@ -14,6 +14,8 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { AuthProvider } from "./src/modules/auth/AuthContext";
 import { LiveDataProvider } from "./src/modules/orders/LiveDataContext";
+import { ChatProvider } from "./src/modules/chat/ChatContext";
+import { CallProvider } from "./src/modules/calls/CallContext";
 import PopupHost from "./src/modules/notifications/PopupHost";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { colors } from "./src/shared/theme/theme";
@@ -46,8 +48,12 @@ export default function App() {
           <NavigationContainer>
             <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
               <StatusBar style="dark" />
-              <RootNavigator />
-              <PopupHost />
+              <CallProvider>
+                <ChatProvider>
+                  <RootNavigator />
+                  <PopupHost />
+                </ChatProvider>
+              </CallProvider>
             </View>
           </NavigationContainer>
         </LiveDataProvider>

@@ -71,7 +71,8 @@ export interface OrderItem {
 }
 
 export type OrderStatus =
-  | "awaiting_merchant"
+  | "awaiting_merchant" // request sent, restaurant has 10 minutes to confirm. Nothing is paid yet.
+  | "awaiting_payment" // restaurant confirmed, customer must pay within the payment window
   | "preparing"
   | "completed"
   | "rejected"
@@ -92,12 +93,15 @@ export interface Order {
   discount: number;
   total: number;
   refunded: number;
-  paymentId: string;
+  paymentId?: string; // set when the customer pays, after the restaurant has confirmed
   voucherId?: string;
   status: OrderStatus;
   decision?: "pending" | "accepted_partial" | "cancelled"; // out-of-stock decision by the customer
   respondBy: number; // epoch ms: merchant deadline
   createdAt: number;
+  payBy?: number; // epoch ms: customer payment deadline once the restaurant confirms
+  paidAt?: number;
+  cancelReason?: "not_paid" | "no_reply" | "customer";
   acceptedAt?: number;
   completedAt?: number;
   reviewedDishIds: string[];
@@ -214,4 +218,43 @@ export interface Review {
   rating: number;
   comment?: string;
   createdAt: number;
+}
+
+export type ChatRole = "customer" | "merchant";
+export type ThreadKind = "order" | "reservation";
+
+export interface ChatMessage {
+  seq: number;
+  id: string;
+  kind: ThreadKind;
+  threadId: string;
+  from: ChatRole | "system";
+  text: string;
+  at: number;
+  readBy: ChatRole[];
+}
+
+export type CallStatus = "ringing" | "active" | "ended" | "declined" | "missed";
+
+export interface CallSignal {
+  seq: number;
+  from: ChatRole;
+  type: "offer" | "answer" | "candidate";
+  data: unknown;
+}
+
+export interface Call {
+  id: string;
+  kind: ThreadKind;
+  threadId: string;
+  callerRole: ChatRole;
+  callerUserId: string;
+  calleeUserId: string;
+  callerName: string;
+  calleeName: string;
+  status: CallStatus;
+  createdAt: number;
+  answeredAt?: number;
+  endedAt?: number;
+  signals: CallSignal[];
 }

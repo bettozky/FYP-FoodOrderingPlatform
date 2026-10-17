@@ -11,14 +11,16 @@ import { confirmAsync } from "../../../shared/util/confirm";
 import { mmss, useCountdown } from "../../../shared/util/format";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
+import ChatButtons from "../../chat/ChatButton";
 
 type Tone = "primary" | "warning" | "success" | "neutral";
 const ORDER_BADGE: Record<Order["status"], { label: string; tone: Tone }> = {
   awaiting_merchant: { label: "New - answer now", tone: "warning" },
+  awaiting_payment: { label: "Confirmed - awaiting payment", tone: "warning" },
   preparing: { label: "Preparing", tone: "primary" },
   completed: { label: "Completed", tone: "success" },
   rejected: { label: "Rejected", tone: "neutral" },
-  expired: { label: "Missed (refunded)", tone: "neutral" },
+  expired: { label: "Missed / not paid", tone: "neutral" },
   cancelled: { label: "Cancelled", tone: "neutral" },
 };
 const ITEM_BADGE: Record<OrderItem["status"], { label: string; tone: Tone }> = {
@@ -33,7 +35,12 @@ const ITEM_BADGE: Record<OrderItem["status"], { label: string; tone: Tone }> = {
 
 function Timer({ deadline }: { deadline: number }) {
   const s = useCountdown(deadline);
-  return <Text style={styles.timer}><Ionicons name="timer-outline" size={14} /> {mmss(s)} to accept</Text>;
+  return <Text style={styles.timer}><Ionicons name="timer-outline" size={14} /> {mmss(s)} to confirm</Text>;
+}
+
+function PayTimer({ deadline }: { deadline: number }) {
+  const s = useCountdown(deadline);
+  return <Text style={styles.timer}><Ionicons name="card-outline" size={14} /> Waiting for the customer to pay · {mmss(s)} left</Text>;
 }
 
 function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) {
@@ -68,6 +75,7 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
       </View>
       <Text style={type.bodyMuted}>{order.customerName} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
       {order.status === "awaiting_merchant" && <Timer deadline={order.respondBy} />}
+      {order.status === "awaiting_payment" && order.payBy && <PayTimer deadline={order.payBy} />}
       {order.decision === "pending" && <Text style={styles.warn}>Waiting for the customer to decide about the out-of-stock item…</Text>}
 
       {modes.map((m) => (
@@ -111,10 +119,12 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
         {order.refunded > 0 && <Text style={type.small}>Refunded RM {order.refunded.toFixed(2)}</Text>}
       </View>
 
+      {["awaiting_merchant", "awaiting_payment", "preparing"].includes(order.status) && <ChatButtons kind="order" id={order.id} allowCall />}
+
       {order.status === "awaiting_merchant" && (
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
           <PrimaryButton label="Reject" variant="danger" style={{ flex: 1 }} disabled={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: false }))} />
-          <PrimaryButton label="Accept" variant="success" style={{ flex: 2 }} loading={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: true }))} />
+          <PrimaryButton label="Confirm" variant="success" style={{ flex: 2 }} loading={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: true }))} />
         </View>
       )}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -125,7 +135,7 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
 export default function MerchantOrderQueueScreen() {
   const { orders, refresh } = useLive();
   const [tab, setTab] = useState<"active" | "done">("active");
-  const active = orders.filter((o) => o.status === "awaiting_merchant" || o.status === "preparing");
+  const active = orders.filter((o) => o.status === "awaiting_merchant" || o.status === "awaiting_payment" || o.status === "preparing");
   const shown = tab === "active" ? active : orders.filter((o) => !active.includes(o));
 
   return (
@@ -142,7 +152,7 @@ export default function MerchantOrderQueueScreen() {
         data={shown}
         keyExtractor={(o) => o.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<EmptyState icon="receipt-outline" title={tab === "active" ? "No active orders" : "No past orders yet"} hint={tab === "active" ? "New paid orders pop up here automatically, with an alert sound." : "Completed orders will be listed here."} />}
+        ListEmptyComponent={<EmptyState icon="receipt-outline" title={tab === "active" ? "No active orders" : "No past orders yet"} hint={tab === "active" ? "New order requests pop up here automatically, with an alert sound." : "Completed orders will be listed here."} />}
         renderItem={({ item }) => <OrderCard order={item} onChange={refresh} />}
       />
     </View>

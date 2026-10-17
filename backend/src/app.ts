@@ -6,6 +6,8 @@ import { aiAssistantRouter } from "./modules/ai-assistant/ai-assistant.routes.js
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { deliveryRouter } from "./modules/delivery/delivery.routes.js";
 import { merchantReservationsRouter, reservationsRouter } from "./modules/dine-in/reservations.routes.js";
+import { callsRouter } from "./modules/calls/calls.routes.js";
+import { chatRouter } from "./modules/chat/chat.routes.js";
 import { catalogRouter, merchantRouter } from "./modules/merchants/merchants.routes.js";
 import { notificationsRouter } from "./modules/notifications/notifications.routes.js";
 import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.routes.js";
@@ -23,6 +25,8 @@ app.get("/", (_req, res) => {
 
 // One router per module (NFR-8). Add new modules here as they are built.
 app.use("/api/auth", authRouter);
+app.use("/api/chat", chatRouter);
+app.use("/api/calls", callsRouter);
 app.use("/api", catalogRouter); // merchants, dishes, venues, vouchers, jobs
 app.use("/api/orders", ordersRouter);
 app.use("/api/reservations", reservationsRouter);

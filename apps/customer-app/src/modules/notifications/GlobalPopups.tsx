@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import PrimaryButton from "../../shared/components/PrimaryButton";
 import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { navRef } from "../../navigation/navRef";
 import { useLive } from "../ordering/LiveDataContext";
 
 // App-wide pop-ups, shown on top of whatever screen the customer is on:
@@ -107,7 +108,14 @@ export default function GlobalPopups() {
             </View>
             <Text style={styles.title}>{shownGeneric?.title}</Text>
             <Text style={styles.body}>{shownGeneric?.body}</Text>
-            <PrimaryButton label="OK" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
+            {shownGeneric?.type === "order_accepted" ? (
+              <>
+                <PrimaryButton label="Pay now" testID="notice-pay" onPress={() => { const id = shownGeneric.data?.orderId; if (generic) ack(generic.id); if (id && navRef.isReady()) navRef.navigate("OrderTracking", { orderId: id }); }} style={{ alignSelf: "stretch" }} />
+                <PrimaryButton label="Later" variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
+              </>
+            ) : (
+              <PrimaryButton label="OK" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
+            )}
           </View>
         </View>
       </Modal>

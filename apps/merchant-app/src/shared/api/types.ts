@@ -11,7 +11,8 @@ export type Order = {
   id: string; customerName: string; customerPhone?: string; items: OrderItem[];
   deliveryAddress?: { label: string; line: string };
   subtotal: number; deliveryFee: number; discount: number; total: number; refunded: number;
-  status: "awaiting_merchant" | "preparing" | "completed" | "rejected" | "expired" | "cancelled";
+  status: "awaiting_merchant" | "awaiting_payment" | "preparing" | "completed" | "rejected" | "expired" | "cancelled";
+  payBy?: number; paidAt?: number; cancelReason?: "no_reply" | "not_paid" | "customer";
   decision?: "pending" | "accepted_partial" | "cancelled";
   respondBy: number; createdAt: number;
 };

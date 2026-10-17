@@ -36,4 +36,4 @@ To add a module, create its router and mount it in `src/app.ts`.
 - `AI_MODEL` can be set in `.env` (default is the model name the project already used).
 
 ## Order, reservation and delivery flows
-Implemented in `src/modules/{ordering,dine-in,delivery}`; a 1 s sweeper (`src/jobs/deadlines.ts`) expires unanswered orders (10 min) and reservations (30 min), auto-refunds, advances delivery stages and sends reservation reminders. Run `node tests/smoke.mjs` against a running server. Coverage: `docs/requirements/REQUIREMENT_COVERAGE.md`.
+Implemented in `src/modules/{ordering,dine-in,delivery}`; a 1 s sweeper (`src/jobs/deadlines.ts`) expires unanswered orders (10 min) and reservations (30 min), cancels unpaid orders (10 min payment window), auto-refunds, advances delivery stages and sends reservation reminders. Run `node tests/smoke.mjs` against a running server. Coverage: `docs/requirements/REQUIREMENT_COVERAGE.md`.

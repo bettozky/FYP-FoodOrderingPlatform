@@ -17,7 +17,6 @@ export interface NewOrderInput {
   items: { dishId: string; mode: FulfilmentMode; qty: number; options?: string[] }[];
   address?: { label: string; line: string; lat: number; lng: number };
   voucherId?: string;
-  card: unknown;
 }
 
 export function placeOrder(inp: NewOrderInput): Order {
@@ -49,35 +48,35 @@ export function placeOrder(inp: NewOrderInput): Order {
   const subtotal = money(items.reduce((s, i) => s + i.price * i.qty, 0));
   const deliveryFee = hasDelivery ? env.deliveryFee : 0; // one fee for the whole mixed order (FR-2.3)
 
-  let discount = 0;
-  if (inp.voucherId) {
-    const v = db.vouchers.find((x) => x.id === inp.voucherId);
-    if (!v || (v.merchantId && v.merchantId !== m.id)) throw new HttpError(400, "That voucher is not valid here");
-    if (subtotal < v.minSpend) throw new HttpError(400, `Voucher needs a minimum spend of RM${v.minSpend.toFixed(2)}`);
-    if (v.requireCategory && !items.some((i) => db.dishes.get(i.dishId)?.category === v.requireCategory))
-      throw new HttpError(400, `Voucher needs a ${v.requireCategory} dish in your order`);
-    if (!v.active || (v.expiryDate && v.expiryDate < new Date().toISOString().slice(0, 10)) || (v.totalLimit !== undefined && v.claimed >= v.totalLimit))
-      throw new HttpError(400, "That voucher is no longer available");
-    discount = money(Math.min(v.kind === "percent" ? (subtotal * v.amount) / 100 : v.amount, subtotal));
-  }
+  const discount = voucherDiscount(inp.voucherId, m.id, items, subtotal);
   const total = money(subtotal + deliveryFee - discount);
 
+  // Nothing is charged here. The restaurant sees the request first (FR-5.5), and the
+  // customer only pays once the restaurant has confirmed it.
   const id = nextOrderId();
-  const payment = charge(total, inp.card, id); // one payment for every mode (FR-2.4)
   const now = Date.now();
   const order: Order = {
     id, customerId: customer.id, customerName: customer.name, customerPhone: customer.phone,
     merchantId: m.id, merchantName: m.name, items, deliveryAddress: hasDelivery ? inp.address : undefined,
-    subtotal, deliveryFee, discount, total, refunded: 0, paymentId: payment.id, voucherId: inp.voucherId,
+    subtotal, deliveryFee, discount, total, refunded: 0, voucherId: inp.voucherId,
     status: "awaiting_merchant", respondBy: now + env.orderResponseMs, createdAt: now, reviewedDishIds: [],
   };
   db.orders.set(id, order);
-  if (inp.voucherId) {
-    const v = db.vouchers.find((x) => x.id === inp.voucherId);
-    if (v) { v.claimed += 1; v.costSpent = money(v.costSpent + discount); }
-  }
-  notifyMerchant(m.id, "new_order", "New order", `${customer.name} - RM${total.toFixed(2)}`, { orderId: id });
+  notifyMerchant(m.id, "new_order", "New order request", `${customer.name} - RM${total.toFixed(2)} (not paid yet)`, { orderId: id });
   return order;
+}
+
+/** Checks a voucher against a basket and returns the discount in RM. Throws when it cannot be used. */
+function voucherDiscount(voucherId: string | undefined, merchantId: string, items: OrderItem[], subtotal: number): number {
+  if (!voucherId) return 0;
+  const v = db.vouchers.find((x) => x.id === voucherId);
+  if (!v || (v.merchantId && v.merchantId !== merchantId)) throw new HttpError(400, "That voucher is not valid here");
+  if (subtotal < v.minSpend) throw new HttpError(400, `Voucher needs a minimum spend of RM${v.minSpend.toFixed(2)}`);
+  if (v.requireCategory && !items.some((i) => db.dishes.get(i.dishId)?.category === v.requireCategory))
+    throw new HttpError(400, `Voucher needs a ${v.requireCategory} dish in your order`);
+  if (!v.active || (v.expiryDate && v.expiryDate < new Date().toISOString().slice(0, 10)) || (v.totalLimit !== undefined && v.claimed >= v.totalLimit))
+    throw new HttpError(400, "That voucher is no longer available");
+  return money(Math.min(v.kind === "percent" ? (subtotal * v.amount) / 100 : v.amount, subtotal));
 }
 
 function refundOrder(o: Order, amount: number, reason: string) {
@@ -86,32 +85,69 @@ function refundOrder(o: Order, amount: number, reason: string) {
 
 export function merchantRespond(o: Order, accept: boolean) {
   if (o.status !== "awaiting_merchant") throw new HttpError(409, "This order was already answered");
-  if (Date.now() > o.respondBy) throw new HttpError(409, "The 10-minute window has passed. The order was cancelled and refunded.");
+  if (Date.now() > o.respondBy) throw new HttpError(409, "The 10-minute window has passed. The request was cancelled.");
   if (accept) {
-    o.status = "preparing";
+    // Confirmed by the restaurant. The customer now confirms by paying; stock only moves after that.
+    o.status = "awaiting_payment";
     o.acceptedAt = Date.now();
-    for (const i of o.items) {
-      const d = db.dishes.get(i.dishId);
-      if (d && d.stock !== undefined) {
-        d.stock = Math.max(0, d.stock - i.qty); // stock only moves once the restaurant accepts
-        if (d.stock === 0) d.soldOut = true;
-      }
-    }
-    notify(o.customerId, "order_accepted", "Order accepted", `${o.merchantName} is preparing your food.`, { orderId: o.id });
+    o.payBy = o.acceptedAt + env.paymentWindowMs;
+    notify(o.customerId, "order_accepted", "Restaurant confirmed your order", `${o.merchantName} can make your order. Pay RM${o.total.toFixed(2)} to confirm it.`, { orderId: o.id, payBy: o.payBy });
   } else {
     o.status = "rejected";
     o.items.forEach((i) => (i.status = "cancelled"));
-    refundOrder(o, o.total, "Rejected by restaurant");
-    notify(o.customerId, "order_rejected", "Order rejected", `${o.merchantName} could not take your order. You were refunded RM${o.total.toFixed(2)}.`, { orderId: o.id });
+    notify(o.customerId, "order_rejected", "Order declined", `${o.merchantName} could not take your order. You were not charged.`, { orderId: o.id });
   }
+}
+
+/** FR-2.4: the customer pays after the restaurant confirmed. One payment covers every mode. */
+export function payOrder(o: Order, card: unknown) {
+  if (o.status !== "awaiting_payment") throw new HttpError(409, o.status === "awaiting_merchant" ? "Wait for the restaurant to confirm first" : "This order cannot be paid");
+  if (!o.payBy || Date.now() > o.payBy) throw new HttpError(409, "The payment window has passed. Please send a new order.");
+  for (const i of o.items) {
+    const d = db.dishes.get(i.dishId);
+    if (!d || d.soldOut || (d.stock !== undefined && d.stock < i.qty)) throw new HttpError(409, `${i.name} just sold out. Cancel this order and pick something else.`);
+  }
+  const v = o.voucherId ? db.vouchers.find((x) => x.id === o.voucherId) : undefined;
+  if (v) voucherDiscount(v.id, o.merchantId, o.items, o.subtotal); // still valid? throws if not
+  const payment = charge(o.total, card, o.id);
+  o.paymentId = payment.id;
+  o.paidAt = Date.now();
+  o.status = "preparing";
+  for (const i of o.items) {
+    const d = db.dishes.get(i.dishId);
+    if (d && d.stock !== undefined) {
+      d.stock = Math.max(0, d.stock - i.qty);
+      if (d.stock === 0) d.soldOut = true;
+    }
+  }
+  if (v) { v.claimed += 1; v.costSpent = money(v.costSpent + o.discount); }
+  notifyMerchant(o.merchantId, "order_paid", "Order paid", `${o.customerName} paid RM${o.total.toFixed(2)} for order ${o.id}. Start preparing.`, { orderId: o.id });
+}
+
+/** The customer withdraws a request before paying. */
+export function cancelRequest(o: Order) {
+  if (o.status !== "awaiting_merchant" && o.status !== "awaiting_payment") throw new HttpError(409, "This order can no longer be cancelled here");
+  o.status = "cancelled";
+  o.cancelReason = "customer";
+  o.items.forEach((i) => (i.status = "cancelled"));
+  notifyMerchant(o.merchantId, "order_cancelled", "Request withdrawn", `${o.customerName} cancelled order ${o.id} before paying.`, { orderId: o.id });
 }
 
 export function expireOrder(o: Order) {
   o.status = "expired";
+  o.cancelReason = "no_reply";
   o.items.forEach((i) => (i.status = "cancelled"));
-  refundOrder(o, o.total, "Restaurant did not respond in time");
-  notify(o.customerId, "order_expired", "Order cancelled", `${o.merchantName} did not reply in time. You were refunded RM${o.total.toFixed(2)}.`, { orderId: o.id });
-  notifyMerchant(o.merchantId, "order_missed", "Order missed", `Order ${o.id} expired with no reply and was refunded.`, { orderId: o.id });
+  notify(o.customerId, "order_expired", "Order cancelled", `${o.merchantName} did not reply in time. You were not charged.`, { orderId: o.id });
+  notifyMerchant(o.merchantId, "order_missed", "Order missed", `Order ${o.id} expired with no reply.`, { orderId: o.id });
+}
+
+/** The restaurant confirmed but the customer never paid. */
+export function expireUnpaid(o: Order) {
+  o.status = "expired";
+  o.cancelReason = "not_paid";
+  o.items.forEach((i) => (i.status = "cancelled"));
+  notify(o.customerId, "order_expired", "Order cancelled", `You did not pay in time, so ${o.merchantName} released order ${o.id}.`, { orderId: o.id });
+  notifyMerchant(o.merchantId, "order_unpaid", "Order not paid", `${o.customerName} did not pay for order ${o.id} in time. It was cancelled.`, { orderId: o.id });
 }
 
 export function markOutOfStock(o: Order, itemId: string) {

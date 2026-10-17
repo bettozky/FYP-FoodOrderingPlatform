@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2494" height="750" viewBox="0 0 2494 750">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5A554B"/></marker></defs>
+<rect width="2494" height="750" fill="#FBFAF6"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#15130F" text-anchor="start"><tspan x="30" y="44.0">Order lifecycle: customer, server, merchant and rider</tspan></text>
+<text font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#8C8880" text-anchor="start"><tspan x="30" y="66.3">Order request first, payment only after the merchant confirms. One order can mix dine-in, takeaway and delivery. Every timer runs on the server.</tspan></text>
+<rect x="20" y="90" width="2454" height="150" fill="#FDF1DA" fill-opacity="0.55" stroke="#D9860B" stroke-opacity="0.5"/>
+<rect x="20" y="90" width="120" height="150" fill="#D9860B" fill-opacity="0.9"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle"><tspan x="80.0" y="169.3">Customer</tspan></text>
+<rect x="20" y="240" width="2454" height="150" fill="#F1EEE6" fill-opacity="0.55" stroke="#8C8880" stroke-opacity="0.5"/>
+<rect x="20" y="240" width="120" height="150" fill="#8C8880" fill-opacity="0.9"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle"><tspan x="80.0" y="311.3">ScootMeal</tspan><tspan x="80.0" y="327.3">server</tspan></text>
+<rect x="20" y="390" width="2454" height="150" fill="#EAF3EC" fill-opacity="0.55" stroke="#2F6F4E" stroke-opacity="0.5"/>
+<rect x="20" y="390" width="120" height="150" fill="#2F6F4E" fill-opacity="0.9"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle"><tspan x="80.0" y="469.3">Merchant</tspan></text>
+<rect x="20" y="540" width="2454" height="150" fill="#E3EEF8" fill-opacity="0.55" stroke="#2B7BB9" stroke-opacity="0.5"/>
+<rect x="20" y="540" width="120" height="150" fill="#2B7BB9" fill-opacity="0.9"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle"><tspan x="80.0" y="611.3">Rider</tspan><tspan x="80.0" y="627.3">(simulated)</tspan></text>
+<path d="M300.0,165.0 L328.0,165.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M478.0,165.0 L506.0,165.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M656.0,165.0 L684.0,165.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M834.0,165.0 L862.0,165.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M834.0,165.0 L850.0,165.0 L850.0,315.0 L862.0,315.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1012.0,315.0 L1028.0,315.0 L1028.0,465.0 L1040.0,465.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1190.0,465.0 L1218.0,465.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1293.0,419.0 L1293.0,352.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="1295.0" y="374.5" width="22.2" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="1306.1" y="386.0">No</tspan></text>
+<path d="M1293.0,278.0 L1293.0,202.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1376.0,465.0 L1384.0,465.0 L1384.0,165.0 L1396.0,165.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="1384.0" y="304.0" width="28.3" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="1398.15" y="315.5">Yes</tspan></text>
+<path d="M1471.0,202.0 L1471.0,278.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="1473.0" y="229.0" width="58.8" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="1502.4" y="240.5">not paid</tspan></text>
+<path d="M1546.0,165.0 L1562.0,165.0 L1562.0,315.0 L1574.0,315.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="1562.0" y="229.0" width="34.4" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="1579.2" y="240.5">pays</tspan></text>
+<path d="M1724.0,315.0 L1740.0,315.0 L1740.0,465.0 L1752.0,465.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M1827.0,428.0 L1827.0,202.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="1829.0" y="304.0" width="71.0" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="1864.5" y="315.5">stock gone</tspan></text>
+<path d="M1902.0,465.0 L1930.0,465.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M2005.0,428.0 L2005.0,202.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="2007.0" y="304.0" width="119.8" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="2066.9" y="315.5">dine-in / takeaway</tspan></text>
+<path d="M2005.0,502.0 L2005.0,578.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="2007.0" y="529.0" width="58.8" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="2036.4" y="540.5">delivery</tspan></text>
+<path d="M2080.0,615.0 L2108.0,615.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M2183.0,578.0 L2183.0,202.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M2258.0,165.0 L2286.0,165.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<path d="M2005.0,128.0 L2005.0,104.0 L2361.0,104.0 L2361.0,128.0" fill="none" stroke="#5A554B" stroke-width="1.6" marker-end="url(#a)"/>
+<rect x="2150.6" y="97.0" width="64.9" height="16" rx="8" fill="#FBFAF6" stroke="#CFC9BA"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#5A554B" text-anchor="middle"><tspan x="2183.0" y="108.5">collected</tspan></text>
+<rect x="150.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="225.0" y="161.6">Sign in</tspan><tspan x="225.0" y="176.1">(18+ only, no guest)</tspan></text>
+<rect x="328.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="403.0" y="161.6">Browse &amp; filter</tspan><tspan x="403.0" y="176.1">dietary · dry/wet · distance</tspan></text>
+<rect x="506.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="581.0" y="154.3">Build cart: Dine-in,</tspan><tspan x="581.0" y="168.8">Takeaway or Delivery</tspan><tspan x="581.0" y="183.3">per item</tspan></text>
+<rect x="684.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="759.0" y="161.6">Send order request</tspan><tspan x="759.0" y="176.1">(NO payment yet)</tspan></text>
+<rect x="862.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="937.0" y="161.6">&#x27;Awaiting restaurant&#x27;</tspan><tspan x="937.0" y="176.1">+ live chat / call</tspan></text>
+<rect x="862.0" y="278.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#8C8880" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="937.0" y="304.3">Request stored</tspan><tspan x="937.0" y="318.8">10-minute timer starts</tspan><tspan x="937.0" y="333.3">(server clock)</tspan></text>
+<rect x="1040.0" y="428.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#2F6F4E" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="1115.0" y="447.1">Full-screen pop-up</tspan><tspan x="1115.0" y="461.6">+ alert sound</tspan><tspan x="1115.0" y="476.1">(before payment)</tspan><tspan x="1115.0" y="490.6">chat / call customer</tspan></text>
+<polygon points="1293.0,419.0 1376.0,465.0 1293.0,511.0 1210.0,465.0" fill="#FFFFFF" stroke="#15130F" stroke-width="1.6"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="1293.0" y="461.7">Confirmed within</tspan><tspan x="1293.0" y="475.7">10 minutes?</tspan></text>
+<rect x="1218.0" y="278.0" width="150" height="74" rx="12" fill="#FBE9E6" stroke="#C2382C" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="1293.0" y="304.3">Declined or timed out:</tspan><tspan x="1293.0" y="318.8">cancelled, nothing</tspan><tspan x="1293.0" y="333.3">charged</tspan></text>
+<rect x="1218.0" y="128.0" width="150" height="74" rx="12" fill="#FBE9E6" stroke="#C2382C" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="1293.0" y="161.6">Customer told,</tspan><tspan x="1293.0" y="176.1">nothing to refund</tspan></text>
+<rect x="1396.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="1471.0" y="154.3">&#x27;Restaurant confirmed&#x27;</tspan><tspan x="1471.0" y="168.8">pop-up: Pay now</tspan><tspan x="1471.0" y="183.3">(card, 10-min window)</tspan></text>
+<rect x="1396.0" y="278.0" width="150" height="74" rx="12" fill="#FBE9E6" stroke="#C2382C" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="1471.0" y="304.3">Not paid in time:</tspan><tspan x="1471.0" y="318.8">cancelled, nothing</tspan><tspan x="1471.0" y="333.3">charged</tspan></text>
+<rect x="1574.0" y="278.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#8C8880" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="1649.0" y="304.3">Payment taken</tspan><tspan x="1649.0" y="318.8">stock + voucher locked</tspan><tspan x="1649.0" y="333.3">merchant told: start</tspan></text>
+<rect x="1752.0" y="428.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#2F6F4E" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="1827.0" y="454.3">Preparing.</tspan><tspan x="1827.0" y="468.8">Item out of stock?</tspan><tspan x="1827.0" y="483.3">mark it (optional)</tspan></text>
+<rect x="1752.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="1827.0" y="154.3">Customer chooses:</tspan><tspan x="1827.0" y="168.8">continue (partial refund)</tspan><tspan x="1827.0" y="183.3">or cancel (full refund)</tspan></text>
+<rect x="1930.0" y="428.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#2F6F4E" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="2005.0" y="461.6">Mark Ready /</tspan><tspan x="2005.0" y="476.1">hand over</tspan></text>
+<rect x="1930.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="2005.0" y="154.3">Dine-in / takeaway:</tspan><tspan x="2005.0" y="168.8">&#x27;Food ready&#x27; pop-up +</tspan><tspan x="2005.0" y="183.3">vibration until confirmed</tspan></text>
+<rect x="1930.0" y="578.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#2B7BB9" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="2005.0" y="611.6">Delivery items:</tspan><tspan x="2005.0" y="626.1">rider assigned</tspan></text>
+<rect x="2108.0" y="578.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#2B7BB9" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="2183.0" y="611.6">Picked up → On the way</tspan><tspan x="2183.0" y="626.1">→ Delivered</tspan></text>
+<rect x="2108.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#15130F" text-anchor="middle"><tspan x="2183.0" y="161.6">Track the rider</tspan><tspan x="2183.0" y="176.1">live on the map</tspan></text>
+<rect x="2286.0" y="128.0" width="150" height="74" rx="12" fill="#FFFFFF" stroke="#D9860B" stroke-width="1.8"/>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#15130F" text-anchor="middle"><tspan x="2361.0" y="161.6">Order complete</tspan><tspan x="2361.0" y="176.1">rate each dish</tspan></text>
+<text font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#8C8880" text-anchor="start"><tspan x="30" y="729.7">Red boxes = cancelled or refunded paths. Bold boxes = moments the app interrupts the user with a pop-up.</tspan></text>
+</svg>
