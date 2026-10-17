@@ -4,12 +4,15 @@ import { slotEpoch } from "../lib/time.js";
 import { db } from "../store/db.js";
 import { isDelivered } from "../modules/delivery/delivery.service.js";
 import { notify } from "../modules/notifications/notifications.service.js";
-import { checkComplete, expireOrder } from "../modules/ordering/ordering.service.js";
+import { checkComplete, expireOrder, expireUnpaid } from "../modules/ordering/ordering.service.js";
+import { expireCalls } from "../modules/calls/calls.service.js";
 import { expireReservation } from "../modules/dine-in/reservations.service.js";
 
 export function sweep(now = Date.now()) {
+  expireCalls(now);
   for (const o of db.orders.values()) {
     if (o.status === "awaiting_merchant" && now > o.respondBy) expireOrder(o);
+    if (o.status === "awaiting_payment" && o.payBy && now > o.payBy) expireUnpaid(o);
     if (o.status === "preparing") {
       if (o.items.some((i) => i.status === "handed_over") && isDelivered(o.id)) {
         o.items.forEach((i) => { if (i.status === "handed_over") i.status = "delivered"; });

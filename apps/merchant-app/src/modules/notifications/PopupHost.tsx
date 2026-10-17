@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Linking, Modal, Platform, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import { Modal, Platform, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { api, errorText, serverTime } from "../../shared/api/client";
 import { MODE_LABEL, Mode, Order, Reservation } from "../../shared/api/types";
 import PrimaryButton from "../../shared/components/PrimaryButton";
@@ -7,12 +7,16 @@ import { RESTAURANT_TABLES } from "../../shared/tables";
 import { startAlert, stopAlert } from "../../shared/util/alertSound";
 import { mmss, prettyDate, useCountdown } from "../../shared/util/format";
 import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import ChatPanel from "../chat/ChatPanel";
+import { useChat } from "../chat/ChatContext";
+import { useCall } from "../calls/CallContext";
 import { useLive } from "../orders/LiveDataContext";
 
 // Full-screen pop-ups with an alert sound:
-//   FR-5.5  new paid order  -> items + fulfilment modes, Accept / Reject, 10-minute countdown
+//   FR-5.5  new order request (not paid yet) -> items + fulfilment modes, Confirm / Reject, 10-minute countdown.
+//           The customer pays only after the merchant confirms. Chat and in-app call with the customer are available here.
 //   FR-5.8  new reservation -> booking + pre-order, Approve / Decline, 30-minute countdown
-//   FR-5.9  reservation pop-up has a "Call customer" button
+//   FR-5.9  reservation pop-up has chat and an in-app "Call customer" button
 export default function PopupHost() {
   const { orders, reservations, refresh } = useLive();
   const [skipped, setSkipped] = useState<string[]>([]); // reservations the merchant chose to handle later
@@ -81,12 +85,28 @@ function Countdown({ deadline, minutes }: { deadline: number; minutes: number })
   );
 }
 
+function ContactBar({ kind, id, name, chatOpen, onToggle }: { kind: "order" | "reservation"; id: string; name: string; chatOpen: boolean; onToggle: () => void }) {
+  const { startCall, inCall } = useCall();
+  const { unreadFor } = useChat();
+  const n = unreadFor(kind, id);
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <View style={{ flexDirection: "row", gap: spacing.sm }}>
+        <PrimaryButton label={chatOpen ? "Hide chat" : `Chat with ${name}${n ? `  (${n})` : ""}`} variant="ghostLight" onPress={onToggle} style={{ flex: 1 }} testID="popup-chat-toggle" />
+        <PrimaryButton label="Call" variant="ghostLight" onPress={() => startCall(kind, id)} disabled={inCall} style={{ flex: 1 }} testID="call-customer" />
+      </View>
+      {chatOpen && <ChatPanel kind={kind} id={id} height={320} />}
+    </View>
+  );
+}
+
 function OrderPopup({ order, busy, error, onAnswer }: { order: Order; busy: boolean; error: string; onAnswer: (accept: boolean) => void }) {
+  const [chatOpen, setChatOpen] = useState(false);
   const modes = (["dine_in", "takeaway", "delivery"] as Mode[]).filter((m) => order.items.some((i) => i.mode === m));
   return (
     <View style={styles.screen} testID="order-popup">
       <ScrollView contentContainerStyle={styles.body}>
-        <Text style={styles.kicker}>NEW PAID ORDER</Text>
+        <Text style={styles.kicker}>NEW ORDER REQUEST</Text>
         <Text style={styles.title}>#{order.id} · {order.customerName}</Text>
         <Countdown deadline={order.respondBy} minutes={10} />
         {modes.map((m) => (
@@ -100,12 +120,14 @@ function OrderPopup({ order, busy, error, onAnswer }: { order: Order; busy: bool
             {m === "delivery" && order.deliveryAddress && <Text style={type.small}>Deliver to: {order.deliveryAddress.line}</Text>}
           </View>
         ))}
-        <Text style={styles.total}>Paid: RM {order.total.toFixed(2)}</Text>
+        <Text style={styles.total}>Total: RM {order.total.toFixed(2)}</Text>
+        <Text style={type.small}>Not paid yet. The customer pays after you confirm.</Text>
+        <ContactBar kind="order" id={order.id} name={order.customerName} chatOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
       <View style={styles.actions}>
         <PrimaryButton label="Reject" variant="danger" onPress={() => onAnswer(false)} disabled={busy} style={{ flex: 1 }} testID="order-reject" />
-        <PrimaryButton label="Accept order" variant="success" onPress={() => onAnswer(true)} loading={busy} style={{ flex: 2 }} testID="order-accept" />
+        <PrimaryButton label="Confirm order" variant="success" onPress={() => onAnswer(true)} loading={busy} style={{ flex: 2 }} testID="order-accept" />
       </View>
     </View>
   );
@@ -116,6 +138,7 @@ function ReservationPopup(props: {
   onApprove: (table: string) => void; onDecline: () => void; onLater: () => void;
 }) {
   const { r, all, busy, error, pickTable, setPickTable } = props;
+  const [chatOpen, setChatOpen] = useState(false);
   const taken = new Set(all.filter((x) => x.id !== r.id && x.status === "confirmed" && x.date === r.date && x.time === r.time && x.allocatedTable).map((x) => x.allocatedTable));
   return (
     <View style={styles.screen} testID="reservation-popup">
@@ -134,7 +157,7 @@ function ReservationPopup(props: {
             ))}
           </View>
         )}
-        <PrimaryButton label={`Call customer  ·  ${r.customerPhone}`} variant="ghostLight" onPress={() => Linking.openURL(`tel:${r.customerPhone.replace(/\s/g, "")}`)} testID="call-customer" />
+        <ContactBar kind="reservation" id={r.id} name={r.customerName} chatOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
 
         {pickTable && (
           <View style={styles.group}>

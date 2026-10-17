@@ -9,6 +9,7 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
+  testID?: string;
 };
 
 export default function PrimaryButton({
@@ -18,12 +19,14 @@ export default function PrimaryButton({
   disabled,
   loading,
   style,
+  testID,
 }: Props) {
   const isOutline = variant === "outline";
   const isSecondary = variant === "secondary";
   return (
     <Pressable
       onPress={onPress}
+      testID={testID}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,

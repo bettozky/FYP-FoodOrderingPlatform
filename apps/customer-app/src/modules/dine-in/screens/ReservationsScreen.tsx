@@ -1,3 +1,4 @@
+import ChatButtons from "../../chat/ChatButton";
 import React, { useState } from "react";
 import EmptyState from "../../../shared/components/EmptyState";
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
@@ -80,6 +81,7 @@ function ReservationCard({ r, onChange, navigation }: { r: Reservation; onChange
         </View>
       )}
       {open && !beforeCutoff && <Text style={type.small}>Changes and cancellations close {Math.round(r.cutoffMs / 60000)} minutes before your slot.</Text>}
+      {open && <ChatButtons kind="reservation" id={r.id} allowCall />}
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );

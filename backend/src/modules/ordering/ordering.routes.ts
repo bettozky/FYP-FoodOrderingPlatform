@@ -4,7 +4,7 @@ import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
 import { db } from "../../store/db.js";
 import type { Order } from "../../store/types.js";
 import {
-  confirmCollected, customerDecision, handOver, markOutOfStock, markReady, merchantRespond, placeOrder, reviewItem,
+  cancelRequest, confirmCollected, customerDecision, handOver, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
 } from "./ordering.service.js";
 
 function view(o: Order) {
@@ -21,7 +21,7 @@ ordersRouter.post("/", (req, res) => {
   const b = req.body ?? {};
   const order = placeOrder({
     customerId: u.id, merchantId: String(b.merchantId ?? ""), items: b.items, address: b.address,
-    voucherId: b.voucherId || undefined, card: b.card?.number,
+    voucherId: b.voucherId || undefined,
   });
   res.status(201).json({ serverNow: Date.now(), order: view(order) });
 });
@@ -39,6 +39,20 @@ ordersRouter.get("/", (_req, res) => {
 });
 
 ordersRouter.get("/:id", (req, res) => res.json({ serverNow: Date.now(), order: view(mine(res, req.params.id as string)) }));
+
+// The customer pays only after the restaurant has confirmed the request.
+ordersRouter.post("/:id/pay", (req, res) => {
+  const o = mine(res, req.params.id as string);
+  payOrder(o, req.body?.card?.number);
+  res.json({ serverNow: Date.now(), order: view(o) });
+});
+
+// The customer withdraws a request before paying.
+ordersRouter.post("/:id/cancel", (req, res) => {
+  const o = mine(res, req.params.id as string);
+  cancelRequest(o);
+  res.json({ serverNow: Date.now(), order: view(o) });
+});
 
 // FR-2.5: accept a partial order or cancel for a full refund.
 ordersRouter.post("/:id/decision", (req, res) => {

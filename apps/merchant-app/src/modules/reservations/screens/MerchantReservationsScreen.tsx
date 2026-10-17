@@ -6,7 +6,6 @@ import {
   Text,
   FlatList,
   Pressable,
-  Linking,
   Modal,
   ScrollView,
 } from "react-native";
@@ -19,6 +18,7 @@ import { confirmAsync } from "../../../shared/util/confirm";
 import { mmss, prettyDate, useCountdown } from "../../../shared/util/format";
 import { colors, type } from "../../../shared/theme/theme";
 import { merchantReservationStyles as s } from "../styles";
+import ChatButtons from "../../chat/ChatButton";
 import { useLive } from "../../orders/LiveDataContext";
 
 function Remaining({ deadline }: { deadline: number }) {
@@ -61,9 +61,6 @@ export default function MerchantReservationsScreen() {
       await refresh();
     }
   }
-
-  // FR-5.9: dial the customer
-  const handleCallCustomer = (phone: string) => Linking.openURL(`tel:${phone.replace(/\s/g, "")}`);
 
   const handleOpenAssignTable = (rsv: Reservation) => {
     setSelectedRsv(rsv);
@@ -177,10 +174,8 @@ export default function MerchantReservationsScreen() {
                   <Text style={[type.body, { fontWeight: "700" }]}>{item.customerName}</Text>
                   <Text style={type.small}>{item.customerPhone}</Text>
                 </View>
-                <Pressable style={s.callBtn} onPress={() => handleCallCustomer(item.customerPhone)}>
-                  <Text style={s.callBtnText}><Ionicons name="call-outline" size={14} /> Call customer</Text>
-                </Pressable>
               </View>
+              {(item.status === "awaiting_restaurant" || item.status === "confirmed") && <ChatButtons kind="reservation" id={item.id} allowCall />}
 
               {item.specialRequest ? (
                 <Text style={[type.small, { fontStyle: "italic", color: colors.textMuted }]}>Note: "{item.specialRequest}"</Text>

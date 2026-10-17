@@ -8,7 +8,8 @@ Status: **Done** = implemented against the real backend and covered by `backend/
 | FR-1.2 | Date of birth, age block (18+) | `AuthScreen`, `auth.routes` (`MIN_AGE`) | Done |
 | FR-1.3-1.6 | Search, dietary + dry/wet filters, distance, open/closed | `HomeScreen`, `merchants.routes` | Done |
 | FR-2.2/2.3 | Per-item mode (delivery / dine-in / takeaway) in one payment | `DishDetailScreen`, `CartScreen`, `placeOrder` | Done |
-| FR-2.4 | Payment | `payment.service` | Simulated Stripe (4242… ok, …0002 declined) |
+| FR-2.4 | Payment (after merchant confirms) | `payOrder`, `OrderTrackingScreen` pay panel | Simulated Stripe (4242… ok, …0002 declined) |
+| Change request | Live chat + in-app call customer <-> merchant | `modules/chat`, `modules/calls`, `ChatPanel`, `CallContext` | Done (WebRTC, polling signalling) |
 | FR-2.5 | Out-of-stock: partial continue or cancel, auto refund | `markOutOfStock`, `GlobalPopups` | Done |
 | FR-2.7 | Food-ready pop-up with vibration until confirmed | `GlobalPopups` | Done (vibration on native only) |
 | FR-2.8 | Item reviews | `OrderTrackingScreen`, `reviewItem` | Done |
@@ -17,11 +18,11 @@ Status: **Done** = implemented against the real backend and covered by `backend/
 | FR-4.1 | Jobs | `JobsScreen` (both apps) | Done |
 | FR-4.2 | AI assistant | `AIScreen` (live context) + backend | Needs `OPENAI_API_KEY` |
 | FR-5.1 | Merchant onboarding with admin approval | `MerchantLoginScreen`, `PendingApprovalScreen`, `admin.routes` | Done |
-| FR-5.5 | 10-minute order pop-up with alert sound | `PopupHost`, `deadlines.ts` | Done (sound needs a user gesture on web) |
+| FR-5.5 | 10-minute order request pop-up with alert sound (before payment) | `PopupHost`, `deadlines.ts` | Done (sound needs a user gesture on web) |
 | FR-5.6 | Mark item out of stock | Orders screen, Menu | Done |
 | FR-5.7 | Ready / handover | Order queue | Done |
 | FR-5.8 | 30-minute reservation pop-up, table assign | `PopupHost` | Done |
-| FR-5.9 | Call customer | reservation popup | Done (opens dialer) |
+| FR-5.9 | Call customer | reservation popup | Done (in-app call + chat) |
 | FR-5.10 | Separate pre-order approval | Reservations screen | Done |
 | FR-5.11 | Vouchers | Vouchers screen | Done |
 | FR-5.12 | Analytics | Analytics screen | Done |
