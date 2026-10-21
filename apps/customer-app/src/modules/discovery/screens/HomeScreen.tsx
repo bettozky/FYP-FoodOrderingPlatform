@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import EmptyState from "../../../shared/components/EmptyState";
-import { View, Text, TextInput, FlatList, StyleSheet, Pressable, Animated, Modal, ScrollView } from "react-native";
+import { View, Text, TextInput, FlatList, StyleSheet, Pressable, Animated, Modal, ScrollView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api, errorText } from "../../../shared/api/client";
@@ -10,6 +10,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
+import PromoBanner from "../components/PromoBanner";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 
 const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -123,6 +124,7 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
               <Ionicons name="search" size={15} color={colors.paper} style={{ opacity: 0.8 }} />
               <TextInput
                 style={styles.searchInput}
+                accessibilityLabel="Search dishes"
                 placeholder="Search a dish, e.g. beef noodle"
                 placeholderTextColor="#B6AD99"
                 value={query}
@@ -130,6 +132,8 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
                 testID="search-input"
               />
             </View>
+
+            <PromoBanner />
 
             <FlatList
               horizontal
@@ -228,7 +232,8 @@ const styles = StyleSheet.create({
   addrRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, marginHorizontal: spacing.lg, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg, ...shadow.soft },
   addrLabel: { fontFamily: fonts.display, fontSize: 11, color: colors.stone, marginBottom: 1 },
   searchBar: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.ink, marginHorizontal: spacing.lg, marginTop: spacing.md, borderRadius: radius.md, paddingHorizontal: spacing.md, ...shadow.card },
-  searchInput: { flex: 1, paddingVertical: 13, fontSize: 14, fontFamily: fonts.serif, color: colors.paper },
+  // On web the browser draws its own focus box inside the dark pill; the pill itself is the visible field.
+  searchInput: { flex: 1, paddingVertical: 13, fontSize: 14, fontFamily: fonts.serif, color: colors.paper, ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : {}) },
   chipsRow: { paddingHorizontal: spacing.lg, gap: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm },
   tile: { alignItems: "center", width: 56, marginRight: spacing.sm },
   tileIcon: { width: 52, height: 52, borderRadius: radius.md, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },

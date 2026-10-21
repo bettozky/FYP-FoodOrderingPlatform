@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Dish, Merchant } from "../../../shared/api/types";
 import { colors, radius, shadow, spacing, type, fonts } from "../../../shared/theme/theme";
 import Badge from "../../../shared/components/Badge";
+import { useFavourites } from "../../favourites/FavouritesContext";
 
 type Props = {
   dish: Dish;
@@ -13,7 +14,8 @@ type Props = {
 };
 
 export default function DishCard({ dish, merchant, onPress, onAdd }: Props) {
-  const [fav, setFav] = useState(false);
+  const { isFav, toggle } = useFavourites();
+  const fav = isFav(dish.id);
   const [justAdded, setJustAdded] = useState(false);
   const closed = !!merchant && !merchant.openNow;
   const unavailable = dish.soldOut || closed;
@@ -58,18 +60,20 @@ export default function DishCard({ dish, merchant, onPress, onAdd }: Props) {
           )}
         </View>
         <Pressable
-          hitSlop={8}
+          hitSlop={11}
           onPress={(e) => {
             e.stopPropagation?.();
-            setFav((f) => !f);
+            toggle(dish.id);
           }}
           style={styles.favBtn}
+          accessibilityRole="button"
+          accessibilityLabel={fav ? `Remove ${dish.name} from favourites` : `Add ${dish.name} to favourites`}
         >
           <Ionicons name={fav ? "heart" : "heart-outline"} size={13} color={fav ? colors.chili : colors.stone} />
         </Pressable>
       </View>
       <View style={styles.info}>
-        <Text style={type.h3} numberOfLines={1}>
+        <Text style={type.h3} numberOfLines={2}>
           {dish.name}
         </Text>
         {merchant && (
@@ -79,7 +83,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd }: Props) {
           </View>
         )}
         {merchant && (
-          <Text style={styles.metaText} numberOfLines={1}>
+          <Text style={styles.metaText} numberOfLines={2}>
             {merchant.openNow ? "Open" : `Closed · opens ${merchant.hours.open}`}  ·  {merchant.distanceKm} km  ·  {merchant.prepMinutes} min
           </Text>
         )}
@@ -111,8 +115,10 @@ export default function DishCard({ dish, merchant, onPress, onAdd }: Props) {
                 e.stopPropagation?.();
                 handleAdd();
               }}
-              hitSlop={8}
+              hitSlop={10}
               style={styles.addBtn}
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${dish.name} to cart`}
             >
               <Ionicons name={justAdded ? "checkmark" : "add"} size={20} color={colors.white} />
             </Pressable>
@@ -166,8 +172,8 @@ const styles = StyleSheet.create({
   info: { flex: 1, paddingHorizontal: spacing.md, gap: 3 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
-  merchantName: { flexShrink: 1, fontSize: 12.5, fontFamily: fonts.display, color: colors.stone },
-  metaText: { fontSize: 11.5, fontFamily: fonts.serifMedium, color: colors.textFaint },
+  merchantName: { flexShrink: 1, fontSize: 12.5, fontFamily: fonts.display, color: colors.stoneText },
+  metaText: { fontSize: 12, fontFamily: fonts.serifMedium, color: colors.stoneText },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginTop: 2, flexWrap: "wrap" },
   addBtn: {
     width: 32,

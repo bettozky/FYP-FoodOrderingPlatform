@@ -31,6 +31,12 @@ export const colors = {
   white: "#FFFFFF",
   overlay: "rgba(21,19,15,0.5)",
 
+  // Darker tones of the same hues, used only for small TEXT so it meets 4.5:1 contrast
+  // (colors.stone / turmericDeep / chili stay for icons, borders and large shapes).
+  stoneText: "#6B675F",
+  amberText: "#8A5200",
+  chiliText: "#AE2A1F",
+
   // semantic aliases so existing screens keep working unchanged
   surface: "#FFFFFF",
   surfaceAlt: "#F4F1EA",
@@ -69,8 +75,8 @@ export const type = {
   h2: { fontSize: 19, fontFamily: fonts.displayBold, color: colors.ink, letterSpacing: -0.2 },
   h3: { fontSize: 15, fontFamily: fonts.display, color: colors.ink },
   body: { fontSize: 15, fontFamily: fonts.serif, color: colors.ink },
-  bodyMuted: { fontSize: 14, fontFamily: fonts.serif, color: colors.stone },
-  small: { fontSize: 12, fontFamily: fonts.display, color: colors.stone },
+  bodyMuted: { fontSize: 14, fontFamily: fonts.serif, color: colors.stoneText },
+  small: { fontSize: 12, fontFamily: fonts.display, color: colors.stoneText },
   price: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.ink },
 };
 

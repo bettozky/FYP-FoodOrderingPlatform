@@ -27,6 +27,9 @@ export default function PrimaryButton({
     <Pressable
       onPress={onPress}
       testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,
@@ -44,7 +47,7 @@ export default function PrimaryButton({
         <Text
           style={[
             type.h3,
-            { color: isOutline ? colors.primary : colors.white, fontSize: 15 },
+            { color: isOutline ? colors.primary : colors.white, fontSize: 15, textAlign: "center", flexShrink: 1 },
           ]}
         >
           {label}
@@ -57,6 +60,8 @@ export default function PrimaryButton({
 const styles = StyleSheet.create({
   base: {
     paddingVertical: 14,
+    paddingHorizontal: spacing.md,
+    minHeight: 48,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",

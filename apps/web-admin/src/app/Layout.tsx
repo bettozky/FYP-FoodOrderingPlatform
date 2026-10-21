@@ -15,9 +15,10 @@ export default function Layout() {
   const { name, logout } = useAuth();
   return (
     <div className="shell">
+      <a className="skip-link" href="#main">Skip to content</a>
       <aside className="sidebar">
         <h2>ScootMeal Admin</h2>
-        <nav>
+        <nav aria-label="Main">
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.to === "/"}>
               {l.label}
@@ -29,7 +30,7 @@ export default function Layout() {
           <button onClick={logout}>Log out</button>
         </div>
       </aside>
-      <main className="content">
+      <main className="content" id="main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

@@ -16,8 +16,10 @@ export default function LoginPage() {
       }}
     >
       <h1>ScootMeal Admin</h1>
-      <input placeholder="Admin email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <label htmlFor="admin-email">Admin email</label>
+      <input id="admin-email" placeholder="Admin email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <label htmlFor="admin-password">Password</label>
+      <input id="admin-password" placeholder="Password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
       <button className="btn" type="submit">Sign in</button>
     </form>
   );

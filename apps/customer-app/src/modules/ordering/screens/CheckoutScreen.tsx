@@ -99,18 +99,18 @@ export default function CheckoutScreen({ navigation }: any) {
                 <Text style={styles.modeHead}>{MODE_LABEL[m]}</Text>
                 {part.map((l) => (
                   <View key={l.key + m} style={styles.summaryLine}>
-                    <Text style={type.body}>{l.qty[m]}x {l.dish.name}</Text>
-                    <Text style={type.body}>RM {(l.dish.price * l.qty[m]).toFixed(2)}</Text>
+                    <Text style={[type.body, styles.summaryLabel]}>{l.qty[m]}x {l.dish.name}</Text>
+                    <Text style={[type.body, styles.summaryValue]}>RM {(l.dish.price * l.qty[m]).toFixed(2)}</Text>
                   </View>
                 ))}
               </View>
             );
           })}
           <View style={styles.divider} />
-          <View style={styles.summaryLine}><Text style={type.bodyMuted}>Subtotal</Text><Text style={type.body}>RM {subtotal.toFixed(2)}</Text></View>
-          {hasDelivery && <View style={styles.summaryLine}><Text style={type.bodyMuted}>Delivery fee</Text><Text style={type.body}>RM {deliveryFee.toFixed(2)}</Text></View>}
-          {discount > 0 && <View style={styles.summaryLine}><Text style={type.bodyMuted}>Voucher</Text><Text style={[type.body, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
-          <View style={styles.summaryLine}><Text style={type.h3}>Total</Text><Text style={type.h3} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
+          <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Subtotal</Text><Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text></View>
+          {hasDelivery && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Delivery fee</Text><Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text></View>}
+          {discount > 0 && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Voucher</Text><Text style={[type.body, styles.summaryValue, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
+          <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel]}>Total</Text><Text style={[type.h3, styles.summaryValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
         </View>
 
         {hasDelivery && (
@@ -167,7 +167,7 @@ export default function CheckoutScreen({ navigation }: any) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton label={`Send order to restaurant · RM ${total.toFixed(2)}`} loading={placing} onPress={placeOrder} />
+        <PrimaryButton label={`Send order to restaurant · RM\u00A0${total.toFixed(2)}`} loading={placing} onPress={placeOrder} />
       </View>
     </View>
   );
@@ -177,7 +177,10 @@ const styles = StyleSheet.create({
   wrap: { padding: spacing.lg, paddingBottom: 140 },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.border, gap: 8 },
   modeHead: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
-  summaryLine: { flexDirection: "row", justifyContent: "space-between" },
+  // Name/label wraps in the leftover width; the amount never wraps or collides with the name.
+  summaryLine: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md },
+  summaryLabel: { flex: 1 },
+  summaryValue: { flexShrink: 0, textAlign: "right" },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
   option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },

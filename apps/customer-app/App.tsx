@@ -16,6 +16,7 @@ import { AuthProvider } from "./src/modules/auth/AuthContext";
 import { CartProvider } from "./src/modules/ordering/CartContext";
 import { LiveDataProvider } from "./src/modules/ordering/LiveDataContext";
 import { CatalogProvider } from "./src/modules/discovery/CatalogContext";
+import { FavouritesProvider } from "./src/modules/favourites/FavouritesContext";
 import { ChatProvider } from "./src/modules/chat/ChatContext";
 import { CallProvider } from "./src/modules/calls/CallContext";
 import GlobalPopups from "./src/modules/notifications/GlobalPopups";
@@ -47,6 +48,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
+        <FavouritesProvider>
         <CatalogProvider>
           <CartProvider>
             <LiveDataProvider>
@@ -64,6 +66,7 @@ export default function App() {
             </LiveDataProvider>
           </CartProvider>
         </CatalogProvider>
+        </FavouritesProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );
