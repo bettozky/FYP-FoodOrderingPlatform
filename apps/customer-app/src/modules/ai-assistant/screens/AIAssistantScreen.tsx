@@ -20,10 +20,6 @@ import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
 
 
-// Frontend draft of the ScootMeal AI assistant. Replies are canned/keyword
-// matched for now so the interaction and layout can be reviewed before any
-// real model is wired up — swap `craftReply` for a real API call later and
-// nothing else here needs to change.
 
 type Message = { id: string; from: "user" | "bot"; text: string };
 
@@ -35,7 +31,50 @@ const INTRO: Message = {
   text: "Hi, I'm the ScootMeal Assistant 👋 Ask me about your order, a dish, or an account issue.",
 };
 
+function getFallbackReply(message: string): string {
+  const text = message.toLowerCase().trim();
 
+  // Randomly select an introduction to indicate that the AI is temporarily unavailable.
+  const introductions = [
+    "Sorry, I'm temporarily unavailable.",
+    "I'm having trouble connecting right now.",
+    "Sorry, I can't provide an AI response right now.",
+  ];
+
+  const intro =
+    introductions[Math.floor(Math.random() * introductions.length)];
+
+  let answer: string;
+
+  // Basic fallback answers for common questions, in English, Malay, and Chinese.
+  // IF the backend fails
+  if (
+    /opening hours|business hours|what time|open today|closing time|waktu operasi|waktu buka|pukul berapa|营业时间|几点开|几点关/.test(text)
+  ) {
+    answer =
+      "Opening hours vary by restaurant. I can't confirm them right now, so please check with the restaurant.";
+  } else if (
+    /pay|payment|bayar|pembayaran|付款|支付/.test(text)
+  ) {
+    answer =
+      "Once the restaurant confirms your order, open the order and follow the payment instructions.";
+  } else if (
+    /where.*order|order status|track.*order|status pesanan|pesanan.*mana|订单状态|订单.*哪|追踪订单/.test(text)
+  ) {
+    answer =
+      "You can check your order in the app's Orders section. I can't confirm its current status right now.";
+  } else if (
+    /how.*order|place.*order|how.*cart|add.*cart|cara.*pesan|cara.*order|cara.*tempah|怎么下单|如何下单|怎么点餐|购物车/.test(text)
+  ) {
+    answer =
+      "Browse the menu, select a dish, add it to your cart, then review your order before submitting it.";
+  } else {
+    answer =
+      "You can still browse the menu and manage your orders in the app. For quick help, ask about opening hours, how to order, or how to pay.";
+  }
+
+  return `${intro}\n\n${answer}\n\nPlease try chatting again shortly.`;
+}
 
 export default function AIAssistantScreen() {
   const insets = useSafeAreaInsets();
@@ -111,7 +150,7 @@ export default function AIAssistantScreen() {
     const botMsg: Message = {
       id: `b${Date.now()}`,
       from: "bot",
-      text: "Sorry, I couldn't connect to the ScootMeal AI service. Please try again.",
+      text: getFallbackReply(trimmed),
     };
 
     setMessages((m) => [...m, botMsg]);
