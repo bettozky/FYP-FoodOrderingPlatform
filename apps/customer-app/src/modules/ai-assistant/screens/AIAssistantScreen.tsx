@@ -12,12 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
-import { API_URL } from "../../../shared/config";
-
-import { loyalty } from "../../../shared/data/mockData";
 import { api } from "../../../shared/api/client";
-import { useCatalog } from "../../discovery/CatalogContext";
-import { useLive } from "../../ordering/LiveDataContext";
+
 
 
 
@@ -82,8 +78,6 @@ export default function AIAssistantScreen() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
-  const { merchants } = useCatalog();
-  const { orders } = useLive();
 
   async function send(text: string) {
   const trimmed = text.trim();
@@ -96,7 +90,7 @@ export default function AIAssistantScreen() {
     text: trimmed,
   };
 
-  setMessages((m) => [...m, userMsg]);
+  setMessages((previous) => [...previous, userMsg]);
   setInput("");
   setTyping(true);
 
@@ -105,47 +99,39 @@ export default function AIAssistantScreen() {
   );
 
   try {
-    // Live ScootMeal data for the assistant's context (real menu, vouchers and the customer's orders).
-    const [{ dishes }, { vouchers }] = await Promise.all([
-      api<{ dishes: unknown[] }>("GET", "/dishes"),
-      api<{ vouchers: unknown[] }>("GET", "/vouchers"),
-    ]);
-    const activeOrder = orders.find((o) => o.status === "awaiting_merchant" || o.status === "preparing") ?? null;
-    const orderHistory = orders.filter((o) => o !== activeOrder).slice(0, 10);
-    const response = await fetch(`${API_URL}/api/ai/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    // The existing API helper automatically sends the login token.
+    // Menu, voucher, and order data are now read on the server.
+    const data = await api<{ reply: string }>(
+      "POST",
+      "/ai/chat",
+      {
         message: trimmed,
-        history: messages,
-        context: {
-          merchants,
-          dishes,
-          activeOrder,
-          orderHistory,
-          loyalty,
-          vouchers,
-        },
-      }),
-    });
+        history: messages
+          .filter((message) => message.id !== "intro")
+          .slice(-20)
+          .map((message) => ({
+            from: message.from,
+            text: message.text,
+          })),
+      }
+    );
 
-    if (!response.ok) {
-      throw new Error("AI request failed");
+    if (
+      typeof data.reply !== "string" ||
+      !data.reply.trim()
+    ) {
+      throw new Error("Invalid AI response");
     }
-
-    const data = await response.json();
 
     const botMsg: Message = {
       id: `b${Date.now()}`,
       from: "bot",
-      text: data.reply,
+      text: data.reply.trim(),
     };
 
-    setMessages((m) => [...m, botMsg]);
-  } catch (error) {
-    console.error(error);
+    setMessages((previous) => [...previous, botMsg]);
+  } catch {
+    console.warn("[AI Assistant] Showing local fallback.");
 
     const botMsg: Message = {
       id: `b${Date.now()}`,
@@ -153,7 +139,7 @@ export default function AIAssistantScreen() {
       text: getFallbackReply(trimmed),
     };
 
-    setMessages((m) => [...m, botMsg]);
+    setMessages((previous) => [...previous, botMsg]);
   } finally {
     setTyping(false);
 
