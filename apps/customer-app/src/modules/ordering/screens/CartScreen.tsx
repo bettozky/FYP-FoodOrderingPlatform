@@ -48,7 +48,7 @@ export default function CartScreen({ navigation }: any) {
                 <Text style={type.h3}>{item.dish.name}</Text>
                 <Text style={type.bodyMuted}>RM {item.dish.price.toFixed(2)} each{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
               </View>
-              <Pressable onPress={() => removeLine(item.key)} hitSlop={8} testID={`remove-${item.dish.id}`}>
+              <Pressable onPress={() => removeLine(item.key)} hitSlop={12} testID={`remove-${item.dish.id}`} accessibilityRole="button" accessibilityLabel={`Remove ${item.dish.name} from cart`}>
                 <Ionicons name="trash-outline" size={18} color={colors.stone} />
               </Pressable>
             </View>
@@ -57,11 +57,11 @@ export default function CartScreen({ navigation }: any) {
                 <Ionicons name={MODE_ICON[m] as any} size={15} color={item.qty[m] ? colors.ink : colors.textFaint} />
                 <Text style={[styles.modeLabel, !item.qty[m] && { color: colors.stone }]}>{MODE_LABEL[m]}</Text>
                 <View style={styles.stepper}>
-                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] - 1)} style={styles.stepBtn} testID={`dec-${item.dish.id}-${m}`}>
+                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] - 1)} hitSlop={8} style={styles.stepBtn} testID={`dec-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Decrease ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
                     <Text style={styles.stepBtnText}>–</Text>
                   </Pressable>
                   <Text style={styles.qty} testID={`qty-${item.dish.id}-${m}`}>{item.qty[m]}</Text>
-                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] + 1)} style={styles.stepBtn} testID={`inc-${item.dish.id}-${m}`}>
+                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] + 1)} hitSlop={8} style={styles.stepBtn} testID={`inc-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Increase ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
                     <Text style={styles.stepBtnText}>+</Text>
                   </Pressable>
                 </View>
@@ -74,18 +74,18 @@ export default function CartScreen({ navigation }: any) {
 
       <View style={styles.footer}>
         <View style={styles.summaryRow}>
-          <Text style={type.bodyMuted}>Subtotal</Text>
-          <Text style={type.body}>RM {subtotal.toFixed(2)}</Text>
+          <Text style={[type.bodyMuted, styles.summaryLabel]}>Subtotal</Text>
+          <Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text>
         </View>
         {hasDelivery && (
           <View style={styles.summaryRow}>
-            <Text style={type.bodyMuted}>Delivery fee (once, for delivery items)</Text>
-            <Text style={type.body}>RM {deliveryFee.toFixed(2)}</Text>
+            <Text style={[type.bodyMuted, styles.summaryLabel]}>Delivery fee (once, for delivery items)</Text>
+            <Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text>
           </View>
         )}
         <View style={[styles.summaryRow, { marginTop: 4 }]}>
-          <Text style={type.h3}>Total</Text>
-          <Text style={type.h3} testID="cart-total">RM {total.toFixed(2)}</Text>
+          <Text style={[type.h3, styles.summaryLabel]}>Total</Text>
+          <Text style={[type.h3, styles.summaryValue]} testID="cart-total">RM {total.toFixed(2)}</Text>
         </View>
         <PrimaryButton label="Proceed to checkout" style={{ marginTop: spacing.md }} onPress={() => navigation.navigate("Checkout")} />
       </View>
@@ -101,10 +101,13 @@ const styles = StyleSheet.create({
   modeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.sm, paddingVertical: 6, paddingHorizontal: spacing.md },
   modeLabel: { flex: 1, fontFamily: fonts.display, fontSize: 13, color: colors.ink },
   stepper: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  stepBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border },
+  stepBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border },
   stepBtnText: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.text, marginTop: -1 },
   qty: { minWidth: 18, textAlign: "center", fontFamily: fonts.displayBold },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
+  // Label takes the leftover width and wraps; the price keeps its own width so "RM 3.50" never splits.
+  summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md, marginBottom: 6 },
+  summaryLabel: { flex: 1 },
+  summaryValue: { flexShrink: 0, textAlign: "right" },
   emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: spacing.xl },
 });

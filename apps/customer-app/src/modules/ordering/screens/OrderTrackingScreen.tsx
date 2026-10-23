@@ -12,6 +12,7 @@ import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
 import { formatCard } from "./CheckoutScreen";
 import { itemBadge, orderBadge } from "../orderStatus";
+import OrderProgress from "../OrderProgress";
 
 function Waiting({ order }: { order: Order }) {
   const s = useCountdown(order.respondBy);
@@ -111,6 +112,8 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           <Badge label={badge.label} tone={badge.tone} />
         </View>
+
+        <OrderProgress order={order} />
 
         {order.status === "awaiting_merchant" && <Waiting order={order} />}
         {order.status === "awaiting_payment" && <PayPanel order={order} onDone={refresh} />}

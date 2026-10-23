@@ -18,16 +18,24 @@ export default function ScreenHeader({ title, subtitle, showBack = true, right }
     <View style={[styles.wrap, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.left}>
         {showBack && navigation.canGoBack() && (
-          <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.backBtn} testID="back">
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={10}
+            style={styles.backBtn}
+            testID="back"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <Text style={styles.backArrow}>{"‹"}</Text>
           </Pressable>
         )}
-        <View>
-          <Text style={type.h2}>{title}</Text>
-          {subtitle ? <Text style={type.bodyMuted}>{subtitle}</Text> : null}
+        {/* flex:1 + minWidth:0 lets a long title/subtitle wrap inside the screen width */}
+        <View style={styles.titleCol}>
+          <Text style={type.h2} accessibilityRole="header">{title}</Text>
+          {subtitle ? <Text style={type.bodyMuted} numberOfLines={2}>{subtitle}</Text> : null}
         </View>
       </View>
-      {right}
+      {right ? <View style={styles.right}>{right}</View> : null}
     </View>
   );
 }
@@ -42,7 +50,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     backgroundColor: colors.bg,
   },
-  left: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  left: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flex: 1, minWidth: 0 },
+  titleCol: { flex: 1, minWidth: 0 },
+  right: { flexShrink: 0, marginLeft: spacing.sm },
   backBtn: {
     width: 34,
     height: 34,

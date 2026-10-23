@@ -157,7 +157,7 @@ export default function AuthScreen() {
                   onSubmitEditing={doLogin}
                   testID="login-password"
                 />
-                <Pressable onPress={() => setShowPassword((s) => !s)} hitSlop={8} style={{ paddingRight: spacing.md }}>
+                <Pressable onPress={() => setShowPassword((s) => !s)} hitSlop={12} style={{ paddingRight: spacing.md }} accessibilityRole="button" accessibilityLabel={showPassword ? "Hide password" : "Show password"}>
                   <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={18} color={colors.stone} />
                 </Pressable>
               </View>
@@ -292,7 +292,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     ...shadow.card,
   },
-  ctaText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 15 },
+  // ink on amber is 9.2:1; white on amber was 2.0:1 (fails WCAG AA)
+  ctaText: { color: colors.ink, fontFamily: fonts.displayBold, fontSize: 15 },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.xl, marginTop: spacing.sm },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: { ...type.small },

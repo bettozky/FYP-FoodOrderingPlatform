@@ -1,12 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { useAuth } from "../../auth/AuthContext";
+import Badge from "../../../shared/components/Badge";
 import { loyalty } from "../../../shared/data/mockData";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 
-const menuItems = [
+// `go` = a screen that exists. Rows without it have nothing behind them yet, so they are shown as
+// "Soon" and disabled instead of looking tappable and doing nothing.
+const menuItems: { icon: string; label: string; go?: string }[] = [
+  { icon: "❤️", label: "Saved dishes", go: "Favourites" },
+  { icon: "📍", label: "Delivery addresses", go: "Addresses" },
   { icon: "💼", label: "Jobs", go: "Jobs" },
-  { icon: "📍", label: "Delivery addresses" },
   { icon: "💳", label: "Payment methods" },
   { icon: "🔔", label: "Notifications" },
   { icon: "❓", label: "Help & support" },
@@ -31,10 +35,18 @@ export default function AccountScreen({ navigation }: any) {
 
         <View style={styles.section}>
           {menuItems.map((m) => (
-            <Pressable key={m.label} style={styles.menuRow} onPress={() => (m as any).go && navigation.navigate((m as any).go)}>
+            <Pressable
+              key={m.label}
+              style={[styles.menuRow, !m.go && { opacity: 0.6 }]}
+              disabled={!m.go}
+              onPress={() => m.go && navigation.navigate(m.go)}
+              accessibilityRole="button"
+              accessibilityLabel={m.go ? m.label : `${m.label}, coming soon`}
+              accessibilityState={{ disabled: !m.go }}
+            >
               <Text style={{ fontSize: 18 }}>{m.icon}</Text>
               <Text style={[type.body, { flex: 1 }]}>{m.label}</Text>
-              <Text style={{ color: colors.textFaint }}>{"›"}</Text>
+              {m.go ? <Text style={{ color: colors.stone }}>{"›"}</Text> : <Badge label="Soon" tone="neutral" />}
             </Pressable>
           ))}
         </View>

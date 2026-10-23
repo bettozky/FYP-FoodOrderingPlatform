@@ -64,7 +64,7 @@ export default function MainTabs({ navigation, route }: any) {
           const focused = i === index;
           const isAssistant = r.key === "assistant";
           return (
-            <Pressable key={r.key} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`}>
+            <Pressable key={r.key} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={r.title} accessibilityState={{ selected: focused }}>
               {isAssistant ? (
                 <View style={styles.glowWrap}>
                   <View style={styles.glowRing} />

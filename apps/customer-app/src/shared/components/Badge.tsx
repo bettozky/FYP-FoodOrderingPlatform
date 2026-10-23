@@ -8,11 +8,11 @@ type Props = {
 };
 
 const toneMap = {
-  primary: { bg: colors.primarySoft, fg: colors.turmericDeep },
+  primary: { bg: colors.primarySoft, fg: colors.amberText },
   success: { bg: colors.secondarySoft, fg: colors.herb },
-  warning: { bg: "#F3E4C4", fg: colors.turmericDeep },
-  danger: { bg: "#F1DAD6", fg: colors.chili },
-  neutral: { bg: colors.paperDim, fg: colors.stone },
+  warning: { bg: "#F3E4C4", fg: colors.amberText },
+  danger: { bg: "#F1DAD6", fg: colors.chiliText },
+  neutral: { bg: colors.paperDim, fg: colors.stoneText },
 };
 
 export default function Badge({ label, tone = "neutral" }: Props) {
@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: radius.pill,
     alignSelf: "flex-start",
+    maxWidth: "100%",
   },
-  label: { fontSize: 11, fontFamily: fonts.displayBold },
+  label: { fontSize: 12, fontFamily: fonts.displayBold, flexShrink: 1 },
 });

@@ -11,6 +11,8 @@ import OrderTrackingScreen from "../modules/ordering/screens/OrderTrackingScreen
 import BookTableScreen from "../modules/dine-in/screens/BookTableScreen";
 import JobsScreen from "../modules/jobs/screens/JobsScreen";
 import LiveTrackingScreen from "../modules/delivery/screens/LiveTrackingScreen";
+import FavouritesScreen from "../modules/favourites/FavouritesScreen";
+import AddressesScreen from "../modules/account/screens/AddressesScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +35,8 @@ export default function RootNavigator() {
           <Stack.Screen name="LiveTracking" component={LiveTrackingScreen} />
           <Stack.Screen name="BookTable" component={BookTableScreen} />
           <Stack.Screen name="Jobs" component={JobsScreen} />
+          <Stack.Screen name="Favourites" component={FavouritesScreen} />
+          <Stack.Screen name="Addresses" component={AddressesScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

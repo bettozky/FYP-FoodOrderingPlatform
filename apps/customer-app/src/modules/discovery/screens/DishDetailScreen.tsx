@@ -9,6 +9,7 @@ import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import Badge from "../../../shared/components/Badge";
+import { useFavourites } from "../../favourites/FavouritesContext";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 
 type Review = { id: string; userName: string; rating: number; comment?: string };
@@ -24,7 +25,8 @@ export default function DishDetailScreen({ route }: any) {
   const [qty, setQty] = useState(1);
   const [mode, setMode] = useState<Mode>(lastMode);
   const [options, setOptions] = useState<string[]>([]);
-  const [fav, setFav] = useState(false);
+  const { isFav, toggle } = useFavourites();
+  const fav = isFav(dishId);
   const [justAdded, setJustAdded] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
 
@@ -69,7 +71,7 @@ export default function DishDetailScreen({ route }: any) {
                 <Ionicons name="chevron-back" size={20} color={colors.ink} />
               </Pressable>
             )}
-            <Pressable onPress={() => setFav((f) => !f)} hitSlop={10} style={[styles.circleBtn, fav && { backgroundColor: colors.chili }]}>
+            <Pressable onPress={() => toggle(dishId)} hitSlop={10} style={[styles.circleBtn, fav && { backgroundColor: colors.chili }]} accessibilityRole="button" accessibilityLabel={fav ? "Remove from saved dishes" : "Save this dish"}>
               <Ionicons name={fav ? "heart" : "heart-outline"} size={18} color={fav ? colors.white : colors.chili} />
             </Pressable>
           </View>
