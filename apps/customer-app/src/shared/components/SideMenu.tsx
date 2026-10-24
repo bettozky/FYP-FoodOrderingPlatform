@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-nativ
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../modules/auth/AuthContext";
-import { loyalty } from "../data/mockData";
+import { useLoyalty } from "../../modules/loyalty/useLoyalty";
 import { colors, radius, spacing, type, fonts } from "../theme/theme";
 
 type MenuItem = {
@@ -20,14 +20,11 @@ type Props = {
 };
 
 // Quick-access drawer opened from Home's hamburger icon. Mirrors the app's
-// main sections plus a few natural additions for a food-delivery app
-// (favourites, saved addresses, payment methods, notifications, help) that
-// don't have dedicated screens yet in this build — tapping them just closes
-// the drawer for now, the same "stub" treatment the Account screen already
-// uses for its own menu rows.
+// main sections plus the account pages (favourites, addresses, payment, notifications, help).
 
 export default function SideMenu({ visible, onClose, goToTab, navigation }: Props) {
   const { name, logout } = useAuth();
+  const loyalty = useLoyalty();
   const insets = useSafeAreaInsets();
   const translateX = useRef(new Animated.Value(-320)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -60,11 +57,11 @@ export default function SideMenu({ visible, onClose, goToTab, navigation }: Prop
   ];
 
   const more: MenuItem[] = [
-    { icon: "heart", label: "Favourites", onPress: onClose },
-    { icon: "location", label: "Delivery Addresses", onPress: onClose },
-    { icon: "card", label: "Payment Methods", onPress: onClose },
-    { icon: "notifications", label: "Notifications", onPress: onClose },
-    { icon: "help-circle", label: "Help & Support", onPress: onClose },
+    { icon: "heart", label: "Favourites", onPress: () => navigation.navigate("Favourites") },
+    { icon: "location", label: "Addresses", onPress: () => navigation.navigate("Addresses") },
+    { icon: "card", label: "Payment Methods", onPress: () => navigation.navigate("PaymentMethods") },
+    { icon: "notifications", label: "Notifications", onPress: () => navigation.navigate("Notifications") },
+    { icon: "help-circle", label: "Help & Support", onPress: () => navigation.navigate("Help") },
   ];
 
   const run = (fn: () => void) => {

@@ -13,6 +13,9 @@ import JobsScreen from "../modules/jobs/screens/JobsScreen";
 import LiveTrackingScreen from "../modules/delivery/screens/LiveTrackingScreen";
 import FavouritesScreen from "../modules/favourites/FavouritesScreen";
 import AddressesScreen from "../modules/account/screens/AddressesScreen";
+import PaymentsScreen from "../modules/account/screens/PaymentsScreen";
+import NotificationsScreen from "../modules/notifications/NotificationsScreen";
+import HelpScreen from "../modules/account/screens/HelpScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +40,9 @@ export default function RootNavigator() {
           <Stack.Screen name="Jobs" component={JobsScreen} />
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
           <Stack.Screen name="Addresses" component={AddressesScreen} />
+          <Stack.Screen name="PaymentMethods" component={PaymentsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Help" component={HelpScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

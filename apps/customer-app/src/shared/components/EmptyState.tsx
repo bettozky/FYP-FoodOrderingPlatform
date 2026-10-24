@@ -18,7 +18,7 @@ export default function EmptyState({ icon = "file-tray-outline", title, hint }: 
 
 const styles = StyleSheet.create({
   wrap: { alignItems: "center", paddingVertical: spacing.xxl * 1.5, paddingHorizontal: spacing.xl, gap: spacing.sm },
-  circle: { width: 68, height: 68, borderRadius: 34, backgroundColor: "#FDF1DA", alignItems: "center", justifyContent: "center", marginBottom: spacing.xs },
+  circle: { width: 68, height: 68, borderRadius: 34, backgroundColor: colors.amberTint, alignItems: "center", justifyContent: "center", marginBottom: spacing.xs },
   title: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.ink, textAlign: "center" },
-  hint: { fontSize: 13, fontFamily: fonts.serif, color: colors.stone, textAlign: "center", lineHeight: 19 },
+  hint: { fontSize: 13, fontFamily: fonts.serif, color: colors.stoneText, textAlign: "center", lineHeight: 19 },
 });

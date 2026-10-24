@@ -37,6 +37,13 @@ export const colors = {
   amberText: "#8A5200",
   chiliText: "#AE2A1F",
 
+  // Soft tints, kept identical to the merchant app's theme.ts so both apps share one palette.
+  amberSoft: "#F3E4C4",
+  amberTint: "#FDF1DA",
+  chiliSoft: "#F1DAD6",
+  stoneSoft: "#C9C4B6",
+  turmericLight: "#FFC24D",
+
   // semantic aliases so existing screens keep working unchanged
   surface: "#FFFFFF",
   surfaceAlt: "#F4F1EA",

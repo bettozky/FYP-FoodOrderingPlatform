@@ -13,6 +13,7 @@ const FAQ: { q: string; a: string }[] = [
   { q: "Where can I follow my order?", a: "Open the Orders tab and tap an order. It shows a progress timeline, and delivery orders also have a live map." },
   { q: "Can I contact the restaurant?", a: "Yes. Open the order and use the chat button to message the restaurant. In-app calling also needs the full app build, so it may not work in Expo Go." },
   { q: "How do vouchers work?", a: "Pick an eligible voucher on the checkout screen. The Loyalty tab lists the vouchers that are available." },
+  { q: "How do loyalty points work?", a: "You get 1 point for every RM 1 paid on completed orders. Refunded amounts do not count." },
   { q: "Is this a real ordering service?", a: "No. ScootMeal is a university project prototype. Payments and delivery tracking are simulated." },
 ];
 

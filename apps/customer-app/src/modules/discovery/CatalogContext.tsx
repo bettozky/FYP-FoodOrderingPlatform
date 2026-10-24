@@ -1,13 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../../shared/api/client";
 import { Merchant } from "../../shared/api/types";
-import { ADDRESS_PRESETS } from "../../shared/data/mockData";
+import { Address, addressesFromShops } from "./places";
 
-export type Address = { label: string; line: string; lat: number; lng: number };
+export type { Address } from "./places";
 
 type CatalogValue = {
   merchants: Merchant[];
   merchantById: Record<string, Merchant>;
+  /** Places to order to, built from where the real shops are (one per canteen / venue). */
+  addresses: Address[];
   address: Address;
   setAddress: (a: Address) => void;
   refreshMerchants: () => Promise<void>;
@@ -16,15 +18,21 @@ type CatalogValue = {
 
 const CatalogContext = createContext<CatalogValue | undefined>(undefined);
 
-/** Restaurants (with open/closed + distance from the chosen address) and the selected delivery address. */
+// Until the shop list arrives the server measures distances from campus (its default).
+const CAMPUS_DEFAULT: Address = { label: "Campus", line: "Campus", lat: NaN, lng: NaN };
+
+/** Restaurants (with open/closed + distance from the chosen address) and the selected address. */
 export function CatalogProvider({ children }: { children: React.ReactNode }) {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
-  const [address, setAddress] = useState<Address>(ADDRESS_PRESETS[0]);
+  const [address, setAddress] = useState<Address>(CAMPUS_DEFAULT);
   const [loadError, setLoadError] = useState("");
 
   const refreshMerchants = useCallback(async () => {
     try {
-      const r = await api<{ merchants: Merchant[] }>("GET", `/merchants?lat=${address.lat}&lng=${address.lng}`);
+      const near = Number.isFinite(address.lat) ? `?lat=${address.lat}&lng=${address.lng}` : "";
+      const r = await api<{ merchants?: Merchant[] }>("GET", `/merchants${near}`);
+      // A wrong EXPO_PUBLIC_API_URL (e.g. missing "http://") gets a reply that is not the shop list.
+      if (!Array.isArray(r.merchants)) throw new Error("The server address looks wrong. Set EXPO_PUBLIC_API_URL to http://<your-PC-IP>:3001.");
       setMerchants(r.merchants);
       setLoadError("");
     } catch (e: any) {
@@ -38,10 +46,19 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(t);
   }, [refreshMerchants]);
 
+  // Shops rarely move, so only rebuild the places when the set of stall numbers changes.
+  const placeKey = merchants.map((m) => `${m.id}:${m.stallNo}`).join("|");
+  const addresses = useMemo(() => addressesFromShops(merchants), [placeKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pick the first real place once the shops have loaded.
+  useEffect(() => {
+    if (!Number.isFinite(address.lat) && addresses.length) setAddress(addresses[0]);
+  }, [addresses, address.lat]);
+
   const merchantById = useMemo(() => Object.fromEntries(merchants.map((m) => [m.id, m])), [merchants]);
 
   return (
-    <CatalogContext.Provider value={{ merchants, merchantById, address, setAddress, refreshMerchants, loadError }}>
+    <CatalogContext.Provider value={{ merchants, merchantById, addresses, address, setAddress, refreshMerchants, loadError }}>
       {children}
     </CatalogContext.Provider>
   );
