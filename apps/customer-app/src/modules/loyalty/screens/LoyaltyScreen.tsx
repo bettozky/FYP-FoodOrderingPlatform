@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
-import { loyalty } from "../../../shared/data/mockData";
+import { useLoyalty } from "../useLoyalty";
 import { api } from "../../../shared/api/client";
 import { Voucher } from "../../../shared/api/types";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
@@ -10,7 +10,8 @@ export default function LoyaltyScreen() {
   useEffect(() => {
     api<{ vouchers: Voucher[] }>("GET", "/vouchers").then((r) => setVouchers(r.vouchers)).catch(() => {});
   }, []);
-  const progress = Math.min(1, loyalty.points / loyalty.nextTierAt);
+  const loyalty = useLoyalty();
+  const progress = Math.min(1, loyalty.progress);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -30,7 +31,7 @@ export default function LoyaltyScreen() {
               <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
             </View>
             <Text style={styles.progressHint}>
-              {loyalty.nextTierAt - loyalty.points} pts to next tier
+              {loyalty.nextTier ? `${loyalty.toNext} pts to ${loyalty.nextTier}` : "Top tier reached"} · 1 pt for every RM 1 on completed orders
             </Text>
           </View>
         }

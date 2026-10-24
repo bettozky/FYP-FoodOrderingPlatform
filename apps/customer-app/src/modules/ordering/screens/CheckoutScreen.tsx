@@ -8,7 +8,6 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { api, errorText } from "../../../shared/api/client";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
-import { ADDRESS_PRESETS } from "../../../shared/data/mockData";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real total
@@ -19,7 +18,7 @@ export function formatCard(raw: string) {
 
 export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
-  const { address, setAddress } = useCatalog();
+  const { addresses, address, setAddress } = useCatalog();
   const { refresh } = useLive();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [voucherId, setVoucherId] = useState<string>("");
@@ -117,7 +116,7 @@ export default function CheckoutScreen({ navigation }: any) {
           <>
             <Text style={[type.h3, { marginTop: spacing.xl }]}>Delivery address</Text>
             <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-              {ADDRESS_PRESETS.map((a) => {
+              {addresses.map((a) => {
                 const on = a.line === address.line;
                 return (
                   <Pressable key={a.line} onPress={() => setAddress(a)} style={[styles.option, on && styles.optionOn]}>

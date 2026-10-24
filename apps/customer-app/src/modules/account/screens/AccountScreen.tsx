@@ -1,23 +1,23 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../auth/AuthContext";
-import Badge from "../../../shared/components/Badge";
-import { loyalty } from "../../../shared/data/mockData";
+import { useLoyalty } from "../../loyalty/useLoyalty";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 
-// `go` = a screen that exists. Rows without it have nothing behind them yet, so they are shown as
-// "Soon" and disabled instead of looking tappable and doing nothing.
-const menuItems: { icon: string; label: string; go?: string }[] = [
-  { icon: "❤️", label: "Saved dishes", go: "Favourites" },
-  { icon: "📍", label: "Delivery addresses", go: "Addresses" },
-  { icon: "💼", label: "Jobs", go: "Jobs" },
-  { icon: "💳", label: "Payment methods" },
-  { icon: "🔔", label: "Notifications" },
-  { icon: "❓", label: "Help & support" },
+// Every row opens a real screen. One icon set (Ionicons) instead of emoji.
+const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; go: string }[] = [
+  { icon: "heart-outline", label: "Saved dishes", go: "Favourites" },
+  { icon: "location-outline", label: "Addresses", go: "Addresses" },
+  { icon: "briefcase-outline", label: "Jobs", go: "Jobs" },
+  { icon: "card-outline", label: "Payment methods", go: "PaymentMethods" },
+  { icon: "notifications-outline", label: "Notifications", go: "Notifications" },
+  { icon: "help-circle-outline", label: "Help & support", go: "Help" },
 ];
 
 export default function AccountScreen({ navigation }: any) {
   const { name, user, logout } = useAuth();
+  const loyalty = useLoyalty();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -37,16 +37,15 @@ export default function AccountScreen({ navigation }: any) {
           {menuItems.map((m) => (
             <Pressable
               key={m.label}
-              style={[styles.menuRow, !m.go && { opacity: 0.6 }]}
-              disabled={!m.go}
-              onPress={() => m.go && navigation.navigate(m.go)}
+              style={styles.menuRow}
+              onPress={() => navigation.navigate(m.go)}
               accessibilityRole="button"
-              accessibilityLabel={m.go ? m.label : `${m.label}, coming soon`}
-              accessibilityState={{ disabled: !m.go }}
+              accessibilityLabel={m.label}
+              testID={`account-${m.go}`}
             >
-              <Text style={{ fontSize: 18 }}>{m.icon}</Text>
+              <Ionicons name={m.icon} size={20} color={colors.ink} />
               <Text style={[type.body, { flex: 1 }]}>{m.label}</Text>
-              {m.go ? <Text style={{ color: colors.stone }}>{"›"}</Text> : <Badge label="Soon" tone="neutral" />}
+              <Ionicons name="chevron-forward" size={16} color={colors.stone} />
             </Pressable>
           ))}
         </View>

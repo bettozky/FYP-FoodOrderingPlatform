@@ -5,25 +5,32 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api, errorText } from "../../../shared/api/client";
 import { Dish } from "../../../shared/api/types";
-import { ADDRESS_PRESETS, DIETARY_FILTERS, categories } from "../../../shared/data/mockData";
+import { DIETARY_FILTERS } from "../../../shared/data/mockData";
 import { useAuth } from "../../auth/AuthContext";
 import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
+import { categoriesFromDishes } from "../categories";
 import PromoBanner from "../components/PromoBanner";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 
+// Icons for the categories shops use most; any other category gets the generic fast-food icon.
 const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
   All: "flame",
   Noodles: "restaurant",
   Rice: "nutrition",
   Drinks: "cafe",
+  Dessert: "ice-cream",
+  Desserts: "ice-cream",
+  Breakfast: "sunny",
+  Snacks: "pizza",
+  Western: "fast-food",
 };
 
 export default function HomeScreen({ navigation, onMenuPress }: any) {
   const { name } = useAuth();
   const { addToCart, itemCount } = useCart();
-  const { merchantById, address, setAddress, loadError } = useCatalog();
+  const { merchantById, addresses, address, setAddress, loadError } = useCatalog();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
@@ -32,6 +39,16 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [error, setError] = useState("");
   const [pickAddress, setPickAddress] = useState(false);
+  const [categories, setCategories] = useState<string[]>(["All"]);
+
+  // Category chips come from the whole menu, so they do not change while searching or filtering.
+  useEffect(() => {
+    api<{ dishes: Dish[] }>("GET", "/dishes").then((r) => setCategories(categoriesFromDishes(r.dishes))).catch(() => {});
+  }, []);
+  // If a category disappears (e.g. its last dish was removed), fall back to All.
+  useEffect(() => {
+    if (!categories.includes(category)) setCategory("All");
+  }, [categories, category]);
 
   const cartScale = useRef(new Animated.Value(1)).current;
   const prevCount = useRef(itemCount);
@@ -114,7 +131,7 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
             <Pressable style={styles.addrRow} onPress={() => setPickAddress(true)} testID="address-row">
               <Ionicons name="location" size={15} color={colors.turmericDeep} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.addrLabel}>Deliver to</Text>
+                <Text style={styles.addrLabel}>Ordering near</Text>
                 <Text style={type.body}>{address.line}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textFaint} />
@@ -202,9 +219,10 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
       <Modal visible={pickAddress} transparent animationType="fade" onRequestClose={() => setPickAddress(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setPickAddress(false)}>
           <View style={styles.modalCard}>
-            <Text style={type.h2}>Deliver to</Text>
+            <Text style={type.h2}>Ordering near</Text>
             <Text style={[type.bodyMuted, { marginBottom: spacing.sm }]}>Distances to restaurants are measured from here.</Text>
-            {ADDRESS_PRESETS.map((a) => {
+            {addresses.length === 0 ? <Text style={type.bodyMuted}>Loading places…</Text> : null}
+            {addresses.map((a) => {
               const on = a.line === address.line;
               return (
                 <Pressable key={a.line} style={[styles.addrOption, on && styles.addrOptionOn]} onPress={() => { setAddress(a); setPickAddress(false); }} testID={`address-${a.label}`}>
