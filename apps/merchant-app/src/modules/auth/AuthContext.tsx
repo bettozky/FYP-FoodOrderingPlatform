@@ -7,6 +7,8 @@ type User = { id: string; name: string; email: string; merchant?: Merchant };
 export type MerchantSignup = {
   businessName: string; ownerName: string; email: string; phone: string; password: string;
   stallNo?: string; cuisine?: string; open?: string; close?: string;
+  /** Full answers from the 8-step shop sign-up (see modules/onboarding/README.md). */
+  application?: Record<string, unknown>;
 };
 
 type AuthContextValue = {
@@ -15,7 +17,8 @@ type AuthContextValue = {
   user: User | null;
   approval: Merchant["approval"] | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (input: MerchantSignup) => Promise<void>;
+  /** `afterCreate` runs with the new token before the app switches screens (used to upload sign-up files). */
+  register: (input: MerchantSignup, afterCreate?: (token: string) => Promise<void>) => Promise<void>;
   checkApproval: () => Promise<void>;
   logout: () => void;
 };
@@ -47,7 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => start(await api("POST", "/auth/login", { email, password, role: "merchant" }));
   // FR-5.1: sign-up creates a PENDING business; an admin approves it in the web dashboard.
-  const register = async (input: MerchantSignup) => start(await api("POST", "/auth/register-merchant", input));
+  const register = async (input: MerchantSignup, afterCreate?: (token: string) => Promise<void>) => {
+    const res = await api<{ token: string; user: User & { role: string } }>("POST", "/auth/register-merchant", input);
+    // The account already exists at this point, so a failed upload must not block sign-up.
+    if (afterCreate) await afterCreate(res.token).catch(() => {});
+    start(res);
+  };
   const checkApproval = useCallback(async () => {
     const r = await api<{ user: User }>("GET", "/auth/me");
     setUser(r.user);
