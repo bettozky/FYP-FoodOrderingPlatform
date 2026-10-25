@@ -14,10 +14,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 import { api } from "../../../shared/api/client";
 
+import { useCart } from "../../ordering/CartContext";
+import { confirmAsync } from "../../../shared/util/confirm";
+import DishRecommendationCard, {
+  type Recommendation,
+} from "../components/DishRecommendationCard";
 
 
 
-type Message = { id: string; from: "user" | "bot"; text: string };
+type Message = {
+  id: string;
+  from: "user" | "bot";
+  text: string;
+  recommendations?: Recommendation[];
+};
 
 const SUGGESTIONS = ["Where's my order?", "I want a refund", "Recommend something spicy", "Talk to a human"];
 
@@ -78,6 +88,11 @@ export default function AIAssistantScreen() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const { addToCart } = useCart();
+
+  const cartLock = useRef(false);
+  const [adding, setAdding] = useState(false);
+  const [cardStatus, setCardStatus] = useState<Record<string, string>>({});
 
   async function send(text: string) {
   const trimmed = text.trim();
@@ -101,7 +116,10 @@ export default function AIAssistantScreen() {
   try {
     // The existing API helper automatically sends the login token.
     // Menu, voucher, and order data are now read on the server.
-    const data = await api<{ reply: string }>(
+    const data = await api<{
+      reply: string;
+      recommendations: Recommendation[];
+    }>(
       "POST",
       "/ai/chat",
       {
@@ -127,6 +145,9 @@ export default function AIAssistantScreen() {
       id: `b${Date.now()}`,
       from: "bot",
       text: data.reply.trim(),
+      recommendations: Array.isArray(data.recommendations)
+        ? data.recommendations.slice(0, 6)
+        : [],
     };
 
     setMessages((previous) => [...previous, botMsg]);
@@ -146,6 +167,69 @@ export default function AIAssistantScreen() {
     requestAnimationFrame(() =>
       scrollRef.current?.scrollToEnd({ animated: true })
     );
+  }
+}
+
+async function addRecommendation(
+  recommendation: Recommendation,
+  cardKey: string
+) {
+  if (cartLock.current) return;
+
+  cartLock.current = true;
+  setAdding(true);
+
+  setCardStatus((previous) => ({
+    ...previous,
+    [cardKey]: "",
+  }));
+
+  try {
+    // Fetch current availability and price from the server.
+    const fresh = await api<Recommendation>(
+      "GET",
+      `/ai/dishes/${encodeURIComponent(recommendation.dish.id)}`
+    );
+
+    if (fresh.dish.price !== recommendation.dish.price) {
+      const accepted = await confirmAsync(
+        "Price changed",
+        `The current price is RM${fresh.dish.price.toFixed(2)}. Add at this price?`,
+        "Add to cart"
+      );
+
+      if (!accepted) {
+        setCardStatus((previous) => ({
+          ...previous,
+          [cardKey]: "Not added. Your cart is unchanged.",
+        }));
+        return;
+      }
+    }
+
+    // Existing cart logic asks before switching restaurants.
+    const added = await addToCart(
+      fresh.dish,
+      fresh.merchant,
+      { qty: 1 }
+    );
+
+    setCardStatus((previous) => ({
+      ...previous,
+      [cardKey]: added
+        ? `Added 1 × ${fresh.dish.name} to cart.`
+        : "Not added. Your cart is unchanged.",
+    }));
+  } catch {
+    setCardStatus((previous) => ({
+      ...previous,
+      [cardKey]:
+        "Couldn't add this dish. It may be unavailable, " +
+        "or the server couldn't be reached. Please try again.",
+    }));
+  } finally {
+    cartLock.current = false;
+    setAdding(false);
   }
 }
 
@@ -178,6 +262,22 @@ export default function AIAssistantScreen() {
             )}
             <View style={[styles.bubble, m.from === "user" ? styles.bubbleUser : styles.bubbleBot, shadow.soft]}>
               <Text style={m.from === "user" ? styles.bubbleTextUser : styles.bubbleTextBot}>{m.text}</Text>
+              {m.from === "bot" &&
+                m.recommendations?.map((recommendation) => {
+                  const cardKey = `${m.id}:${recommendation.dish.id}`;
+
+                  return (
+                    <DishRecommendationCard
+                      key={cardKey}
+                      recommendation={recommendation}
+                      disabled={adding}
+                      status={cardStatus[cardKey]}
+                      onAdd={(selected) => {
+                        void addRecommendation(selected, cardKey);
+                      }}
+                    />
+                  );
+                })}
             </View>
           </View>
         ))}

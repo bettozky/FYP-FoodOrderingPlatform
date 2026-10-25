@@ -25,6 +25,7 @@ export function getAssistantContext(customerId: string) {
       id: dish.id,
       merchantId: dish.merchantId,
       name: dish.name,
+      image: dish.image,
       description: dish.description,
       price: dish.price,
       category: dish.category,

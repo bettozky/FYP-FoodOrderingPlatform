@@ -8,7 +8,7 @@ import {
 
 export const aiAssistantRouter = Router();
 
-// Only signed-in customers can use this route.
+// Only signed-in customers can access these routes.
 aiAssistantRouter.use(auth("customer"));
 
 // POST /api/ai/chat
@@ -53,22 +53,58 @@ aiAssistantRouter.post("/chat", async (req, res) => {
       : [];
 
     // Identity comes from the verified login token.
-    // Ignore any customerId or context supplied by the app.
+    // Ignore customerId or context supplied by the app.
     const user = currentUser(res);
     const context = getAssistantContext(user.id);
 
-    const reply = await generateReply({
+    // Returns reply text and matching dish recommendations.
+    const result = await generateReply({
       message,
       history,
       context,
     });
 
-    return res.json({ reply });
+    return res.json(result);
   } catch {
     console.warn("[AI Assistant] Chat request failed.");
 
     return res.status(500).json({
-      error: "The assistant is temporarily unavailable. Please try again.",
+      error:
+        "The assistant is temporarily unavailable. Please try again.",
     });
   }
+});
+
+// GET /api/ai/dishes/:id
+// Check current availability and price before adding to the cart.
+aiAssistantRouter.get("/dishes/:id", (req, res) => {
+  const user = currentUser(res);
+  const context = getAssistantContext(user.id);
+
+  const dish = context.dishes.find(
+    (dish) => dish.id === req.params.id
+  );
+
+  const merchant = dish
+    ? context.merchants.find(
+        (merchant) => merchant.id === dish.merchantId
+      )
+    : undefined;
+
+  if (!dish || !merchant) {
+    return res.status(404).json({
+      error: "This dish is no longer available.",
+    });
+  }
+
+  if (dish.soldOut || !merchant.openNow) {
+    return res.status(409).json({
+      error: "This dish is not available to order right now.",
+    });
+  }
+
+  return res.json({
+    dish,
+    merchant,
+  });
 });
