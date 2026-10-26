@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  type ScrollViewInstance,
   Pressable,
   Image,
   Animated,
@@ -36,7 +37,7 @@ export default function AuthScreen() {
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(width, 520); // matches the centered card on wide/web viewports
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const [activeTab, setActiveTab] = useState(0);
   const [busy, setBusy] = useState(false);

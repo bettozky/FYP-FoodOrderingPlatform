@@ -34,7 +34,7 @@ export function findThread(kind: string, id: string): Thread {
     const m = db.merchants.get(r.merchantId);
     return {
       kind, id, customerUserId: r.customerId, merchantUserId: m?.ownerUserId, customerName: r.customerName, merchantName: r.merchantName,
-      open: !RES_CLOSED.includes(r.status), canCall: ["awaiting_restaurant", "confirmed"].includes(r.status),
+      open: !RES_CLOSED.includes(r.status), canCall: ["awaiting_restaurant", "awaiting_payment", "confirmed"].includes(r.status),
     };
   }
   throw new HttpError(400, "kind must be order or reservation");

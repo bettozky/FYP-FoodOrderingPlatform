@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, type ScrollViewInstance } from "react-native";
 import { useAuth } from "../AuthContext";
 import { errorText } from "../../../shared/api/client";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
@@ -8,7 +8,7 @@ import ShopSignupWizard from "../../onboarding/screens/ShopSignupWizard";
 // Sign in, or create a shop account with the 8-step sign-up (modules/onboarding).
 export default function MerchantLoginScreen() {
   const { login } = useAuth();
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const [mode, setMode] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");

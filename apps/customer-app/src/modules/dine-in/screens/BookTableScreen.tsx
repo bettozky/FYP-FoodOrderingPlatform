@@ -9,7 +9,6 @@ import { prettyDate } from "../../../shared/util/format";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
-import { formatCard } from "../../ordering/screens/CheckoutScreen";
 
 const DEPOSIT = 5; // display only; the server charges the real amount (assumption: RM5 booking deposit)
 
@@ -43,7 +42,6 @@ export default function BookTableScreen({ route, navigation }: any) {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [pre, setPre] = useState<Record<string, number>>({});
   const [payNow, setPayNow] = useState(false);
-  const [card, setCard] = useState("4242 4242 4242 4242");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,7 +72,7 @@ export default function BookTableScreen({ route, navigation }: any) {
         await api("POST", "/reservations", {
           merchantId, date, time, partySize: party, specialRequest: request.trim() || undefined,
           preorder: preLines.map((d) => ({ dishId: d.id, qty: pre[d.id] })),
-          payNow, card: payNow ? { number: card } : undefined,
+          payNow,
         });
       }
       await refresh();
@@ -145,15 +143,12 @@ export default function BookTableScreen({ route, navigation }: any) {
             {([false, true] as const).map((v) => (
               <Pressable key={String(v)} style={[styles.option, payNow === v && styles.optionOn]} onPress={() => setPayNow(v)} testID={v ? "pay-now" : "pay-later"}>
                 <View style={{ flex: 1 }}>
-                  <Text style={type.body}>{v ? `Pay now · RM ${payAmount.toFixed(2)}` : "Pay later"}</Text>
-                  <Text style={type.small}>{v ? `RM ${DEPOSIT.toFixed(2)} booking deposit${preTotal ? ` + RM ${preTotal.toFixed(2)} pre-order` : ""}. Refunded in full if the restaurant declines or doesn't reply.` : "Pay at the restaurant. Nothing is charged today."}</Text>
+                  <Text style={type.body}>{v ? `Pay online · RM ${payAmount.toFixed(2)}` : "Pay later"}</Text>
+                  <Text style={type.small}>{v ? `RM ${DEPOSIT.toFixed(2)} booking deposit${preTotal ? ` + RM ${preTotal.toFixed(2)} pre-order` : ""}. Nothing is charged now. You pay after the restaurant confirms your table.` : "Pay at the restaurant. Nothing is charged today."}</Text>
                 </View>
                 <View style={[styles.radio, payNow === v && styles.radioOn]} />
               </Pressable>
             ))}
-            {payNow && (
-              <TextInput style={styles.input} value={card} onChangeText={(t) => setCard(formatCard(t))} keyboardType="number-pad" placeholder="Card number" placeholderTextColor={colors.textFaint} testID="res-card" />
-            )}
           </>
         )}
         {existing && <Text style={[type.small, { marginTop: spacing.md }]}>Changing the date, time or party size sends the booking back to the restaurant for approval.</Text>}
@@ -162,7 +157,7 @@ export default function BookTableScreen({ route, navigation }: any) {
         <Text style={[type.small, { marginTop: spacing.md }]}>The restaurant has 30 minutes to reply. You'll be told if it's accepted, declined or expires.</Text>
       </ScrollView>
       <View style={styles.footer}>
-        <PrimaryButton label={existing ? "Save changes" : payNow ? `Pay RM ${payAmount.toFixed(2)} & request table` : "Request table"} onPress={submit} loading={busy} disabled={!time} />
+        <PrimaryButton label={existing ? "Save changes" : "Request table"} onPress={submit} loading={busy} disabled={!time} />
       </View>
     </View>
   );

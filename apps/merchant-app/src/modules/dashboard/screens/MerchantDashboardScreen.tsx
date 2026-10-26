@@ -45,25 +45,25 @@ export default function MerchantDashboardScreen({ navigation }: any) {
     online: {
       index: 0,
       label: "Online",
-      color: "#2F6F4E",
-      bgColor: "#EAF3EC",
-      borderColor: "#CFE4D5",
+      color: colors.herb,
+      bgColor: colors.herbLight,
+      borderColor: colors.herbBorder,
       description: "Accepting delivery, takeaway and dine-in orders.",
     },
     dine_in: {
       index: 1,
       label: "Dine-In",
-      color: "#B26F00",
-      bgColor: "#FDF1DA",
-      borderColor: "#F6DFAF",
+      color: colors.amberText,
+      bgColor: colors.amberTint,
+      borderColor: colors.amberBorder,
       description: "Delivery paused. Table orders and reservations only.",
     },
     offline: {
       index: 2,
       label: "Offline",
-      color: "#C2382C",
-      bgColor: "#FBE9E6",
-      borderColor: "#F3CBC5",
+      color: colors.chiliText,
+      bgColor: colors.chiliSoft,
+      borderColor: colors.chiliBorder,
       description: "Store closed. Not accepting new orders.",
     },
   };
@@ -170,7 +170,7 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         <View style={styles.card}>
           <View style={styles.cardHead}>
             <Text style={styles.cardTitle}>Opening hours</Text>
-            <Text style={[styles.openPill, { color: profile?.openNow ? colors.herb : colors.chili, backgroundColor: profile?.openNow ? colors.herbLight : "#FBE9E6" }]}>
+            <Text style={[styles.openPill, { color: profile?.openNow ? colors.herb : colors.chili, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
               {profile?.openNow ? "Open now" : "Closed now"}
             </Text>
           </View>
@@ -187,12 +187,12 @@ export default function MerchantDashboardScreen({ navigation }: any) {
 
         {/* ---------- manage ---------- */}
         <Text style={styles.section}>Manage</Text>
-        <NavRow icon="receipt-outline" tint="#D9860B" title="Incoming orders" subtitle={`${pendingCount} active order${pendingCount !== 1 ? "s" : ""}`} badge={pendingCount} onPress={() => navigation.navigate("MerchantOrderQueue")} />
-        <NavRow icon="calendar-outline" tint="#2F6F4E" title="Table reservations" subtitle="Bookings, seating and pre-orders" badge={pendingReservations} onPress={() => navigation.navigate("MerchantReservations")} />
-        <NavRow icon="restaurant-outline" tint="#E8483A" title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
-        <NavRow icon="pricetags-outline" tint="#7A4FD0" title="Promotions & Vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
-        <NavRow icon="stats-chart-outline" tint="#2B7BB9" title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
-        <NavRow icon="briefcase-outline" tint="#8C6B1F" title="Restaurant Job Board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
+        <NavRow icon="receipt-outline" tint={colors.turmericDeep} title="Incoming orders" subtitle={`${pendingCount} active order${pendingCount !== 1 ? "s" : ""}`} badge={pendingCount} onPress={() => navigation.navigate("MerchantOrderQueue")} />
+        <NavRow icon="calendar-outline" tint={colors.herb} title="Table reservations" subtitle="Bookings, seating and pre-orders" badge={pendingReservations} onPress={() => navigation.navigate("MerchantReservations")} />
+        <NavRow icon="restaurant-outline" tint={colors.chili} title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
+        <NavRow icon="pricetags-outline" tint={colors.ink} title="Promotions & Vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
+        <NavRow icon="stats-chart-outline" tint={colors.stoneText} title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
+        <NavRow icon="briefcase-outline" tint={colors.amberText} title="Restaurant Job Board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
       </ScrollView>
     </View>
   );
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
   iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
 
   hero: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.card },
-  heroLabel: { fontSize: 11, fontFamily: fonts.displayBold, color: "#B8B3A6", letterSpacing: 1.2 },
+  heroLabel: { fontSize: 11, fontFamily: fonts.displayBold, color: colors.textFaint, letterSpacing: 1.2 },
   heroStats: { flexDirection: "row", alignItems: "center" },
-  heroDivider: { width: 1, alignSelf: "stretch", backgroundColor: "#3A362E" },
+  heroDivider: { width: 1, alignSelf: "stretch", backgroundColor: colors.ink },
   stat: { flex: 1, alignItems: "center", gap: 3 },
-  statValue: { fontSize: 22, fontFamily: fonts.displayExtraBold, color: "#FFFFFF", letterSpacing: -0.4 },
-  statLabel: { fontSize: 11.5, fontFamily: fonts.display, color: "#B8B3A6" },
+  statValue: { fontSize: 22, fontFamily: fonts.displayExtraBold, color: colors.white, letterSpacing: -0.4 },
+  statLabel: { fontSize: 11.5, fontFamily: fonts.display, color: colors.textFaint },
 
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.md, ...shadow.soft },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   openPill: { fontSize: 11.5, fontFamily: fonts.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
 
   segmentedTrack: { position: "relative", flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: radius.pill, padding: 4, height: 44, alignItems: "center" },
-  slidingPill: { position: "absolute", top: 4, bottom: 4, left: 4, backgroundColor: "#FFFFFF", borderRadius: radius.pill, ...shadow.soft },
+  slidingPill: { position: "absolute", top: 4, bottom: 4, left: 4, backgroundColor: colors.white, borderRadius: radius.pill, ...shadow.soft },
   segmentBtn: { flex: 1, alignItems: "center", justifyContent: "center", height: "100%", zIndex: 2 },
   segmentLabel: { fontSize: 13, fontFamily: fonts.display },
   statusBanner: { paddingVertical: 9, paddingHorizontal: spacing.md, borderRadius: radius.sm, borderWidth: 1 },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   hoursInput: { flex: 1, minWidth: 0, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 9, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.text, textAlign: "center" },
   to: { fontSize: 13, fontFamily: fonts.display, color: colors.stone },
   saveBtn: { backgroundColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: 10 },
-  saveText: { fontSize: 13, fontFamily: fonts.displayBold, color: "#FFFFFF" },
+  saveText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.white },
   hint: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
 
   section: { fontSize: 12, fontFamily: fonts.displayBold, color: colors.stone, letterSpacing: 1.1, textTransform: "uppercase", marginTop: spacing.sm, marginBottom: -spacing.xs },

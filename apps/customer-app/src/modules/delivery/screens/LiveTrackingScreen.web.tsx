@@ -63,8 +63,8 @@ function RouteMap({ progress }: { progress: number }) {
   return (
     <View style={styles.mapBox}>
       <Svg width="100%" height="100%" viewBox="0 0 284 230">
-        <Rect width="284" height="230" fill="#EDEEEA" />
-        <Path d={PATH} stroke="#D8D6CC" strokeWidth={16} fill="none" strokeLinejoin="round" strokeLinecap="round" />
+        <Rect width="284" height="230" fill={colors.paperDim} />
+        <Path d={PATH} stroke={colors.stoneSoft} strokeWidth={16} fill="none" strokeLinejoin="round" strokeLinecap="round" />
         <Path
           d={PATH}
           stroke={colors.ink}
@@ -74,8 +74,8 @@ function RouteMap({ progress }: { progress: number }) {
           strokeLinejoin="round"
           strokeLinecap="round"
         />
-        <Circle cx={28} cy={200} r={9} fill={colors.turmeric} stroke="#fff" strokeWidth={3} />
-        <Circle cx={256} cy={40} r={9} fill={colors.ink} stroke="#fff" strokeWidth={3} />
+        <Circle cx={28} cy={200} r={9} fill={colors.turmeric} stroke={colors.white} strokeWidth={3} />
+        <Circle cx={256} cy={40} r={9} fill={colors.ink} stroke={colors.white} strokeWidth={3} />
         <Circle cx={p.x} cy={p.y} r={12} fill={colors.white} stroke={colors.ink} strokeWidth={2} />
       </Svg>
     </View>

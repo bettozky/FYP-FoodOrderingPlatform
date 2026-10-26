@@ -4,12 +4,12 @@ import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
 import { db } from "../../store/db.js";
 import type { Reservation } from "../../store/types.js";
 import {
-  cancelReservation, createReservation, decidePreorder, merchantCancel, modifyReservation, reassignTable, respondReservation,
+  amountDue, cancelReservation, createReservation, decidePreorder, merchantCancel, modifyReservation, payReservation, reassignTable, respondReservation,
 } from "./reservations.service.js";
 
 function view(r: Reservation) {
   const m = db.merchants.get(r.merchantId);
-  return { ...r, merchantPhone: m?.phone, venueCategory: m?.venueCategory, cutoffMs: Number(process.env.RESERVATION_CUTOFF_MS ?? 2 * 3600000) };
+  return { ...r, amountDue: amountDue(r), merchantPhone: m?.phone, venueCategory: m?.venueCategory, cutoffMs: Number(process.env.RESERVATION_CUTOFF_MS ?? 2 * 3600000) };
 }
 
 export const reservationsRouter = Router();
@@ -20,7 +20,7 @@ reservationsRouter.post("/", (req, res) => {
   const r = createReservation({
     customerId: currentUser(res).id, merchantId: String(b.merchantId ?? ""), date: String(b.date ?? ""), time: String(b.time ?? ""),
     partySize: Number(b.partySize), specialRequest: b.specialRequest ? str(b.specialRequest, "Request", { max: 200 }) : undefined,
-    preorder: Array.isArray(b.preorder) ? b.preorder : [], payNow: b.payNow === true, card: b.card?.number,
+    preorder: Array.isArray(b.preorder) ? b.preorder : [], payNow: b.payNow === true,
   });
   res.status(201).json({ serverNow: Date.now(), reservation: view(r) });
 });
@@ -35,6 +35,12 @@ reservationsRouter.get("/", (_req, res) => {
   const u = currentUser(res);
   const list = [...db.reservations.values()].filter((r) => r.customerId === u.id).sort((a, b) => b.createdAt - a.createdAt);
   res.json({ serverNow: Date.now(), reservations: list.map(view) });
+});
+// Confirm-then-pay: the customer pays only after the restaurant has confirmed the table.
+reservationsRouter.post("/:id/pay", (req, res) => {
+  const r = mine(res, req.params.id as string);
+  payReservation(r, req.body?.card?.number);
+  res.json({ reservation: view(r) });
 });
 reservationsRouter.post("/:id/cancel", (req, res) => {
   const r = mine(res, req.params.id as string);

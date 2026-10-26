@@ -14,7 +14,7 @@ import { useLive } from "../ordering/LiveDataContext";
 const SILENT_TYPES = ["out_of_stock"]; // handled by the decision pop-up
 
 export default function GlobalPopups() {
-  const { notifications, orders, ack, refresh } = useLive();
+  const { notifications, orders, ack, refresh, setBookingsView } = useLive();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -86,7 +86,7 @@ export default function GlobalPopups() {
       <Modal visible={!foodReady && !!decisionOrder} transparent animationType="fade" onRequestClose={() => {}}>
         <View style={styles.backdrop}>
           <View style={styles.card} testID="out-of-stock-popup">
-            <View style={[styles.icon, { backgroundColor: "#F3E4C4" }]}>
+            <View style={[styles.icon, { backgroundColor: colors.amberSoft }]}>
               <Ionicons name="alert-circle" size={30} color={colors.turmericDeep} />
             </View>
             <Text style={styles.title}>Item out of stock</Text>
@@ -111,6 +111,11 @@ export default function GlobalPopups() {
             {shownGeneric?.type === "order_accepted" ? (
               <>
                 <PrimaryButton label="Pay now" testID="notice-pay" onPress={() => { const id = shownGeneric.data?.orderId; if (generic) ack(generic.id); if (id && navRef.isReady()) navRef.navigate("OrderTracking", { orderId: id }); }} style={{ alignSelf: "stretch" }} />
+                <PrimaryButton label="Later" variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
+              </>
+            ) : shownGeneric?.type === "reservation_accepted" ? (
+              <>
+                <PrimaryButton label="Pay now" testID="notice-pay-res" onPress={() => { if (generic) ack(generic.id); setBookingsView("mine"); if (navRef.isReady()) navRef.navigate("MainTabs", { tab: "book", nonce: Date.now() }); }} style={{ alignSelf: "stretch" }} />
                 <PrimaryButton label="Later" variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
               </>
             ) : (

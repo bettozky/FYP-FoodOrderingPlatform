@@ -34,8 +34,8 @@ export type PreorderItem = { id: string; dishId: string; name: string; price: nu
 export type Reservation = {
   id: string; merchantId: string; merchantName: string; merchantPhone?: string; venueCategory?: string;
   date: string; time: string; partySize: number; specialRequest?: string; preorder: PreorderItem[];
-  payNow: boolean; paid: number; refunded: number;
-  status: "awaiting_restaurant" | "confirmed" | "declined" | "expired" | "cancelled" | "completed";
+  payNow: boolean; paid: number; refunded: number; amountDue: number; payBy?: number; cancelReason?: "not_paid";
+  status: "awaiting_restaurant" | "awaiting_payment" | "confirmed" | "declined" | "expired" | "cancelled" | "completed";
   allocatedTable?: string; respondBy: number; createdAt: number; cutoffMs: number;
 };
 

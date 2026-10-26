@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ScrollView, type ScrollViewInstance, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
@@ -20,7 +20,7 @@ export default function ChatPanel({ kind, id, onClose, height }: { kind: ChatKin
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const last = useRef(0);
-  const list = useRef<FlatList<Msg>>(null);
+  const list = useRef<ScrollViewInstance>(null);
 
   const load = useCallback(async () => {
     try {
@@ -54,7 +54,7 @@ export default function ChatPanel({ kind, id, onClose, height }: { kind: ChatKin
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={[styles.wrap, height ? { height } : { flex: 1 }]} testID="chat-panel">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" && !height ? "padding" : undefined} style={[styles.wrap, height ? { height } : { flex: 1 }]} testID="chat-panel">
       <View style={styles.head}>
         <View style={{ flex: 1 }}>
           <Text style={styles.title} numberOfLines={1}>{peer || "Chat"}</Text>
@@ -71,23 +71,19 @@ export default function ChatPanel({ kind, id, onClose, height }: { kind: ChatKin
           </Pressable>
         )}
       </View>
-      <FlatList
-        ref={list}
-        data={messages}
-        keyExtractor={(m) => String(m.seq)}
-        contentContainerStyle={{ padding: spacing.md, gap: 8, flexGrow: 1 }}
-        ListEmptyComponent={<Text style={styles.empty}>No messages yet. Say hello, or ask about the order.</Text>}
-        renderItem={({ item }) =>
+      <ScrollView ref={list} contentContainerStyle={{ padding: spacing.md, gap: 8, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        {messages.length === 0 && <Text style={styles.empty}>No messages yet. Say hello, or ask about the order.</Text>}
+        {messages.map((item) =>
           item.from === "system" ? (
-            <Text style={styles.system}>{item.text}</Text>
+            <Text key={item.seq} style={styles.system}>{item.text}</Text>
           ) : (
-            <View style={[styles.bubble, item.from === you ? styles.mine : styles.theirs]} testID={item.from === you ? "msg-mine" : "msg-theirs"}>
+            <View key={item.seq} style={[styles.bubble, item.from === you ? styles.mine : styles.theirs]} testID={item.from === you ? "msg-mine" : "msg-theirs"}>
               <Text style={[styles.msgText, item.from === you && { color: colors.white }]}>{item.text}</Text>
-              <Text style={[styles.time, item.from === you && { color: "#B8B3A6" }]}>{new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+              <Text style={[styles.time, item.from === you && { color: colors.textFaint }]}>{new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
             </View>
           )
-        }
-      />
+        )}
+      </ScrollView>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {open && (
         <View style={styles.inputRow}>

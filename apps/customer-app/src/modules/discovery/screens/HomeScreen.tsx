@@ -126,7 +126,7 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
                 style={styles.searchInput}
                 accessibilityLabel="Search dishes"
                 placeholder="Search a dish, e.g. beef noodle"
-                placeholderTextColor="#B6AD99"
+                placeholderTextColor={colors.stoneSoft}
                 value={query}
                 onChangeText={setQuery}
                 testID="search-input"

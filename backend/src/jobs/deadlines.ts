@@ -6,7 +6,7 @@ import { isDelivered } from "../modules/delivery/delivery.service.js";
 import { notify } from "../modules/notifications/notifications.service.js";
 import { checkComplete, expireOrder, expireUnpaid } from "../modules/ordering/ordering.service.js";
 import { expireCalls } from "../modules/calls/calls.service.js";
-import { expireReservation } from "../modules/dine-in/reservations.service.js";
+import { expireReservation, expireUnpaidReservation } from "../modules/dine-in/reservations.service.js";
 
 export function sweep(now = Date.now()) {
   expireCalls(now);
@@ -23,6 +23,7 @@ export function sweep(now = Date.now()) {
   }
   for (const r of db.reservations.values()) {
     if (r.status === "awaiting_restaurant" && now > r.respondBy) expireReservation(r);
+    if (r.status === "awaiting_payment" && r.payBy && now > r.payBy) expireUnpaidReservation(r);
     if (r.status === "confirmed") {
       const at = slotEpoch(r.date, r.time);
       if (!r.reminded && at - now <= env.reminderMs && at > now) {

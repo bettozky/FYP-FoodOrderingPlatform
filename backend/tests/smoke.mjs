@@ -172,10 +172,10 @@ ok(r.body.call.status === "declined", "callee can decline");
 
 // reservations
 const tomorrow = new Date(Date.now() + 864e5 + 8 * 36e5).toISOString().slice(0, 10);
-r = await call("POST", "/api/reservations", cust, { merchantId: "m2", date: tomorrow, time: "12:00", partySize: 4, payNow: true, preorder: [{ dishId: "d3", qty: 2 }, { dishId: "d4", qty: 1 }], card: { number: "4242424242424242" } });
+r = await call("POST", "/api/reservations", cust, { merchantId: "m2", date: tomorrow, time: "12:00", partySize: 4, payNow: true, preorder: [{ dishId: "d3", qty: 2 }, { dishId: "d4", qty: 1 }] });
 ok(r.status === 201 && r.body.reservation.status === "awaiting_restaurant", "reservation awaiting restaurant");
 const rs = r.body.reservation;
-ok(rs.paid === 5 + 7.5 * 2 + 9, "pay now = deposit + preorder: " + rs.paid);
+ok(rs.paid === 0 && rs.amountDue === 5 + 7.5 * 2 + 9, "Pay Now booking is not charged at booking; amount due = deposit + preorder: " + rs.amountDue);
 r = await call("POST", `/api/merchant/reservations/${rs.id}/respond`, null, { accept: true });
 ok(r.status === 401, "merchant endpoint needs login");
 const m2 = await call("POST", "/api/auth/login", null, { email: "ahseng@scootmeal.test", password: "merchant123" });
@@ -203,7 +203,7 @@ void kak; void m2;
 await sleep(6000);
 r = await call("GET", "/api/reservations", cust);
 const exp = r.body.reservations.find((x) => x.id === rs.id);
-ok(exp.status === "expired" && exp.refunded === exp.paid, "reservation expiry (shortened) refunds Pay Now");
+ok(exp.status === "expired" && exp.paid === 0, "reservation expiry (shortened): nothing was charged");
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

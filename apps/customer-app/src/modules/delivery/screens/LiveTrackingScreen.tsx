@@ -12,6 +12,10 @@ import {
 } from "../api";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 
+// react-native-maps types no longer allow children on the animated marker,
+// but it still renders them, so widen the type here.
+const RiderMarker = MarkerAnimated as unknown as React.ComponentType<any>;
+
 // This is the real, live GPS map — same data contract as the GPS Logistics
 // backend demo. Point src/data/deliveryApi.ts's API_BASE at that server to
 // see actual rider hardware/simulator movement here instead of the
@@ -96,11 +100,11 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
           <UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} />
 
           {tracking?.rider && (
-            <MarkerAnimated coordinate={region as any} anchor={{ x: 0.5, y: 0.5 }}>
+            <RiderMarker coordinate={region as any} anchor={{ x: 0.5, y: 0.5 }}>
               <View style={styles.riderDot}>
                 <Text style={styles.riderDotText}>{tracking.rider.name.charAt(0)}</Text>
               </View>
-            </MarkerAnimated>
+            </RiderMarker>
           )}
 
           <Marker

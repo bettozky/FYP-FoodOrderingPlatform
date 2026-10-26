@@ -106,7 +106,7 @@ export default function SideMenu({ visible, onClose, goToTab, navigation }: Prop
         <View style={styles.section}>
           {more.map((m) => (
             <Pressable key={m.label} style={styles.row} onPress={() => run(m.onPress)}>
-              <Ionicons name={m.icon} size={18} color="#B8B3A6" />
+              <Ionicons name={m.icon} size={18} color={colors.textFaint} />
               <Text style={styles.rowLabelMuted}>{m.label}</Text>
             </Pressable>
           ))}
@@ -146,10 +146,10 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 17 },
   name: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 16 },
-  sub: { color: "#B8B3A6", fontFamily: fonts.serif, fontSize: 12.5, marginTop: 2 },
+  sub: { color: colors.textFaint, fontFamily: fonts.serif, fontSize: 12.5, marginTop: 2 },
   section: { gap: 2 },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 11 },
   rowLabel: { color: colors.white, fontFamily: fonts.display, fontSize: 14.5 },
-  rowLabelMuted: { color: "#C9C4B6", fontFamily: fonts.serif, fontSize: 14 },
+  rowLabelMuted: { color: colors.stoneSoft, fontFamily: fonts.serif, fontSize: 14 },
   divider: { height: 1, backgroundColor: "rgba(255,255,255,0.1)", marginVertical: spacing.md },
 });

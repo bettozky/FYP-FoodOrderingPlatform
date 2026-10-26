@@ -195,7 +195,7 @@ export default function MerchantJobBoardScreen() {
               {/* Header: Title, Role & Status Badge */}
               <View style={s.rowBetween}>
                 <View style={s.titleGroup}>
-                  <Text style={[type.h3, { color: isClosed ? "#8C8880" : colors.text }]}>
+                  <Text style={[type.h3, { color: isClosed ? colors.stone : colors.text }]}>
                     {item.title}
                   </Text>
                   <Badge label={item.role} tone="neutral" />

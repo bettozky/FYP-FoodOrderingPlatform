@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.primary, backgroundColor: colors.primary },
   input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
-  errorBox: { flexDirection: "row", gap: spacing.sm, alignItems: "center", backgroundColor: "#F1DAD6", borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
+  errorBox: { flexDirection: "row", gap: spacing.sm, alignItems: "center", backgroundColor: colors.chiliSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
   errorText: { flex: 1, color: colors.chili, fontFamily: fonts.display, fontSize: 13 },
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, padding: spacing.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
 });

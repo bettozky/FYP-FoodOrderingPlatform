@@ -1,7 +1,7 @@
 import ChatButtons from "../../chat/ChatButton";
 import React, { useState } from "react";
 import EmptyState from "../../../shared/components/EmptyState";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Badge from "../../../shared/components/Badge";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
@@ -12,14 +12,16 @@ import { confirmAsync } from "../../../shared/util/confirm";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
+import { formatCard } from "../../ordering/screens/CheckoutScreen";
 
 export const VENUE_CATEGORIES = ["Trending", "Buffet", "Luxury", "Aesthetic Cafe"];
 
 const STATUS: Record<Reservation["status"], { label: string; tone: "primary" | "success" | "warning" | "danger" | "neutral" }> = {
   awaiting_restaurant: { label: "Awaiting restaurant", tone: "warning" },
+  awaiting_payment: { label: "Pay to confirm", tone: "primary" },
   confirmed: { label: "Confirmed", tone: "success" },
   declined: { label: "Declined", tone: "danger" },
-  expired: { label: "Expired - no reply", tone: "danger" },
+  expired: { label: "Expired", tone: "danger" },
   cancelled: { label: "Cancelled", tone: "neutral" },
   completed: { label: "Completed", tone: "neutral" },
 };
@@ -30,10 +32,38 @@ function Waiting({ deadline }: { deadline: number }) {
   return <Text style={type.small}>The restaurant has {mmss(s)} left to reply.</Text>;
 }
 
+function PayPanel({ r, onPaid }: { r: Reservation; onPaid: () => void }) {
+  const left = useCountdown(r.payBy ?? 0);
+  const [card, setCard] = useState("4242 4242 4242 4242");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function pay() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("POST", `/reservations/${r.id}/pay`, { card: { number: card } });
+      onPaid();
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <View style={styles.payBox} testID={`res-pay-${r.id}`}>
+      <Text style={type.h3}>The restaurant confirmed your table</Text>
+      <Text style={type.small}>Pay RM {r.amountDue.toFixed(2)} within {mmss(left)} to keep it. Nothing is charged until you pay.</Text>
+      <TextInput style={styles.input} value={card} onChangeText={(t) => setCard(formatCard(t))} keyboardType="number-pad" placeholder="Card number" placeholderTextColor={colors.textFaint} testID="res-card" />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <PrimaryButton label={`Pay RM ${r.amountDue.toFixed(2)}`} onPress={pay} loading={busy} disabled={left <= 0} />
+    </View>
+  );
+}
+
 function ReservationCard({ r, onChange, navigation }: { r: Reservation; onChange: () => void; navigation: any }) {
   const [error, setError] = useState("");
   const slot = new Date(`${r.date}T${r.time}:00+08:00`).getTime();
-  const open = r.status === "awaiting_restaurant" || r.status === "confirmed";
+  const open = r.status === "awaiting_restaurant" || r.status === "awaiting_payment" || r.status === "confirmed";
   const beforeCutoff = slot - Date.now() >= r.cutoffMs;
   const st = STATUS[r.status];
 
@@ -58,6 +88,7 @@ function ReservationCard({ r, onChange, navigation }: { r: Reservation; onChange
         <Badge label={st.label} tone={st.tone} />
       </View>
       {r.status === "awaiting_restaurant" && <Waiting deadline={r.respondBy} />}
+      {r.status === "awaiting_payment" && <PayPanel r={r} onPaid={onChange} />}
       {r.allocatedTable && <Text style={type.body}>Table: {r.allocatedTable}</Text>}
       {r.specialRequest ? <Text style={type.small}>Request: {r.specialRequest}</Text> : null}
       {r.preorder.length > 0 && (
@@ -72,7 +103,11 @@ function ReservationCard({ r, onChange, navigation }: { r: Reservation; onChange
         </View>
       )}
       <Text style={type.small}>
-        {r.payNow ? `Paid RM ${r.paid.toFixed(2)}${r.refunded ? ` · refunded RM ${r.refunded.toFixed(2)}` : ""}` : "Pay later (at the restaurant)"}
+        {!r.payNow ? "Pay later (at the restaurant)"
+          : r.paid ? `Paid RM ${r.paid.toFixed(2)}${r.refunded ? ` · refunded RM ${r.refunded.toFixed(2)}` : ""}`
+          : r.status === "expired" && r.cancelReason === "not_paid" ? "Not paid in time. Nothing was charged."
+          : r.status === "awaiting_restaurant" || r.status === "awaiting_payment" ? `Pay online: RM ${r.amountDue.toFixed(2)} after the restaurant confirms`
+          : "Nothing was charged"}
       </Text>
       {open && (
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
@@ -171,4 +206,6 @@ const styles = StyleSheet.create({
   preHead: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.turmericDeep, textTransform: "uppercase" },
   preRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   error: { color: colors.chili, fontFamily: fonts.display },
+  payBox: { backgroundColor: colors.amberTint, borderRadius: radius.md, borderWidth: 1, borderColor: colors.amberBorder, padding: spacing.md, gap: spacing.sm },
+  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
 });

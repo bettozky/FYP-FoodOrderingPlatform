@@ -4,11 +4,7 @@ import { useAuth } from "../modules/auth/AuthContext";
 const links = [
   { to: "/", label: "Dashboard" },
   { to: "/merchants", label: "Merchants" },
-  { to: "/users", label: "Users" },
   { to: "/orders", label: "Orders" },
-  { to: "/disputes", label: "Disputes" },
-  { to: "/moderation", label: "Moderation" },
-  { to: "/analytics", label: "Analytics" },
 ];
 
 export default function Layout() {

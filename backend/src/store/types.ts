@@ -129,6 +129,7 @@ export interface PreorderItem {
 
 export type ReservationStatus =
   | "awaiting_restaurant"
+  | "awaiting_payment" // restaurant confirmed and gave a table; Pay Now bookings must pay before payBy
   | "confirmed"
   | "declined"
   | "expired"
@@ -154,6 +155,8 @@ export interface Reservation {
   status: ReservationStatus;
   allocatedTable?: string;
   respondBy: number;
+  payBy?: number; // epoch ms: payment deadline once the restaurant confirms a Pay Now booking
+  cancelReason?: "not_paid";
   createdAt: number;
   reminded?: boolean;
 }

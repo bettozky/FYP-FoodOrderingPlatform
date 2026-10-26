@@ -10,8 +10,8 @@ type Props = {
 const toneMap = {
   primary: { bg: colors.primarySoft, fg: colors.amberText },
   success: { bg: colors.secondarySoft, fg: colors.herb },
-  warning: { bg: "#F3E4C4", fg: colors.amberText },
-  danger: { bg: "#F1DAD6", fg: colors.chiliText },
+  warning: { bg: colors.amberSoft, fg: colors.amberText },
+  danger: { bg: colors.chiliSoft, fg: colors.chiliText },
   neutral: { bg: colors.paperDim, fg: colors.stoneText },
 };
 

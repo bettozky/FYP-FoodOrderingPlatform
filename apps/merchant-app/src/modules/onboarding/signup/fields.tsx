@@ -19,7 +19,7 @@ export function Label({ children }: { children: string }) {
   return <Text style={styles.label}>{children}</Text>;
 }
 
-type FieldProps = Omit<TextInputProps, "onChangeText" | "value"> & {
+type FieldProps = Omit<TextInputProps, "onChange" | "onChangeText" | "value"> & {
   label: string;
   value: string;
   onChange: (v: string) => void;

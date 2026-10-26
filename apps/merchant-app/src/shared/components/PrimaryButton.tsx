@@ -29,6 +29,6 @@ export default function PrimaryButton({ label, onPress, variant = "primary", dis
 
 const styles = StyleSheet.create({
   base: { paddingVertical: 14, paddingHorizontal: 16, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
-  ghostLight: { borderWidth: 1.5, borderColor: "#5A554B" },
+  ghostLight: { borderWidth: 1.5, borderColor: colors.stoneText },
   outline: { borderWidth: 1.5, borderColor: colors.primary },
 });

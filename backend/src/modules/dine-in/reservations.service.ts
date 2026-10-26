@@ -9,7 +9,7 @@ import { charge, refund } from "../payment/payment.service.js";
 
 export interface NewReservation {
   customerId: string; merchantId: string; date: string; time: string; partySize: number;
-  specialRequest?: string; preorder: { dishId: string; qty: number }[]; payNow: boolean; card?: unknown;
+  specialRequest?: string; preorder: { dishId: string; qty: number }[]; payNow: boolean;
 }
 
 export function checkSlot(merchantId: string, date: string, time: string) {
@@ -41,19 +41,12 @@ export function createReservation(inp: NewReservation): Reservation {
   });
   const c = db.users.get(inp.customerId)!;
   const id = nextReservationId();
-  let paymentId: string | undefined;
-  let paid = 0;
-  if (inp.payNow) {
-    // Pay Now = booking deposit + pre-order total (FR-3.3). Refunded in full if declined / unanswered.
-    const amount = money(env.bookingDeposit + pre.reduce((s, p) => s + p.price * p.qty, 0));
-    const p = charge(amount, inp.card, id);
-    paymentId = p.id; paid = p.amount;
-  }
+  // Confirm-then-pay (SB-9): nothing is charged now. A Pay Now booking is paid after the restaurant confirms.
   const now = Date.now();
   const r: Reservation = {
     id, customerId: c.id, customerName: c.name, customerPhone: c.phone ?? "", merchantId: m.id, merchantName: m.name,
     date: inp.date, time: inp.time, partySize: party, specialRequest: inp.specialRequest?.slice(0, 200) || undefined,
-    preorder: pre, payNow: inp.payNow, paymentId, paid, refunded: 0, status: "awaiting_restaurant",
+    preorder: pre, payNow: inp.payNow, paid: 0, refunded: 0, status: "awaiting_restaurant",
     respondBy: now + env.reservationResponseMs, createdAt: now,
   };
   db.reservations.set(id, r);
@@ -70,9 +63,16 @@ export function respondReservation(r: Reservation, accept: boolean, table?: stri
   if (Date.now() > r.respondBy) throw new HttpError(409, "The 30-minute window has passed. The request expired.");
   if (accept) {
     if (!table) throw new HttpError(400, "Choose a table to allocate");
-    r.status = "confirmed";
     r.allocatedTable = table;
-    notify(r.customerId, "reservation_confirmed", "Table confirmed", `${r.merchantName} confirmed your table (${table}) for ${r.date} ${r.time}.`, { reservationId: r.id });
+    if (r.payNow && !r.paymentId) {
+      // Pay Now: hold the table and ask for payment within the payment window (same rule as orders).
+      r.status = "awaiting_payment";
+      r.payBy = Date.now() + env.paymentWindowMs;
+      notify(r.customerId, "reservation_accepted", "Restaurant confirmed your table", `${r.merchantName} confirmed table ${table} for ${r.date} ${r.time}. Pay RM${amountDue(r).toFixed(2)} to secure it.`, { reservationId: r.id, payBy: r.payBy });
+    } else {
+      r.status = "confirmed";
+      notify(r.customerId, "reservation_confirmed", "Table confirmed", `${r.merchantName} confirmed your table (${table}) for ${r.date} ${r.time}.`, { reservationId: r.id });
+    }
   } else {
     r.status = "declined";
     refundAll(r, "Reservation declined");
@@ -86,20 +86,47 @@ export function expireReservation(r: Reservation) {
   notify(r.customerId, "reservation_expired", "Reservation expired", `${r.merchantName} did not reply in time.${r.paid ? " Your payment was refunded." : ""}`, { reservationId: r.id });
 }
 
+/** What the customer must pay for a Pay Now booking: deposit + every pre-order dish the restaurant has not declined. */
+export function amountDue(r: Reservation): number {
+  if (!r.payNow || r.paymentId) return 0;
+  return money(env.bookingDeposit + r.preorder.filter((p) => p.status !== "declined").reduce((s, p) => s + p.price * p.qty, 0));
+}
+
+/** Customer pays after the restaurant confirmed (simulated Stripe). The booking is then confirmed. */
+export function payReservation(r: Reservation, card: unknown) {
+  if (r.status !== "awaiting_payment") throw new HttpError(409, "This booking is not waiting for payment");
+  if (!r.payBy || Date.now() > r.payBy) throw new HttpError(409, "The payment window has passed. Please book again.");
+  const p = charge(amountDue(r), card, r.id);
+  r.paymentId = p.id;
+  r.paid = p.amount;
+  r.status = "confirmed";
+  r.payBy = undefined;
+  notifyMerchant(r.merchantId, "reservation_paid", "Reservation paid", `${r.customerName} paid for ${r.date} ${r.time}. The table is confirmed.`, { reservationId: r.id });
+}
+
+/** Payment window ran out: the table is released and nothing was charged. */
+export function expireUnpaidReservation(r: Reservation) {
+  r.status = "expired";
+  r.cancelReason = "not_paid";
+  r.payBy = undefined;
+  notify(r.customerId, "reservation_expired", "Reservation cancelled", `You did not pay in time, so ${r.merchantName} released your table. Nothing was charged.`, { reservationId: r.id });
+  notifyMerchant(r.merchantId, "reservation_cancelled", "Reservation not paid", `${r.customerName} did not pay for ${r.date} ${r.time}. The table is free again.`, { reservationId: r.id });
+}
+
 // FR-5.10: a declined dish does not cancel the reservation.
 export function decidePreorder(r: Reservation, itemId: string, approve: boolean) {
-  if (r.status !== "awaiting_restaurant" && r.status !== "confirmed") throw new HttpError(409, "Reservation is closed");
+  if (!["awaiting_restaurant", "awaiting_payment", "confirmed"].includes(r.status)) throw new HttpError(409, "Reservation is closed");
   const it = r.preorder.find((p) => p.id === itemId);
   if (!it) throw new HttpError(404, "Pre-order item not found");
   if (it.status !== "pending") throw new HttpError(409, "Already answered");
   it.status = approve ? "approved" : "declined";
-  if (!approve && r.payNow) r.refunded = money(r.refunded + refund(r.paymentId, it.price * it.qty, `Pre-order declined: ${it.name}`));
+  if (!approve && r.paymentId) r.refunded = money(r.refunded + refund(r.paymentId, it.price * it.qty, `Pre-order declined: ${it.name}`));
   notify(r.customerId, approve ? "preorder_approved" : "preorder_declined", approve ? "Pre-order approved" : "Pre-order item declined",
-    `${r.merchantName} ${approve ? "approved" : "declined"} ${it.qty} x ${it.name}.${!approve && r.payNow ? " That amount was refunded." : ""}`, { reservationId: r.id });
+    `${r.merchantName} ${approve ? "approved" : "declined"} ${it.qty} x ${it.name}.${!approve && r.paymentId ? " That amount was refunded." : ""}`, { reservationId: r.id });
 }
 
 export function cancelReservation(r: Reservation) {
-  if (!["awaiting_restaurant", "confirmed"].includes(r.status)) throw new HttpError(409, "This reservation can no longer be cancelled");
+  if (!["awaiting_restaurant", "awaiting_payment", "confirmed"].includes(r.status)) throw new HttpError(409, "This reservation can no longer be cancelled");
   if (slotEpoch(r.date, r.time) - Date.now() < env.reservationCutoffMs) throw new HttpError(409, `Cancellations close ${Math.round(env.reservationCutoffMs / 60000)} minutes before the slot`);
   r.status = "cancelled";
   refundAll(r, "Cancelled by customer");
@@ -107,7 +134,7 @@ export function cancelReservation(r: Reservation) {
 }
 
 export function modifyReservation(r: Reservation, b: { date?: string; time?: string; partySize?: number; specialRequest?: string }) {
-  if (!["awaiting_restaurant", "confirmed"].includes(r.status)) throw new HttpError(409, "This reservation can no longer be changed");
+  if (!["awaiting_restaurant", "awaiting_payment", "confirmed"].includes(r.status)) throw new HttpError(409, "This reservation can no longer be changed");
   if (slotEpoch(r.date, r.time) - Date.now() < env.reservationCutoffMs) throw new HttpError(409, `Changes close ${Math.round(env.reservationCutoffMs / 60000)} minutes before the slot`);
   const date = b.date ?? r.date, time = b.time ?? r.time;
   checkSlot(r.merchantId, date, time);
@@ -118,7 +145,7 @@ export function modifyReservation(r: Reservation, b: { date?: string; time?: str
   if (b.specialRequest !== undefined) r.specialRequest = String(b.specialRequest).slice(0, 200) || undefined;
   if (changedSlot) {
     // A new slot needs the restaurant's approval again.
-    r.status = "awaiting_restaurant"; r.allocatedTable = undefined; r.reminded = false;
+    r.status = "awaiting_restaurant"; r.allocatedTable = undefined; r.reminded = false; r.payBy = undefined;
     r.respondBy = Date.now() + env.reservationResponseMs;
     notifyMerchant(r.merchantId, "new_reservation", "Reservation changed", `${r.customerName} changed to ${date} ${time}, party of ${party}.`, { reservationId: r.id });
   }
@@ -126,14 +153,14 @@ export function modifyReservation(r: Reservation, b: { date?: string; time?: str
 
 /** Merchant moves a confirmed booking to another table. */
 export function reassignTable(r: Reservation, table: string) {
-  if (r.status !== "confirmed") throw new HttpError(409, "Only confirmed bookings have a table");
+  if (r.status !== "confirmed" && r.status !== "awaiting_payment") throw new HttpError(409, "Only confirmed bookings have a table");
   r.allocatedTable = table;
   notify(r.customerId, "reservation_table", "Table changed", `${r.merchantName} moved your booking to ${table}.`, { reservationId: r.id });
 }
 
 /** Merchant cancels a confirmed booking (customer is notified and refunded). */
 export function merchantCancel(r: Reservation) {
-  if (r.status !== "confirmed") throw new HttpError(409, "Only confirmed bookings can be cancelled here");
+  if (r.status !== "confirmed" && r.status !== "awaiting_payment") throw new HttpError(409, "Only confirmed bookings can be cancelled here");
   r.status = "cancelled";
   refundAll(r, "Cancelled by restaurant");
   notify(r.customerId, "reservation_declined", "Booking cancelled", `${r.merchantName} had to cancel your booking.${r.paid ? " Your payment was refunded." : ""}`, { reservationId: r.id });

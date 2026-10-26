@@ -25,18 +25,27 @@ export const setOnUnauthorized = (fn: (() => void) | null) => {
   onUnauthorized = fn;
 };
 
+const REQUEST_TIMEOUT_MS = 20_000;
+
 export async function api<T = any>(method: "GET" | "POST" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+  // A request that never answers (weak Wi-Fi) must not hang forever: it would leave buttons spinning and stop polling.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let res: Response;
+  let data: any;
   try {
     res = await fetch(`${API_URL}/api${path}`, {
       method,
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
     });
+    data = await res.json().catch(() => ({}));
   } catch {
-    throw new ApiError(0, "Cannot reach the ScootMeal server. Make sure the backend is running.");
+    throw new ApiError(0, `Cannot reach the ScootMeal server at ${API_URL}. Check the backend is running and your phone is on the same Wi-Fi as the PC.`);
+  } finally {
+    clearTimeout(timer);
   }
-  const data = await res.json().catch(() => ({}));
   if (data && typeof data === "object" && "serverNow" in data) syncClock((data as any).serverNow);
   if (!res.ok) {
     if (res.status === 401 && token) onUnauthorized?.();

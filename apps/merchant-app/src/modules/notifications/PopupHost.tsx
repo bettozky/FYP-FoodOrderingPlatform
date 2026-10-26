@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Platform, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import { Keyboard, Modal, Platform, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { api, errorText, serverTime } from "../../shared/api/client";
 import { MODE_LABEL, Mode, Order, Reservation } from "../../shared/api/types";
 import PrimaryButton from "../../shared/components/PrimaryButton";
@@ -41,6 +41,8 @@ export default function PopupHost() {
   }, [order?.id, reservation?.id]);
 
   async function act(fn: () => Promise<unknown>) {
+    // Close the keyboard first: closing the pop-up while a chat box still has focus can leave the screen stuck.
+    Keyboard.dismiss();
     setBusy(true);
     setError("");
     try {
@@ -105,7 +107,7 @@ function OrderPopup({ order, busy, error, onAnswer }: { order: Order; busy: bool
   const modes = (["dine_in", "takeaway", "delivery"] as Mode[]).filter((m) => order.items.some((i) => i.mode === m));
   return (
     <View style={styles.screen} testID="order-popup">
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <Text style={styles.kicker}>NEW ORDER REQUEST</Text>
         <Text style={styles.title}>#{order.id} · {order.customerName}</Text>
         <Countdown deadline={order.respondBy} minutes={10} />
@@ -139,16 +141,16 @@ function ReservationPopup(props: {
 }) {
   const { r, all, busy, error, pickTable, setPickTable } = props;
   const [chatOpen, setChatOpen] = useState(false);
-  const taken = new Set(all.filter((x) => x.id !== r.id && x.status === "confirmed" && x.date === r.date && x.time === r.time && x.allocatedTable).map((x) => x.allocatedTable));
+  const taken = new Set(all.filter((x) => x.id !== r.id && (x.status === "confirmed" || x.status === "awaiting_payment") && x.date === r.date && x.time === r.time && x.allocatedTable).map((x) => x.allocatedTable));
   return (
     <View style={styles.screen} testID="reservation-popup">
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         <Text style={styles.kicker}>NEW RESERVATION REQUEST</Text>
         <Text style={styles.title}>{r.customerName} · {r.partySize} guests</Text>
         <Text style={styles.sub}>{prettyDate(r.date)} at {r.time}</Text>
         <Countdown deadline={r.respondBy} minutes={30} />
         {r.specialRequest ? <Text style={[type.body, { fontStyle: "italic" }]}>"{r.specialRequest}"</Text> : null}
-        <Text style={type.small}>{r.payNow ? `Paid RM ${r.paid.toFixed(2)} (refunded automatically if declined)` : "Pay later"}</Text>
+        <Text style={type.small}>{!r.payNow ? "Pay later" : r.paid ? `Paid RM ${r.paid.toFixed(2)}` : `Pay online: customer pays RM ${(r.amountDue ?? 0).toFixed(2)} after you confirm`}</Text>
         {r.preorder.length > 0 && (
           <View style={styles.group}>
             <Text style={styles.groupHead}>Pre-order (approve each dish later in Table reservations)</Text>
@@ -189,7 +191,7 @@ const styles = StyleSheet.create({
   body: { padding: spacing.xl, gap: spacing.md, maxWidth: 560, width: "100%", alignSelf: "center" },
   kicker: { color: colors.turmeric, fontFamily: fonts.displayExtraBold, letterSpacing: 1.2, fontSize: 12 },
   title: { color: colors.white, fontFamily: fonts.displayExtraBold, fontSize: 26 },
-  sub: { color: "#C9C4B6", fontFamily: fonts.display, fontSize: 16 },
+  sub: { color: colors.stoneSoft, fontFamily: fonts.display, fontSize: 16 },
   timer: { backgroundColor: colors.herb, borderRadius: radius.lg, padding: spacing.lg, alignItems: "center" },
   timerNum: { color: colors.white, fontFamily: fonts.displayExtraBold, fontSize: 44 },
   timerLabel: { color: colors.white, fontFamily: fonts.display, fontSize: 12 },
@@ -199,6 +201,6 @@ const styles = StyleSheet.create({
   lineText: { fontFamily: fonts.display, fontSize: 16, color: colors.ink },
   total: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 18 },
   tableRow: { flexDirection: "row", justifyContent: "space-between", padding: 12, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border },
-  error: { color: "#FFB4AB", fontFamily: fonts.display },
+  error: { color: colors.chiliSoft, fontFamily: fonts.display },
   actions: { flexDirection: "row", gap: spacing.sm, padding: spacing.lg, backgroundColor: colors.ink, maxWidth: 560, width: "100%", alignSelf: "center" },
 });
