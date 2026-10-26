@@ -74,7 +74,7 @@ export default function MainTabs({ navigation, route }: any) {
                 </View>
               ) : (
                 <View style={[styles.iconWrap, focused && styles.iconWrapFocused]}>
-                  <Ionicons name={r.icon} size={19} color={focused ? colors.ink : "#8A867D"} />
+                  <Ionicons name={r.icon} size={19} color={focused ? colors.ink : colors.stone} />
                 </View>
               )}
             </Pressable>
@@ -142,5 +142,5 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  assistantBtnFocused: { backgroundColor: "#FFC24D" },
+  assistantBtnFocused: { backgroundColor: colors.turmericLight },
 });

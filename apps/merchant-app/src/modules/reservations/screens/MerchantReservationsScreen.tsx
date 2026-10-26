@@ -40,16 +40,17 @@ export default function MerchantReservationsScreen() {
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
 
   const pendingCount = reservations.filter((r) => r.status === "awaiting_restaurant").length;
-  const confirmedCount = reservations.filter((r) => r.status === "confirmed").length;
+  const holdsTable = (st: Reservation["status"]) => st === "confirmed" || st === "awaiting_payment"; // a table is held while the customer still has to pay
+  const confirmedCount = reservations.filter((r) => holdsTable(r.status)).length;
   const filteredReservations = reservations.filter((r) => {
     if (activeTab === "pending") return r.status === "awaiting_restaurant";
-    if (activeTab === "confirmed") return r.status === "confirmed";
+    if (activeTab === "confirmed") return holdsTable(r.status);
     return true;
   });
 
   // Tables already given to another confirmed booking at the same date and time.
   const occupied = (r: Reservation | null) =>
-    new Set(reservations.filter((x) => r && x.id !== r.id && x.status === "confirmed" && x.date === r.date && x.time === r.time && x.allocatedTable).map((x) => x.allocatedTable));
+    new Set(reservations.filter((x) => r && x.id !== r.id && holdsTable(x.status) && x.date === r.date && x.time === r.time && x.allocatedTable).map((x) => x.allocatedTable));
 
   async function call(fn: () => Promise<unknown>) {
     setError("");
@@ -103,16 +104,16 @@ export default function MerchantReservationsScreen() {
               <View style={s.rowBetween}>
                 <Text style={[type.body, { fontWeight: "700" }]}>Dine-In Seating Plan</Text>
                 <Text style={type.small}>
-                  {RESTAURANT_TABLES.length - new Set(reservations.filter((r) => r.status === "confirmed" && r.allocatedTable).map((r) => r.allocatedTable)).size} tables not yet booked
+                  {RESTAURANT_TABLES.length - new Set(reservations.filter((r) => holdsTable(r.status) && r.allocatedTable).map((r) => r.allocatedTable)).size} tables not yet booked
                 </Text>
               </View>
               <View style={s.floorGrid}>
                 {RESTAURANT_TABLES.map((t) => {
-                  const booked = reservations.filter((r) => r.status === "confirmed" && r.allocatedTable === t.id);
+                  const booked = reservations.filter((r) => holdsTable(r.status) && r.allocatedTable === t.id);
                   const isOccupied = booked.length > 0;
                   return (
                     <View key={t.id} style={[s.tablePill, isOccupied ? s.tableOccupied : s.tableAvailable]}>
-                      <Text style={[s.tablePillTitle, { color: isOccupied ? "#B26F00" : "#2F6F4E" }]}>{t.id}</Text>
+                      <Text style={[s.tablePillTitle, { color: isOccupied ? colors.amberText : colors.herb }]}>{t.id}</Text>
                       <Text style={s.tablePillSub}>{isOccupied ? `Booked ${booked[0].time}` : `${t.capacity} Pax`}</Text>
                     </View>
                   );
@@ -140,6 +141,7 @@ export default function MerchantReservationsScreen() {
         renderItem={({ item }) => {
           const isPending = item.status === "awaiting_restaurant";
           const isConfirmed = item.status === "confirmed";
+          const isUnpaid = item.status === "awaiting_payment";
           return (
             <View style={[s.card, isPending && s.cardPending]} testID={`mres-${item.id}`}>
               <View style={s.rowBetween}>
@@ -153,7 +155,7 @@ export default function MerchantReservationsScreen() {
                   <Remaining deadline={item.respondBy} />
                 ) : (
                   <Badge
-                    label={item.status === "awaiting_restaurant" ? "PENDING" : item.status.toUpperCase()}
+                    label={isUnpaid ? "WAITING FOR PAYMENT" : item.status.toUpperCase()}
                     tone={isConfirmed ? "success" : item.status === "completed" ? "neutral" : "warning"}
                   />
                 )}
@@ -162,9 +164,9 @@ export default function MerchantReservationsScreen() {
               <View style={s.rowBetween}>
                 <Text style={[type.body, { fontWeight: "700" }]}><Ionicons name="calendar-outline" size={14} /> {prettyDate(item.date)} at {item.time}</Text>
                 {item.allocatedTable ? (
-                  <Text style={{ fontSize: 13, color: "#2F6F4E", fontWeight: "700" }}><Ionicons name="location-outline" size={14} /> Allocated: {item.allocatedTable}</Text>
+                  <Text style={{ fontSize: 13, color: colors.herb, fontWeight: "700" }}><Ionicons name="location-outline" size={14} /> Allocated: {item.allocatedTable}</Text>
                 ) : isPending ? (
-                  <Text style={{ fontSize: 12, color: "#B26F00", fontWeight: "600" }}><Ionicons name="alert-circle-outline" size={13} /> Table not yet assigned</Text>
+                  <Text style={{ fontSize: 12, color: colors.amberText, fontWeight: "600" }}><Ionicons name="alert-circle-outline" size={13} /> Table not yet assigned</Text>
                 ) : null}
               </View>
 
@@ -175,12 +177,12 @@ export default function MerchantReservationsScreen() {
                   <Text style={type.small}>{item.customerPhone}</Text>
                 </View>
               </View>
-              {(item.status === "awaiting_restaurant" || item.status === "confirmed") && <ChatButtons kind="reservation" id={item.id} allowCall />}
+              {(item.status === "awaiting_restaurant" || item.status === "awaiting_payment" || item.status === "confirmed") && <ChatButtons kind="reservation" id={item.id} allowCall />}
 
               {item.specialRequest ? (
                 <Text style={[type.small, { fontStyle: "italic", color: colors.textMuted }]}>Note: "{item.specialRequest}"</Text>
               ) : null}
-              <Text style={type.small}>{item.payNow ? `Paid RM ${item.paid.toFixed(2)}${item.refunded ? ` (refunded RM ${item.refunded.toFixed(2)})` : ""}` : "Pay later at the restaurant"}</Text>
+              <Text style={type.small}>{!item.payNow ? "Pay later at the restaurant" : item.paid ? `Paid RM ${item.paid.toFixed(2)}${item.refunded ? ` (refunded RM ${item.refunded.toFixed(2)})` : ""}` : isUnpaid ? `Waiting for the customer to pay RM ${(item.amountDue ?? 0).toFixed(2)}. The table is held until the payment window ends.` : `Customer pays online (RM ${(item.amountDue ?? 0).toFixed(2)}) after you confirm`}</Text>
 
               {/* Pre-order: approve / decline each dish separately (FR-5.10) */}
               {item.preorder.length > 0 && (
@@ -189,18 +191,18 @@ export default function MerchantReservationsScreen() {
                   {item.preorder.map((dish) => (
                     <View key={dish.id} style={s.preOrderItemRow}>
                       <Text style={[type.body, { flex: 1 }]}>{dish.qty}x {dish.name}</Text>
-                      {dish.status === "pending" && (item.status === "awaiting_restaurant" || item.status === "confirmed") ? (
+                      {dish.status === "pending" && (item.status === "awaiting_restaurant" || item.status === "awaiting_payment" || item.status === "confirmed") ? (
                         <View style={{ flexDirection: "row", gap: 6 }}>
-                          <Pressable style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: "#EAF3EC" }} onPress={() => handlePreOrderItem(item, dish.id, true)} testID={`pre-ok-${dish.id}`}>
-                            <Text style={{ fontSize: 11, fontWeight: "700", color: "#2F6F4E" }}>Accept</Text>
+                          <Pressable style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: colors.herbLight }} onPress={() => handlePreOrderItem(item, dish.id, true)} testID={`pre-ok-${dish.id}`}>
+                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.herb }}>Accept</Text>
                           </Pressable>
-                          <Pressable style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: "#FBE9E6" }} onPress={() => handlePreOrderItem(item, dish.id, false)} testID={`pre-no-${dish.id}`}>
-                            <Text style={{ fontSize: 11, fontWeight: "700", color: "#C2382C" }}>Decline</Text>
+                          <Pressable style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: colors.chiliSoft }} onPress={() => handlePreOrderItem(item, dish.id, false)} testID={`pre-no-${dish.id}`}>
+                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.chiliText }}>Decline</Text>
                           </Pressable>
                         </View>
                       ) : (
-                        <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: dish.status === "approved" ? "#EAF3EC" : dish.status === "declined" ? "#FBE9E6" : "#F4F1EA" }}>
-                          <Text style={{ fontSize: 11, fontWeight: "700", color: dish.status === "approved" ? "#2F6F4E" : dish.status === "declined" ? "#C2382C" : "#8C8880" }}>
+                        <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: dish.status === "approved" ? colors.herbLight : dish.status === "declined" ? colors.chiliSoft : colors.paperDim }}>
+                          <Text style={{ fontSize: 11, fontWeight: "700", color: dish.status === "approved" ? colors.herb : dish.status === "declined" ? colors.chiliText : colors.stone }}>
                             {dish.status === "approved" ? "Food Accepted" : dish.status === "declined" ? "Kitchen Declined" : "Pending"}
                           </Text>
                         </View>
@@ -252,13 +254,13 @@ export default function MerchantReservationsScreen() {
                       disabled={unavailable}
                       style={{
                         flexDirection: "row", justifyContent: "space-between", padding: 12, borderRadius: 8, borderWidth: 1,
-                        borderColor: unavailable ? "#ECE7DA" : colors.primary, backgroundColor: unavailable ? "#F4F1EA" : "#fff", opacity: unavailable ? 0.6 : 1,
+                        borderColor: unavailable ? colors.stoneLine : colors.primary, backgroundColor: unavailable ? colors.paperDim : colors.white, opacity: unavailable ? 0.6 : 1,
                       }}
                       onPress={() => handleConfirmReservation(table.id)}
                       testID={`pick-${table.id}`}
                     >
                       <Text style={[type.body, { fontWeight: "700" }]}>{table.name}</Text>
-                      <Text style={{ fontSize: 12, color: unavailable ? "#C2382C" : "#2F6F4E" }}>
+                      <Text style={{ fontSize: 12, color: unavailable ? colors.chiliText : colors.herb }}>
                         {busyTables.has(table.id) ? "Taken" : unavailable ? "Too small" : "Select & Confirm"}
                       </Text>
                     </Pressable>

@@ -214,13 +214,13 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
             <View style={styles.actions}>
               {incomingRinging ? (
                 <>
-                  <RoundBtn icon="call" color="#C2382C" label="Decline" onPress={decline} testID="call-decline" rotate />
-                  <RoundBtn icon="call" color="#2F6F4E" label="Accept" onPress={accept} testID="call-accept" />
+                  <RoundBtn icon="call" color={colors.chiliText} label="Decline" onPress={decline} testID="call-decline" rotate />
+                  <RoundBtn icon="call" color={colors.herb} label="Accept" onPress={accept} testID="call-accept" />
                 </>
               ) : (
                 <>
-                  {call?.status === "active" && <RoundBtn icon={muted ? "mic-off" : "mic"} color={muted ? "#F5A623" : "#3A362E"} label={muted ? "Unmute" : "Mute"} onPress={toggleMute} testID="call-mute" />}
-                  <RoundBtn icon="call" color="#C2382C" label={call?.status === "ringing" ? "Cancel" : "End"} onPress={hangUp} testID="call-end" rotate />
+                  {call?.status === "active" && <RoundBtn icon={muted ? "mic-off" : "mic"} color={muted ? colors.turmeric : colors.ink} label={muted ? "Unmute" : "Mute"} onPress={toggleMute} testID="call-mute" />}
+                  <RoundBtn icon="call" color={colors.chiliText} label={call?.status === "ringing" ? "Cancel" : "End"} onPress={hangUp} testID="call-end" rotate />
                 </>
               )}
             </View>
@@ -235,7 +235,7 @@ function RoundBtn({ icon, color, label, onPress, testID, rotate }: { icon: any; 
   return (
     <View style={{ alignItems: "center", gap: 8 }}>
       <Pressable onPress={onPress} style={[styles.round, { backgroundColor: color }]} testID={testID} accessibilityLabel={label}>
-        <Ionicons name={icon} size={28} color="#FFFFFF" style={rotate ? { transform: [{ rotate: "135deg" }] } : undefined} />
+        <Ionicons name={icon} size={28} color={colors.white} style={rotate ? { transform: [{ rotate: "135deg" }] } : undefined} />
       </Pressable>
       <Text style={styles.roundLabel}>{label}</Text>
     </View>
@@ -254,10 +254,10 @@ const styles = StyleSheet.create({
   kicker: { color: colors.turmeric, fontFamily: fonts.displayExtraBold, letterSpacing: 1.4, fontSize: 12 },
   avatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", marginTop: spacing.xl },
   avatarText: { fontSize: 52, fontFamily: fonts.displayExtraBold, color: colors.ink },
-  name: { color: "#FFFFFF", fontSize: 26, fontFamily: fonts.displayExtraBold, textAlign: "center" },
-  status: { color: "#C9C4B6", fontSize: 18, fontFamily: fonts.display },
-  small: { color: "#8C8880", fontSize: 12.5, fontFamily: fonts.serif, textAlign: "center", maxWidth: 320 },
+  name: { color: colors.white, fontSize: 26, fontFamily: fonts.displayExtraBold, textAlign: "center" },
+  status: { color: colors.stoneSoft, fontSize: 18, fontFamily: fonts.display },
+  small: { color: colors.stone, fontSize: 12.5, fontFamily: fonts.serif, textAlign: "center", maxWidth: 320 },
   actions: { flexDirection: "row", justifyContent: "center", gap: 56 },
   round: { width: 68, height: 68, borderRadius: 34, alignItems: "center", justifyContent: "center" },
-  roundLabel: { color: "#C9C4B6", fontSize: 12.5, fontFamily: fonts.display },
+  roundLabel: { color: colors.stoneSoft, fontSize: 12.5, fontFamily: fonts.display },
 });

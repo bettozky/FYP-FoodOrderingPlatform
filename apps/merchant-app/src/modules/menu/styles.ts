@@ -13,14 +13,14 @@ export const merchantMenuStyles = StyleSheet.create({
     marginBottom: spacing?.md || 16,
   },
   addBtn: {
-    backgroundColor: colors?.primary || "#ea580c",
+    backgroundColor: colors.primary,
     borderRadius: radius?.md || 8,
     paddingVertical: spacing?.md || 14,
     alignItems: "center",
     cursor: "pointer" as any,
   },
   addBtnText: {
-    color: colors?.white || "#ffffff",
+    color: colors?.white || colors.white,
     fontFamily: fonts?.displayBold || fonts?.display,
     fontSize: 14,
     fontWeight: "700",
@@ -36,38 +36,38 @@ export const merchantMenuStyles = StyleSheet.create({
     paddingHorizontal: spacing?.md || 16,
     paddingVertical: spacing?.sm || 8,
     borderRadius: radius?.pill || 9999,
-    backgroundColor: colors?.surface || "#ffffff",
+    backgroundColor: colors?.surface || colors.white,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
     cursor: "pointer" as any,
   },
   categoryChipActive: {
-    backgroundColor: colors?.primary || "#ea580c",
-    borderColor: colors?.primary || "#ea580c",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   categoryText: {
     fontSize: 13,
-    color: colors?.text || "#1e293b",
+    color: colors?.text || colors.ink,
     fontFamily: fonts?.display,
   },
   categoryTextActive: {
-    color: colors?.white || "#ffffff",
+    color: colors?.white || colors.white,
     fontWeight: "700",
   },
 
   /* --- 3. Dish Card Layout --- */
   card: {
-    backgroundColor: colors?.surface || "#ffffff",
+    backgroundColor: colors?.surface || colors.white,
     borderRadius: radius?.md || 10,
     padding: spacing?.md || 16,
     marginBottom: spacing?.md || 16,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
     gap: spacing?.sm || 10,
   },
   cardSoldOut: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
+    backgroundColor: colors.bg,
+    borderColor: colors.border,
     opacity: 0.85,
   },
   mainRow: {
@@ -79,7 +79,7 @@ export const merchantMenuStyles = StyleSheet.create({
     fontSize: 32,
   },
   textMuted: {
-    color: colors?.textMuted || "#64748b",
+    color: colors?.textMuted || colors.stoneText,
     textDecorationLine: "line-through",
   },
 
@@ -92,7 +92,7 @@ export const merchantMenuStyles = StyleSheet.create({
   },
   costLabel: {
     fontSize: 12,
-    color: colors?.textMuted || "#64748b",
+    color: colors?.textMuted || colors.stoneText,
   },
   profitLabel: {
     fontSize: 11,
@@ -102,12 +102,12 @@ export const merchantMenuStyles = StyleSheet.create({
     borderRadius: 4,
   },
   profitPos: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
+    backgroundColor: colors.herbLight,
+    color: colors.herb,
   },
   profitNeg: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
+    backgroundColor: colors.chiliSoft,
+    color: colors.chiliText,
   },
   qtyBadge: {
     fontSize: 11,
@@ -117,12 +117,12 @@ export const merchantMenuStyles = StyleSheet.create({
     fontWeight: "600",
   },
   qtyActive: {
-    backgroundColor: "#ecfdf5",
-    color: "#065f46",
+    backgroundColor: colors.herbLight,
+    color: colors.herb,
   },
   qtyZero: {
-    backgroundColor: "#fee2e2",
-    color: "#b91c1c",
+    backgroundColor: colors.chiliSoft,
+    color: colors.chiliText,
   },
   toggleCol: {
     alignItems: "center",
@@ -135,7 +135,7 @@ export const merchantMenuStyles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: spacing?.sm || 8,
     borderTopWidth: 1,
-    borderTopColor: colors?.border || "#e2e8f0",
+    borderTopColor: colors?.border || colors.border,
     paddingTop: spacing?.xs || 8,
   },
   actionBtn: {
@@ -145,23 +145,23 @@ export const merchantMenuStyles = StyleSheet.create({
     cursor: "pointer" as any,
   },
   editBtn: {
-    backgroundColor: colors?.bg || "#f8fafc",
+    backgroundColor: colors?.bg || colors.bg,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
   },
   editBtnText: {
     fontSize: 12,
-    color: colors?.text || "#1e293b",
+    color: colors?.text || colors.ink,
     fontFamily: fonts?.display,
   },
   deleteBtn: {
-    backgroundColor: "#fef2f2",
+    backgroundColor: colors.chiliSoft,
     borderWidth: 1,
-    borderColor: "#fecaca",
+    borderColor: colors.chiliBorder,
   },
   deleteBtnText: {
     fontSize: 12,
-    color: "#dc2626",
+    color: colors.chiliText,
     fontFamily: fonts?.display,
     fontWeight: "600",
   },
@@ -175,14 +175,14 @@ export const merchantMenuStyles = StyleSheet.create({
     padding: spacing?.lg || 16,
   },
   modalCard: {
-    backgroundColor: colors?.surface || "#ffffff",
+    backgroundColor: colors?.surface || colors.white,
     borderRadius: radius?.lg || 12,
     padding: spacing?.xl || 24,
     width: "100%",
     maxWidth: 480,
     maxHeight: "90%",
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
   },
   modalSubtitle: {
     marginBottom: spacing?.md || 16,
@@ -190,19 +190,19 @@ export const merchantMenuStyles = StyleSheet.create({
   inputLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: colors?.text || "#0f172a",
+    color: colors?.text || colors.ink,
     marginBottom: 4,
     marginTop: spacing?.xs || 8,
   },
   input: {
-    backgroundColor: colors?.bg || "#f8fafc",
+    backgroundColor: colors?.bg || colors.bg,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
     borderRadius: radius?.sm || 6,
     paddingHorizontal: spacing?.md || 12,
     paddingVertical: spacing?.sm || 8,
     fontSize: 14,
-    color: colors?.text || "#0f172a",
+    color: colors?.text || colors.ink,
   },
   quickCategoryRow: {
     flexDirection: "row",
@@ -214,29 +214,29 @@ export const merchantMenuStyles = StyleSheet.create({
     paddingHorizontal: spacing?.sm || 10,
     paddingVertical: 4,
     borderRadius: radius?.pill || 9999,
-    backgroundColor: colors?.bg || "#f1f5f9",
+    backgroundColor: colors?.bg || colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
     cursor: "pointer" as any,
   },
   quickCatChipActive: {
-    backgroundColor: colors?.primary || "#ea580c",
-    borderColor: colors?.primary || "#ea580c",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   quickCatText: {
     fontSize: 12,
-    color: colors?.text || "#1e293b",
+    color: colors?.text || colors.ink,
   },
   quickCatTextActive: {
-    color: colors?.white || "#ffffff",
+    color: colors?.white || colors.white,
     fontWeight: "700",
   },
   previewBox: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: colors.bg,
     padding: spacing?.sm || 10,
     borderRadius: radius?.sm || 6,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
     marginTop: spacing?.xs || 6,
   },
   modalBtnRow: {
@@ -252,20 +252,20 @@ export const merchantMenuStyles = StyleSheet.create({
     cursor: "pointer" as any,
   },
   cancelBtn: {
-    backgroundColor: colors?.bg || "#f8fafc",
+    backgroundColor: colors?.bg || colors.bg,
     borderWidth: 1,
-    borderColor: colors?.border || "#e2e8f0",
+    borderColor: colors?.border || colors.border,
   },
   cancelBtnText: {
-    color: colors?.text || "#475569",
+    color: colors?.text || colors.stoneText,
     fontWeight: "600",
     fontSize: 14,
   },
   saveBtn: {
-    backgroundColor: colors?.primary || "#ea580c",
+    backgroundColor: colors.primary,
   },
   saveBtnText: {
-    color: colors?.white || "#ffffff",
+    color: colors?.white || colors.white,
     fontWeight: "700",
     fontSize: 14,
   },
@@ -273,7 +273,7 @@ export const merchantMenuStyles = StyleSheet.create({
   /* --- 7. Mouse Hover Feedback --- */
   btnHover: {
     transform: [{ translateY: -2 }],
-    shadowColor: "#000",
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 5,

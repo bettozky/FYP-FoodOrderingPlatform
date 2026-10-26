@@ -45,6 +45,11 @@ export const colors = {
   stoneSoft: "#C9C4B6",
   turmericLight: "#FFC24D",
 
+  // Soft tints, borders and light-on-dark tones used by status chips and cards (same in both apps).
+  herbBorder: "#CFE4D5",
+  chiliBorder: "#F3CBC5",
+  amberBorder: "#F6DFAF",
+
   // semantic aliases so existing screens keep working unchanged
   surface: "#FFFFFF",
   surfaceAlt: "#F4F1EA",

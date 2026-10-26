@@ -122,7 +122,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         )}
 
         {order.decision === "pending" && (
-          <View style={[styles.banner, { backgroundColor: "#F3E4C4" }]}>
+          <View style={[styles.banner, { backgroundColor: colors.amberSoft }]}>
             <Ionicons name="alert-circle" size={20} color={colors.turmericDeep} />
             <View style={{ flex: 1, gap: spacing.sm }}>
               <Text style={type.h3}>An item is out of stock</Text>
@@ -133,7 +133,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         )}
 
         {(order.status === "rejected" || order.status === "expired") && (
-          <View style={[styles.banner, { backgroundColor: "#F1DAD6" }]}>
+          <View style={[styles.banner, { backgroundColor: colors.chiliSoft }]}>
             <Ionicons name="close-circle" size={20} color={colors.chili} />
             <Text style={[type.body, { flex: 1 }]}>
               {order.status === "rejected" ? "The restaurant declined this order." : order.cancelReason === "not_paid" ? "The payment window ran out, so the order was cancelled." : "The restaurant did not reply in time."} You were not charged.

@@ -32,8 +32,8 @@ export default function ChatButtons({ kind, id, allowCall = true, dark = false }
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 8 },
   btn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 11, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.ink, backgroundColor: "transparent" },
-  btnDark: { borderColor: "#5A554B" },
+  btnDark: { borderColor: colors.stoneText },
   label: { fontSize: 14, fontFamily: fonts.displayBold },
   badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.chili, alignItems: "center", justifyContent: "center", paddingHorizontal: 5 },
-  badgeText: { color: "#FFFFFF", fontSize: 11, fontFamily: fonts.displayExtraBold },
+  badgeText: { color: colors.white, fontSize: 11, fontFamily: fonts.displayExtraBold },
 });

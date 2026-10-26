@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  type ScrollViewInstance,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -87,7 +88,7 @@ export default function AIAssistantScreen() {
   const [messages, setMessages] = useState<Message[]>([INTRO]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const { addToCart } = useCart();
 
   const cartLock = useRef(false);

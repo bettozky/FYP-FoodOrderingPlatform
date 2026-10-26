@@ -37,6 +37,16 @@ export const colors = {
   amberText: "#8A5200",
   chiliText: "#AE2A1F",
 
+  // Soft tints, borders and light-on-dark tones used by status chips and cards (same in both apps).
+  herbBorder: "#CFE4D5",
+  chiliBorder: "#F3CBC5",
+  amberBorder: "#F6DFAF",
+  amberSoft: "#F3E4C4",
+  amberTint: "#FDF1DA",
+  chiliSoft: "#F1DAD6",
+  stoneSoft: "#C9C4B6",
+  turmericLight: "#FFC24D",
+
   // semantic aliases so existing screens keep working unchanged
   surface: "#FFFFFF",
   surfaceAlt: "#F4F1EA",

@@ -418,7 +418,7 @@ export default function MerchantMenuScreen() {
                     <Text
                       style={{
                         fontWeight: "700",
-                        color: numProfit >= 0 ? "#2F6F4E" : "#C2382C",
+                        color: numProfit >= 0 ? colors.herb : colors.chiliText,
                       }}
                     >
                       RM {numProfit.toFixed(2)}

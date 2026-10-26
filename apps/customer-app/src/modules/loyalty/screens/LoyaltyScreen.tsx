@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginBottom: spacing.lg,
   },
-  pointsLabel: { color: "#CDEAE0", fontSize: 13, fontFamily: fonts.display },
+  pointsLabel: { color: colors.herbLight, fontSize: 13, fontFamily: fonts.display },
   points: { color: colors.white, fontSize: 32, fontFamily: fonts.displayExtraBold, marginTop: 4 },
   progressTrack: {
     height: 8,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: { height: 8, backgroundColor: colors.white, borderRadius: 4 },
-  progressHint: { color: "#CDEAE0", fontSize: 12, marginTop: 6 },
+  progressHint: { color: colors.herbLight, fontSize: 12, marginTop: 6 },
   voucherCard: {
     flexDirection: "row",
     alignItems: "center",

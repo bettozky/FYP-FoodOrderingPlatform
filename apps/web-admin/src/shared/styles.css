@@ -65,3 +65,11 @@ th { background: #f4f1ea; white-space: nowrap; }
   .sidebar-foot { margin-top: 0; flex-direction: row; align-items: center; justify-content: space-between; }
   .content { padding: 16px; }
 }
+
+/* States and filters added when the pages were connected to the backend */
+.card.error { border-color: var(--danger); background: var(--bad-bg); color: #7a1f16; margin: 12px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.form-error { margin: 0; color: var(--danger); font-size: 13px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.chip { border: 1px solid #8c8880; background: #fff; color: var(--ink); border-radius: 999px; padding: 6px 14px; min-height: 36px; cursor: pointer; font-size: 13px; }
+.chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -29,7 +29,11 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-asset",
+      "expo-audio",
+      "expo-font",
+      "expo-status-bar"
     ]
   }
 }

@@ -42,6 +42,6 @@ const styles = StyleSheet.create({
   tag: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", backgroundColor: colors.turmeric, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
   tagText: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.ink, letterSpacing: 0.4 },
   title: { fontFamily: fonts.displayExtraBold, fontSize: 20, color: colors.white },
-  sub: { fontFamily: fonts.serifMedium, fontSize: 12, color: "#D6D1C4" },
+  sub: { fontFamily: fonts.serifMedium, fontSize: 12, color: colors.stoneSoft },
   emoji: { fontSize: 34 },
 });

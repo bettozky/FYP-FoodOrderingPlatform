@@ -205,7 +205,7 @@ export default function MerchantVouchersScreen() {
                   <Text
                     style={[
                       styles.toggleBtnText,
-                      { color: item.isActive ? "#C2382C" : "#2F6F4E" },
+                      { color: item.isActive ? colors.chiliText : colors.herb },
                     ]}
                   >
                     {item.isActive ? "Pause Campaign" : "Resume Campaign"}
@@ -415,12 +415,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   togglePause: {
-    backgroundColor: "#FBE9E6",
-    borderColor: "#F3CBC5",
+    backgroundColor: colors.chiliSoft,
+    borderColor: colors.chiliBorder,
   },
   toggleResume: {
-    backgroundColor: "#EAF3EC",
-    borderColor: "#CFE4D5",
+    backgroundColor: colors.herbLight,
+    borderColor: colors.herbBorder,
   },
   toggleBtnText: {
     fontSize: 12,
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
 
   btnHover: {
     transform: [{ translateY: -2 }],
-    shadowColor: "#000",
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 6,

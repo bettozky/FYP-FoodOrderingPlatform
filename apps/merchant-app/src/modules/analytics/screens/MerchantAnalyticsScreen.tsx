@@ -153,7 +153,7 @@ export default function MerchantAnalyticsScreen() {
             <Text style={[styles.statValue, { color: colors.text }]}>
               RM {currentMetrics.revenue.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Text style={{ fontSize: 11, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? "#2F6F4E" : "#C2382C", fontWeight: "600" }}>
+            <Text style={{ fontSize: 11, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, fontWeight: "600" }}>
               {currentMetrics.revenueGrowthPct === null ? "No previous period to compare" : `${currentMetrics.revenueGrowthPct >= 0 ? "+" : ""}${currentMetrics.revenueGrowthPct}% vs previous ${period.replace("ly", "")}`}
             </Text>
           </View>
@@ -161,7 +161,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Operating Cost */}
           <View style={styles.statCard}>
             <Text style={type.small}>Total Cost & Fees</Text>
-            <Text style={[styles.statValue, { color: "#C2382C" }]}>
+            <Text style={[styles.statValue, { color: colors.chiliText }]}>
               RM {currentMetrics.cost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Text style={{ fontSize: 11, color: colors.textMuted }}>
@@ -172,7 +172,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Net Profit */}
           <View style={styles.statCard}>
             <Text style={type.small}>Net Profit (Margin)</Text>
-            <Text style={[styles.statValue, { color: "#2F6F4E" }]}>
+            <Text style={[styles.statValue, { color: colors.herb }]}>
               RM {currentMetrics.profit.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Badge label={`${currentMetrics.profitMargin} Margin`} tone="success" />
@@ -199,7 +199,7 @@ export default function MerchantAnalyticsScreen() {
             {/* Dine-in Traffic */}
             <View style={styles.trafficBlock}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Ionicons name="restaurant-outline" size={18} color="#8C6B1F" />
+                <Ionicons name="restaurant-outline" size={18} color={colors.amberText} />
                 <Text style={type.body}>Dine-In Orders</Text>
               </View>
               <Text style={styles.trafficCount}>{currentMetrics.dineInTraffic}</Text>
@@ -211,7 +211,7 @@ export default function MerchantAnalyticsScreen() {
             {/* Delivery Traffic */}
             <View style={styles.trafficBlock}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Ionicons name="bicycle-outline" size={18} color="#8C6B1F" />
+                <Ionicons name="bicycle-outline" size={18} color={colors.amberText} />
                 <Text style={type.body}>Delivery Orders</Text>
               </View>
               <Text style={styles.trafficCount}>{currentMetrics.deliveryTraffic}</Text>
@@ -288,7 +288,7 @@ export default function MerchantAnalyticsScreen() {
                         <Text
                           style={[
                             styles.growthBadgeText,
-                            { color: isPositive ? "#2F6F4E" : "#C2382C" },
+                            { color: isPositive ? colors.herb : colors.chiliText },
                           ]}
                         >
                           {isPositive ? `▲ +${item.growthPct}%` : `▼ ${item.growthPct}%`}
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   segmentedTrack: {
     position: "relative",
     flexDirection: "row",
-    backgroundColor: "#ECE7DA",
+    backgroundColor: colors.stoneLine,
     borderRadius: radius.pill,
     padding: 4,
     height: 44,
@@ -333,9 +333,9 @@ const styles = StyleSheet.create({
     top: 4,
     bottom: 4,
     left: 4,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.white,
     borderRadius: radius.pill,
-    shadowColor: "#000",
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   segmentLabel: {
     fontSize: 13,
     fontFamily: fonts.display,
-    color: "#8C8880",
+    color: colors.stone,
   },
 
   statsGrid: {
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   barTrack: {
     width: 22,
     height: 100,
-    backgroundColor: "#F4F1EA",
+    backgroundColor: colors.paperDim,
     borderRadius: 6,
     justifyContent: "flex-end",
     overflow: "hidden",
@@ -483,10 +483,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill || 12,
   },
   growthPos: {
-    backgroundColor: "#EAF3EC",
+    backgroundColor: colors.herbLight,
   },
   growthNeg: {
-    backgroundColor: "#FBE9E6",
+    backgroundColor: colors.chiliSoft,
   },
   growthBadgeText: {
     fontSize: 10.5,
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   proportionTrack: {
     height: 6,
-    backgroundColor: "#F4F1EA",
+    backgroundColor: colors.paperDim,
     borderRadius: radius.pill,
     overflow: "hidden",
   },

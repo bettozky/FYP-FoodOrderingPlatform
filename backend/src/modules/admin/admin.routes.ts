@@ -28,3 +28,35 @@ adminRouter.patch("/merchants/:id", (req, res) => {
   notifyMerchant(m.id, "approval", `Business ${approval}`, approval === "approved" ? "Your business is live on ScootMeal." : `Your business was ${approval} by the admin.`);
   res.json({ merchant: { id: m.id, approval: m.approval } });
 });
+
+// FR-6.4: every order, newest first, for the admin orders list.
+adminRouter.get("/orders", (req, res) => {
+  const status = String(req.query.status ?? "");
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+  const orders = [...db.orders.values()]
+    .filter((o) => !status || o.status === status)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, limit)
+    .map((o) => ({
+      id: o.id, customerName: o.customerName, merchantName: o.merchantName, status: o.status,
+      itemCount: o.items.reduce((n, i) => n + i.qty, 0), total: o.total, refunded: o.refunded,
+      createdAt: o.createdAt, paidAt: o.paidAt ?? null, cancelReason: o.cancelReason ?? null,
+    }));
+  res.json({ orders });
+});
+
+// FR-6.6: numbers for the dashboard (computed from real data, not placeholders).
+adminRouter.get("/stats", (_req, res) => {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const today = [...db.orders.values()].filter((o) => o.createdAt >= startOfDay.getTime());
+  const paidToday = today.filter((o) => o.paidAt);
+  const merchants = [...db.merchants.values()];
+  res.json({
+    ordersToday: today.length,
+    revenueToday: Math.round(paidToday.reduce((s, o) => s + o.total - o.refunded, 0) * 100) / 100,
+    merchantsPending: merchants.filter((m) => m.approval === "pending").length,
+    merchantsApproved: merchants.filter((m) => m.approval === "approved").length,
+    ordersWaiting: [...db.orders.values()].filter((o) => o.status === "awaiting_merchant" || o.status === "awaiting_payment").length,
+  });
+});
