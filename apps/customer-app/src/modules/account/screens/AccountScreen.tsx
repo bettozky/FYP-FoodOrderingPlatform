@@ -7,6 +7,7 @@ import { colors, radius, spacing, type, fonts } from "../../../shared/theme/them
 
 // Every row opens a real screen. One icon set (Ionicons) instead of emoji.
 const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; go: string }[] = [
+  { icon: "gift-outline", label: "Loyalty & vouchers", go: "Loyalty" },
   { icon: "heart-outline", label: "Saved dishes", go: "Favourites" },
   { icon: "location-outline", label: "Addresses", go: "Addresses" },
   { icon: "briefcase-outline", label: "Jobs", go: "Jobs" },

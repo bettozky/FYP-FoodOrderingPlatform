@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { useLoyalty } from "../useLoyalty";
 import { api } from "../../../shared/api/client";
 import { Voucher } from "../../../shared/api/types";
+import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 
 export default function LoyaltyScreen() {
@@ -15,9 +16,7 @@ export default function LoyaltyScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={styles.header}>
-        <Text style={type.h1}>Loyalty & vouchers</Text>
-      </View>
+      <ScreenHeader title="Loyalty & vouchers" />
 
       <FlatList
         data={vouchers}
@@ -53,7 +52,6 @@ export default function LoyaltyScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.md },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 140 },
   pointsCard: {
     backgroundColor: colors.secondary,

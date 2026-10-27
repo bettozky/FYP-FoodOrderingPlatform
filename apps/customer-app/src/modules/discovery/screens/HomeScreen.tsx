@@ -27,7 +27,7 @@ const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
   Western: "fast-food",
 };
 
-export default function HomeScreen({ navigation, onMenuPress }: any) {
+export default function HomeScreen({ navigation }: any) {
   const { name } = useAuth();
   const { addToCart, itemCount } = useCart();
   const { merchantById, addresses, address, setAddress, loadError } = useCatalog();
@@ -102,9 +102,7 @@ export default function HomeScreen({ navigation, onMenuPress }: any) {
         ListHeaderComponent={
           <View>
             <View style={[styles.wordmarkRow, { paddingTop: insets.top + spacing.md }]}>
-              <Pressable hitSlop={10} onPress={onMenuPress}>
-                <Ionicons name="menu" size={24} color={colors.ink} />
-              </Pressable>
+              <View />
               {itemCount > 0 ? (
                 <Animated.View style={{ transform: [{ scale: cartScale }] }}>
                   <Pressable style={styles.cartPill} onPress={() => navigation.navigate("Cart")} testID="cart-pill">
