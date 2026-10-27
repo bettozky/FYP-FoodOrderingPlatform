@@ -120,3 +120,47 @@ export const shadow = {
     elevation: 6,
   },
 };
+
+// Shared building blocks for the new customer layout (cards, chips, buttons). Spread them into a
+// StyleSheet: `card: { ...ui.card, padding: spacing.md }`. Only Nathan edits this file (team rule),
+// so ask in the group chat if a screen needs a new one.
+export const ui = {
+  // White card with a hairline border, used for dish rows, info cards and order cards.
+  card: { backgroundColor: colors.paper, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine },
+  // Floating white card (stall info card, rider card): no border, soft shadow.
+  cardRaised: { backgroundColor: colors.paper, borderRadius: radius.lg, ...shadow.card },
+  // Pill chips for filters, options and tabs. Active chip = ink background with white text.
+  chip: { flexDirection: "row" as const, alignItems: "center" as const, gap: 6, minHeight: 34, paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine },
+  chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  chipText: { fontFamily: fonts.display, fontSize: 12.5, color: colors.ink },
+  chipTextOn: { color: colors.white },
+  // Small read-only info chip (rating, prep time, "Delivery"): tinted, no border.
+  infoChip: { flexDirection: "row" as const, alignItems: "center" as const, gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: colors.paperDim },
+  infoChipText: { fontFamily: fonts.display, fontSize: 12, color: colors.ink },
+  // Main call to action: amber pill with ink text (one per screen).
+  buttonAccent: { minHeight: 52, borderRadius: radius.pill, backgroundColor: colors.turmeric, alignItems: "center" as const, justifyContent: "center" as const, paddingHorizontal: spacing.xl },
+  buttonAccentText: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
+  // Secondary action: ink pill with white text (e.g. "Call", "Browse stalls").
+  buttonDark: { minHeight: 44, borderRadius: radius.pill, backgroundColor: colors.ink, alignItems: "center" as const, justifyContent: "center" as const, paddingHorizontal: spacing.lg },
+  buttonDarkText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.white },
+  // Outline pill (e.g. "Chat").
+  buttonOutline: { minHeight: 44, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1.5, borderColor: colors.stoneLine, alignItems: "center" as const, justifyContent: "center" as const, paddingHorizontal: spacing.lg },
+  buttonOutlineText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  // Round icon button on headers and photos (back, cart, heart).
+  iconButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.paper, alignItems: "center" as const, justifyContent: "center" as const, ...shadow.soft },
+  // Round amber "+" on dish cards.
+  addButton: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.turmeric, alignItems: "center" as const, justifyContent: "center" as const },
+  // Qty stepper (− 2 +) used on dish detail and cart.
+  stepper: { flexDirection: "row" as const, alignItems: "center" as const, gap: spacing.sm, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.stoneLine, backgroundColor: colors.paper, paddingHorizontal: 6, minHeight: 44 },
+  stepperButton: { width: 32, height: 32, borderRadius: 16, alignItems: "center" as const, justifyContent: "center" as const },
+  stepperValue: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink, minWidth: 18, textAlign: "center" as const },
+  // Prices: amber-brown so they pass contrast on the cream background.
+  price: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.amberText },
+  priceLarge: { fontFamily: fonts.displayExtraBold, fontSize: 26, color: colors.amberText },
+  // Section heading with an optional "See all" link on the right.
+  sectionTitle: { fontFamily: fonts.displayBold, fontSize: 17, color: colors.ink },
+  link: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.amberText },
+  // Dark bar pinned to the bottom ("2 items · RM 17.50  [View cart]").
+  bottomBar: { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, backgroundColor: colors.ink, borderRadius: radius.pill, paddingLeft: spacing.lg, paddingRight: 6, minHeight: 56, ...shadow.floating },
+  bottomBarText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.white },
+};

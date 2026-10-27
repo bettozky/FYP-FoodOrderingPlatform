@@ -2,20 +2,20 @@ import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { ADDRESS_PRESETS } from "../../../shared/data/mockData";
+import EmptyState from "../../../shared/components/EmptyState";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 import { useCatalog } from "../../discovery/CatalogContext";
 
-// "Delivery addresses" (inspired by the wireframes' Saved Addresses screen). It uses the same
-// address list and the same selected address as the Home and Checkout pickers, so changing it here
-// changes it everywhere.
+// "Addresses": the places where ScootMeal shops are (built from real shop locations in CatalogContext).
+// It shares the selected place with the Home and Checkout pickers, so changing it here changes it everywhere.
 export default function AddressesScreen() {
-  const { address, setAddress } = useCatalog();
+  const { addresses, address, setAddress } = useCatalog();
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Delivery addresses" subtitle="Distances to restaurants are measured from the selected address." />
+      <ScreenHeader title="Addresses" subtitle="Places with ScootMeal shops. Distances are measured from the one you pick." />
       <ScrollView contentContainerStyle={styles.wrap}>
-        {ADDRESS_PRESETS.map((a) => {
+        {addresses.length === 0 ? <EmptyState icon="location-outline" title="No places yet" hint="Places appear here once shops are open on ScootMeal." /> : null}
+        {addresses.map((a) => {
           const on = a.line === address.line;
           return (
             <Pressable

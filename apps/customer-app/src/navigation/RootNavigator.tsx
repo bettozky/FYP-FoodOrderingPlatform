@@ -13,6 +13,10 @@ import JobsScreen from "../modules/jobs/screens/JobsScreen";
 import LiveTrackingScreen from "../modules/delivery/screens/LiveTrackingScreen";
 import FavouritesScreen from "../modules/favourites/FavouritesScreen";
 import AddressesScreen from "../modules/account/screens/AddressesScreen";
+import PaymentsScreen from "../modules/account/screens/PaymentsScreen";
+import NotificationsScreen from "../modules/notifications/NotificationsScreen";
+import HelpScreen from "../modules/account/screens/HelpScreen";
+import LoyaltyScreen from "../modules/loyalty/screens/LoyaltyScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +41,11 @@ export default function RootNavigator() {
           <Stack.Screen name="Jobs" component={JobsScreen} />
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
           <Stack.Screen name="Addresses" component={AddressesScreen} />
+          <Stack.Screen name="PaymentMethods" component={PaymentsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Help" component={HelpScreen} />
+          {/* Loyalty left the bottom bar in the new layout; opened from Account. */}
+          <Stack.Screen name="Loyalty" component={LoyaltyScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

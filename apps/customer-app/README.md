@@ -36,7 +36,7 @@ Put new work in the module it belongs to. Shared pieces used by several modules 
 
 ## Next steps
 
-- Replace `shared/data/mockData.ts` reads with backend API calls.
+- Loyalty points are worked out from completed orders in `modules/loyalty/points.ts`. Switch it to the backend loyalty ledger when that endpoint exists.
 - Real auth (JWT) and Stripe payment in checkout.
 - Dine-in: reservation with pre-order, "food ready" pop-up with phone buzz (FR-2.7, FR-3.x).
 - Per-item Delivery / Dine-in mode in the cart (FR-2.3).
