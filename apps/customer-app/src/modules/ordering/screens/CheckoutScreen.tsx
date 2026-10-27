@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "../CartContext";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../LiveDataContext";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
+import { OrderSteps } from "../components/OrderSteps";
 import { api, errorText } from "../../../shared/api/client";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real total
 
@@ -20,6 +22,7 @@ export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
   const { addresses, address, setAddress } = useCatalog();
   const { refresh } = useLive();
+  const insets = useSafeAreaInsets();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [voucherId, setVoucherId] = useState<string>("");
   const [note, setNote] = useState("");
@@ -87,8 +90,9 @@ export default function CheckoutScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title="Checkout" subtitle={merchant.name} />
-      <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
-        <Text style={type.h3}>Order summary</Text>
+      <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+        <OrderSteps current={0} />
+        <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Order summary</Text>
         <View style={styles.card}>
           {(["dine_in", "takeaway", "delivery"] as Mode[]).map((m) => {
             const part = lines.filter((l) => l.qty[m] > 0);
@@ -114,7 +118,7 @@ export default function CheckoutScreen({ navigation }: any) {
 
         {hasDelivery && (
           <>
-            <Text style={[type.h3, { marginTop: spacing.xl }]}>Delivery address</Text>
+            <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Delivery address</Text>
             <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
               {addresses.map((a) => {
                 const on = a.line === address.line;
@@ -131,7 +135,7 @@ export default function CheckoutScreen({ navigation }: any) {
           </>
         )}
 
-        <Text style={[type.h3, { marginTop: spacing.xl }]}>Voucher</Text>
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Voucher</Text>
         <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
           <Pressable onPress={() => setVoucherId("")} style={[styles.option, !voucherId && styles.optionOn]}>
             <Text style={[type.body, { flex: 1 }]}>No voucher</Text>
@@ -150,8 +154,8 @@ export default function CheckoutScreen({ navigation }: any) {
           {eligible.length === 0 && <Text style={type.small}>No voucher applies to this order yet.</Text>}
         </View>
 
-        <Text style={[type.h3, { marginTop: spacing.xl }]}>How it works</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>How it works</Text>
+        <View style={[styles.card, styles.howCard]}>
           <Text style={type.body}>1. {merchant.name} gets your order request straight away and has 10 minutes to confirm it.</Text>
           <Text style={type.body}>2. Once they confirm, you pay by card. You are not charged before that.</Text>
           <Text style={type.small}>You can chat or call the restaurant from the order screen while you wait. If they decline or don't reply, nothing is charged.</Text>
@@ -165,28 +169,32 @@ export default function CheckoutScreen({ navigation }: any) {
         ) : null}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <PrimaryButton label={`Send order to restaurant · RM\u00A0${total.toFixed(2)}`} loading={placing} onPress={placeOrder} />
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        <Pressable style={[ui.buttonAccent, placing && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing }}>
+          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
+        </Pressable>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: 140 },
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.border, gap: 8 },
+  wrap: { padding: spacing.lg, paddingBottom: 160 },
+  sectionTitle: { ...ui.sectionTitle },
+  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.sm, gap: 8 },
+  howCard: { backgroundColor: colors.herbLight, borderColor: colors.herbBorder },
   modeHead: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
   // Name/label wraps in the leftover width; the amount never wraps or collides with the name.
   summaryLine: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md },
   summaryLabel: { flex: 1 },
   summaryValue: { flexShrink: 0, textAlign: "right" },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
-  option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
-  optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  optionOn: { borderColor: colors.turmeric, backgroundColor: colors.amberTint },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
-  radioOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
+  radioOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
+  input: { backgroundColor: colors.paper, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
   errorBox: { flexDirection: "row", gap: spacing.sm, alignItems: "center", backgroundColor: colors.chiliSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
   errorText: { flex: 1, color: colors.chili, fontFamily: fonts.display, fontSize: 13 },
-  footer: { position: "absolute", bottom: 0, left: 0, right: 0, padding: spacing.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.border },
 });

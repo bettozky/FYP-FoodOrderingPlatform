@@ -4,6 +4,7 @@ import Svg, { Rect, Path, Circle } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ChatButtons from "../../chat/ChatButton";
 import {
   assignOrder,
   fetchTracking,
@@ -142,7 +143,7 @@ export default function LiveTrackingScreen({ route }: any) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={type.h3}>{tracking?.rider ? tracking.rider.name : "Finding a rider…"}</Text>
-              <Text style={type.bodyMuted}>Your delivery partner</Text>
+              <Text style={type.bodyMuted}>Your delivery partner · Order #{orderId}</Text>
             </View>
           </View>
 
@@ -160,6 +161,10 @@ export default function LiveTrackingScreen({ route }: any) {
                 </React.Fragment>
               );
             })}
+          </View>
+
+          <View style={{ marginTop: spacing.lg }}>
+            <ChatButtons kind="order" id={orderId} allowCall />
           </View>
         </View>
 
@@ -219,11 +224,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.turmeric,
+    backgroundColor: colors.ink,
     alignItems: "center",
     justifyContent: "center",
   },
-  riderAvatarText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 16 },
+  riderAvatarText: { color: colors.turmeric, fontFamily: fonts.displayBold, fontSize: 16 },
   stepper: { flexDirection: "row", alignItems: "flex-start" },
   step: { alignItems: "center", width: 68 },
   stepDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.stoneLine, marginBottom: 6 },

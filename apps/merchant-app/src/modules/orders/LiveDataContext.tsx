@@ -19,11 +19,9 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [profile, setProfile] = useState<MerchantProfile | null>(null);
-  const busy = useRef(false);
+  const inflight = useRef<Promise<void> | null>(null);
 
-  const refresh = useCallback(async () => {
-    if (busy.current) return;
-    busy.current = true;
+  const load = useCallback(async () => {
     try {
       const me = await api<{ merchant: MerchantProfile }>("GET", "/merchant/me");
       setProfile(me.merchant);
@@ -37,10 +35,17 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       /* try again next tick */
-    } finally {
-      busy.current = false;
     }
   }, []);
+
+  // A manual refresh (e.g. right after Confirm) waits for any poll already running and then loads fresh data,
+  // so the pop-up closes straight away instead of showing the old order for another 2 s.
+  const refresh = useCallback(async () => {
+    if (inflight.current) await inflight.current;
+    const p = load();
+    inflight.current = p;
+    try { await p; } finally { if (inflight.current === p) inflight.current = null; }
+  }, [load]);
 
   useEffect(() => {
     if (!isLoggedIn || approval !== "approved") {
@@ -50,7 +55,7 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     refresh();
-    const t = setInterval(refresh, POLL_MS);
+    const t = setInterval(() => { if (!inflight.current) refresh(); }, POLL_MS);
     return () => clearInterval(t);
   }, [isLoggedIn, approval, refresh]);
 

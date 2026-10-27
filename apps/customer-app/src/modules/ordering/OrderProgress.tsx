@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Order } from "../../shared/api/types";
-import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
 
 // A vertical "where is my order?" timeline (inspired by the wireframes' Order Progress screen).
 // Every step is DERIVED from fields the order already has, so nothing here is invented.
@@ -69,7 +69,7 @@ export default function OrderProgress({ order }: { order: Order }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
+  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg },
   row: { flexDirection: "row", gap: spacing.md, minHeight: 44 },
   rail: { alignItems: "center", width: 22 },
   dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },

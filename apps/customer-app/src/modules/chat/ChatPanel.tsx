@@ -9,7 +9,8 @@ export type ChatKind = "order" | "reservation";
 type Msg = { seq: number; id: string; from: "customer" | "merchant" | "system"; text: string; at: number };
 
 // Live chat for one order or reservation. Polls every 2 s (same stand-in for WebSocket as the rest of the app).
-export default function ChatPanel({ kind, id, onClose, height }: { kind: ChatKind; id: string; onClose?: () => void; height?: number }) {
+// avoidKeyboard=false when a parent (the chat sheet) already lifts everything above the keyboard.
+export default function ChatPanel({ kind, id, onClose, height, avoidKeyboard = true }: { kind: ChatKind; id: string; onClose?: () => void; height?: number; avoidKeyboard?: boolean }) {
   const { startCall, inCall } = useCall();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [you, setYou] = useState<"customer" | "merchant" | null>(null);
@@ -54,7 +55,7 @@ export default function ChatPanel({ kind, id, onClose, height }: { kind: ChatKin
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={[styles.wrap, height ? { height } : { flex: 1 }]} testID="chat-panel">
+    <KeyboardAvoidingView behavior={avoidKeyboard && Platform.OS === "ios" && !height ? "padding" : undefined} style={[styles.wrap, height ? { height } : { flex: 1 }]} testID="chat-panel">
       <View style={styles.head}>
         <View style={{ flex: 1 }}>
           <Text style={styles.title} numberOfLines={1}>{peer || "Chat"}</Text>
