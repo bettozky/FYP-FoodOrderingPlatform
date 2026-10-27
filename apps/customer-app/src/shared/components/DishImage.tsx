@@ -22,6 +22,9 @@ type Props = {
   style?: ViewStyle;
 };
 
+/** Light background from a stall's brand colour (#RRGGBB → 15% opacity), or the amber tint. */
+export const softTint = (hex?: string) => (hex && /^#[0-9a-f]{6}$/i.test(hex) ? `${hex}26` : colors.amberTint);
+
 export const isPhoto = (image?: string) => !!image && /^(https?:|data:image\/|file:|blob:)/.test(image);
 
 export default function DishImage({ image, size = 64, shape = "tile", tint = colors.amberTint, label, overlay, style }: Props) {

@@ -46,6 +46,7 @@ export default function FavouritesScreen({ navigation }: any) {
             const m = merchantById[item.merchantId];
             return (
               <DishCard
+                showSave
                 dish={item}
                 merchant={m}
                 onPress={() => navigation.navigate("DishDetail", { dishId: item.id })}
