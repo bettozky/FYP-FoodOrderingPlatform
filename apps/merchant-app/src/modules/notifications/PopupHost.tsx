@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Keyboard, Modal, Platform, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import { BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
 import { api, errorText, serverTime } from "../../shared/api/client";
 import { MODE_LABEL, Mode, Order, Reservation } from "../../shared/api/types";
 import PrimaryButton from "../../shared/components/PrimaryButton";
@@ -35,6 +35,13 @@ export default function PopupHost() {
     return () => stopAlert();
   }, [active]);
 
+  // The pop-up cannot be dismissed with the Android back button; the merchant must answer it.
+  useEffect(() => {
+    if (!active) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => true);
+    return () => sub.remove();
+  }, [active]);
+
   useEffect(() => {
     setError("");
     setPickTable(false);
@@ -56,8 +63,11 @@ export default function PopupHost() {
     }
   }
 
+  // A plain full-screen overlay, not a native Modal: on iOS a Modal that is dismissed while the chat sheet,
+  // the call screen or the keyboard is also changing can leave the whole app unresponsive.
+  if (!active) return null;
   return (
-    <Modal visible={active} animationType="fade" transparent={false} onRequestClose={() => {}}>
+    <View style={styles.overlay}>
       {order && <OrderPopup order={order} busy={busy} error={error} onAnswer={(accept) => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept }))} />}
       {reservation && (
         <ReservationPopup
@@ -72,7 +82,7 @@ export default function PopupHost() {
           onLater={() => setSkipped((p) => [...p, reservation.id])}
         />
       )}
-    </Modal>
+    </View>
   );
 }
 
@@ -187,6 +197,7 @@ function ReservationPopup(props: {
 }
 
 const styles = StyleSheet.create({
+  overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, elevation: 1000, backgroundColor: colors.ink },
   screen: { flex: 1, backgroundColor: colors.ink, paddingTop: Platform.OS === "web" ? 24 : 48 },
   body: { padding: spacing.xl, gap: spacing.md, maxWidth: 560, width: "100%", alignSelf: "center" },
   kicker: { color: colors.turmeric, fontFamily: fonts.displayExtraBold, letterSpacing: 1.2, fontSize: 12 },

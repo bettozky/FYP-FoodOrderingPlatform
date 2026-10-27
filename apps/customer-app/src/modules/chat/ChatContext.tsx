@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { Modal, Platform, StyleSheet, View } from "react-native";
+import { Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, View } from "react-native";
 import { api } from "../../shared/api/client";
 import { colors, spacing } from "../../shared/theme/theme";
 import { useAuth } from "../auth/AuthContext";
@@ -30,14 +30,18 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   const unreadFor = useCallback((kind: ChatKind, id: string) => unread[`${kind}:${id}`] ?? 0, [unread]);
   const openChat = useCallback((kind: ChatKind, id: string) => setSheet({ kind, id }), []);
+  // Close the keyboard before the sheet goes: dismissing a Modal while a text box has focus can leave iOS stuck.
+  const closeChat = useCallback(() => { Keyboard.dismiss(); setSheet(null); }, []);
 
   return (
     <ChatContext.Provider value={{ unread, unreadFor, openChat }}>
       {children}
-      <Modal visible={!!sheet} transparent animationType="slide" onRequestClose={() => setSheet(null)}>
-        <View style={styles.backdrop}>
-          <View style={styles.sheet}>{sheet && <ChatPanel kind={sheet.kind} id={sheet.id} onClose={() => setSheet(null)} />}</View>
-        </View>
+      <Modal visible={!!sheet} transparent animationType="slide" onRequestClose={closeChat}>
+        {/* The keyboard-avoiding view must be the full-screen backdrop: it works out how far the keyboard overlaps
+            from its own position on screen, so inside a bottom sheet it under-estimated and the input stayed hidden. */}
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.backdrop}>
+          <View style={styles.sheet}>{sheet && <ChatPanel kind={sheet.kind} id={sheet.id} onClose={closeChat} avoidKeyboard={false} />}</View>
+        </KeyboardAvoidingView>
       </Modal>
     </ChatContext.Provider>
   );

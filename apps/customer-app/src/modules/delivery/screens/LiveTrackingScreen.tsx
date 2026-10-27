@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { UrlTile, AnimatedRegion, MarkerAnimated, Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ChatButtons from "../../chat/ChatButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import {
   assignOrder,
@@ -48,6 +50,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
   const [tracking, setTracking] = useState<Tracking | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const region = useRef(new AnimatedRegion(INITIAL_REGION)).current;
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     start();
@@ -129,14 +132,14 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
         </View>
       </View>
 
-      <View style={[styles.sheet, shadow.sheet]}>
+      <View style={[styles.sheet, shadow.sheet, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <View style={styles.riderRow}>
           <View style={styles.riderAvatar}>
             <Text style={styles.riderAvatarText}>{tracking?.rider ? tracking.rider.name.charAt(0) : "?"}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.riderName}>{tracking?.rider ? tracking.rider.name : "Finding a rider…"}</Text>
-            <Text style={type.bodyMuted}>Your delivery partner</Text>
+            <Text style={type.bodyMuted}>Your delivery partner · Order #{orderId}</Text>
           </View>
         </View>
 
@@ -154,6 +157,10 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
               </React.Fragment>
             );
           })}
+        </View>
+
+        <View style={{ marginTop: spacing.lg }}>
+          <ChatButtons kind="order" id={orderId} allowCall />
         </View>
       </View>
     </View>
@@ -205,8 +212,8 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.paper,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     padding: spacing.lg,
   },
   riderRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginBottom: spacing.lg },
@@ -214,11 +221,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.turmeric,
+    backgroundColor: colors.ink,
     alignItems: "center",
     justifyContent: "center",
   },
-  riderAvatarText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 16 },
+  riderAvatarText: { color: colors.turmeric, fontFamily: fonts.displayBold, fontSize: 16 },
   riderName: { fontFamily: fonts.display, fontSize: 15, color: colors.ink },
   stepper: { flexDirection: "row", alignItems: "flex-start" },
   step: { alignItems: "center", width: 68 },

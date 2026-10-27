@@ -1,11 +1,14 @@
 import React from "react";
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart, lineTotalQty } from "../CartContext";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
+import { OrderSteps, NotChargedNote } from "../components/OrderSteps";
 import { MODE_ICON, MODE_LABEL, Mode } from "../../../shared/api/types";
-import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import DishImage, { softTint } from "../../../shared/components/DishImage";
+import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
 
 const ALL_MODES: Mode[] = ["dine_in", "takeaway", "delivery"];
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real fee
@@ -13,6 +16,7 @@ const DELIVERY_FEE = 3.5; // display only; the server calculates the real fee
 // Each dish has its own quantity per fulfilment mode, so one order can mix dine-in, takeaway and delivery.
 export default function CartScreen({ navigation }: any) {
   const { lines, merchant, setLineQty, removeLine, subtotal, hasDelivery } = useCart();
+  const insets = useSafeAreaInsets();
   const modes = merchant?.dineInOnly ? (["dine_in"] as Mode[]) : ALL_MODES;
   const deliveryFee = hasDelivery ? DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee;
@@ -22,9 +26,11 @@ export default function CartScreen({ navigation }: any) {
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <ScreenHeader title="Your cart" />
         <View style={styles.emptyWrap}>
-          <Text style={{ fontSize: 48 }}>🛒</Text>
-          <Text style={type.h3}>Your cart is empty</Text>
-          <Text style={type.bodyMuted}>Search a dish you're craving to get started.</Text>
+          <View style={styles.emptyIcon}>
+            <Ionicons name="bag-outline" size={40} color={colors.amberText} />
+          </View>
+          <Text style={type.h2}>Your cart is empty</Text>
+          <Text style={[type.bodyMuted, { textAlign: "center" }]}>Search a dish you're craving to get started.</Text>
           <PrimaryButton label="Browse dishes" style={{ marginTop: spacing.lg }} onPress={() => navigation.popTo("MainTabs")} />
         </View>
       </View>
@@ -39,23 +45,29 @@ export default function CartScreen({ navigation }: any) {
         data={lines}
         keyExtractor={(l) => l.key}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>Choose dine-in, takeaway or delivery for each item. You pay once for everything.</Text>}
+        ListHeaderComponent={
+          <View style={{ gap: spacing.md, marginBottom: spacing.md }}>
+            <OrderSteps current={0} />
+            <Text style={type.bodyMuted}>Choose dine-in, takeaway or delivery for each item. You pay once for everything.</Text>
+          </View>
+        }
+        ListFooterComponent={<NotChargedNote />}
         renderItem={({ item }) => (
           <View style={styles.line}>
             <View style={styles.lineTop}>
-              <Text style={styles.lineEmoji}>{item.dish.image}</Text>
+              <DishImage image={item.dish.image} size={56} tint={softTint(merchant?.color)} label={item.dish.name} />
               <View style={{ flex: 1 }}>
                 <Text style={type.h3}>{item.dish.name}</Text>
                 <Text style={type.bodyMuted}>RM {item.dish.price.toFixed(2)} each{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
               </View>
-              <Pressable onPress={() => removeLine(item.key)} hitSlop={12} testID={`remove-${item.dish.id}`} accessibilityRole="button" accessibilityLabel={`Remove ${item.dish.name} from cart`}>
-                <Ionicons name="trash-outline" size={18} color={colors.stone} />
+              <Pressable onPress={() => removeLine(item.key)} hitSlop={12} style={styles.trashBtn} testID={`remove-${item.dish.id}`} accessibilityRole="button" accessibilityLabel={`Remove ${item.dish.name} from cart`}>
+                <Ionicons name="trash-outline" size={18} color={colors.stoneText} />
               </Pressable>
             </View>
             {modes.map((m) => (
-              <View key={m} style={styles.modeRow}>
-                <Ionicons name={MODE_ICON[m] as any} size={15} color={item.qty[m] ? colors.ink : colors.textFaint} />
-                <Text style={[styles.modeLabel, !item.qty[m] && { color: colors.stone }]}>{MODE_LABEL[m]}</Text>
+              <View key={m} style={[styles.modeRow, item.qty[m] > 0 && styles.modeRowOn]}>
+                <Ionicons name={MODE_ICON[m] as any} size={15} color={item.qty[m] ? colors.ink : colors.stoneText} />
+                <Text style={[styles.modeLabel, !item.qty[m] && { color: colors.stoneText }]}>{MODE_LABEL[m]}</Text>
                 <View style={styles.stepper}>
                   <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] - 1)} hitSlop={8} style={styles.stepBtn} testID={`dec-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Decrease ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
                     <Text style={styles.stepBtnText}>–</Text>
@@ -67,12 +79,15 @@ export default function CartScreen({ navigation }: any) {
                 </View>
               </View>
             ))}
-            <Text style={[type.small, { textAlign: "right" }]}>{lineTotalQty(item.qty)} × = RM {(item.dish.price * lineTotalQty(item.qty)).toFixed(2)}</Text>
+            <View style={styles.lineTotal}>
+              <Text style={type.small}>{lineTotalQty(item.qty)} × RM {item.dish.price.toFixed(2)}</Text>
+              <Text style={styles.lineTotalValue}>RM {(item.dish.price * lineTotalQty(item.qty)).toFixed(2)}</Text>
+            </View>
           </View>
         )}
       />
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <View style={styles.summaryRow}>
           <Text style={[type.bodyMuted, styles.summaryLabel]}>Subtotal</Text>
           <Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text>
@@ -83,11 +98,15 @@ export default function CartScreen({ navigation }: any) {
             <Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text>
           </View>
         )}
-        <View style={[styles.summaryRow, { marginTop: 4 }]}>
-          <Text style={[type.h3, styles.summaryLabel]}>Total</Text>
-          <Text style={[type.h3, styles.summaryValue]} testID="cart-total">RM {total.toFixed(2)}</Text>
+        <View style={styles.totalBar}>
+          <View>
+            <Text style={type.small}>Total</Text>
+            <Text style={styles.totalValue} testID="cart-total">RM {total.toFixed(2)}</Text>
+          </View>
+          <Pressable style={[ui.buttonAccent, { flex: 1 }]} onPress={() => navigation.navigate("Checkout")} testID="to-checkout" accessibilityRole="button" accessibilityLabel="Proceed to checkout">
+            <Text style={ui.buttonAccentText}>Proceed to checkout</Text>
+          </Pressable>
         </View>
-        <PrimaryButton label="Proceed to checkout" style={{ marginTop: spacing.md }} onPress={() => navigation.navigate("Checkout")} />
       </View>
     </View>
   );
@@ -95,19 +114,25 @@ export default function CartScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
-  line: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm, borderWidth: 1, borderColor: colors.border },
+  line: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md, gap: spacing.sm },
   lineTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  lineEmoji: { fontSize: 32 },
-  modeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.sm, paddingVertical: 6, paddingHorizontal: spacing.md },
+  trashBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
+  modeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.pill, paddingVertical: 6, paddingLeft: spacing.md, paddingRight: 6 },
+  modeRowOn: { backgroundColor: colors.amberTint },
   modeLabel: { flex: 1, fontFamily: fonts.display, fontSize: 13, color: colors.ink },
   stepper: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   stepBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border },
   stepBtnText: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.text, marginTop: -1 },
   qty: { minWidth: 18, textAlign: "center", fontFamily: fonts.displayBold },
-  footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
+  lineTotal: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 2 },
+  lineTotalValue: { ...ui.price },
+  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.paper },
   // Label takes the leftover width and wraps; the price keeps its own width so "RM 3.50" never splits.
   summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md, marginBottom: 6 },
   summaryLabel: { flex: 1 },
   summaryValue: { flexShrink: 0, textAlign: "right" },
+  totalBar: { flexDirection: "row", alignItems: "center", gap: spacing.lg, marginTop: spacing.sm },
+  totalValue: { fontFamily: fonts.displayExtraBold, fontSize: 21, color: colors.ink },
   emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: spacing.xl },
+  emptyIcon: { width: 84, height: 84, borderRadius: 42, backgroundColor: colors.amberTint, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
 });

@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api, errorText } from "../../../shared/api/client";
 import { MODE_ICON, MODE_LABEL, Mode, Order, OrderItem } from "../../../shared/api/types";
 import Badge from "../../../shared/components/Badge";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { mmss, useCountdown } from "../../../shared/util/format";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
 import { formatCard } from "./CheckoutScreen";
 import { itemBadge, orderBadge } from "../orderStatus";
 import OrderProgress from "../OrderProgress";
+import { OrderSteps } from "../components/OrderSteps";
 
 function Waiting({ order }: { order: Order }) {
   const s = useCountdown(order.respondBy);
@@ -67,6 +69,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   const [rating, setRating] = useState<{ item: OrderItem; stars: number; comment: string } | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const insets = useSafeAreaInsets();
 
   if (!order) {
     return (
@@ -78,6 +81,9 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   }
 
   const badge = orderBadge(order);
+  // Where the order is in Request -> Stall confirms -> Pay. Declined, expired or cancelled orders have no step bar.
+  const stepCurrent: 0 | 1 | 2 | 3 | null =
+    order.status === "awaiting_merchant" ? 1 : order.status === "awaiting_payment" ? 2 : ["rejected", "expired", "cancelled"].includes(order.status) ? null : 3;
   const modes = (["dine_in", "takeaway", "delivery"] as Mode[]).filter((m) => order.items.some((i) => i.mode === m));
   const deliveryActive = order.items.some((i) => i.mode === "delivery" && ["handed_over", "delivered"].includes(i.status));
   const readyModes = (["dine_in", "takeaway"] as const).filter((m) => order.items.some((i) => i.mode === m && i.status === "ready"));
@@ -108,10 +114,11 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title={`Order #${order.id}`} subtitle={order.merchantName} />
-      <ScrollView contentContainerStyle={styles.wrap}>
+      <ScrollView contentContainerStyle={styles.wrap} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled">
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           <Badge label={badge.label} tone={badge.tone} />
         </View>
+        {stepCurrent !== null && <OrderSteps current={stepCurrent} />}
 
         <OrderProgress order={order} />
 
@@ -191,7 +198,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
           </View>
         ))}
 
-        <Text style={[type.h2, { fontSize: 17, marginTop: spacing.lg }]}>Payment</Text>
+        <Text style={[ui.sectionTitle, { marginTop: spacing.lg }]}>Payment</Text>
         <View style={styles.card}>
           <View style={styles.line}><Text style={type.bodyMuted}>Subtotal</Text><Text style={type.body}>RM {order.subtotal.toFixed(2)}</Text></View>
           {order.deliveryFee > 0 && <View style={styles.line}><Text style={type.bodyMuted}>Delivery fee</Text><Text style={type.body}>RM {order.deliveryFee.toFixed(2)}</Text></View>}
@@ -209,7 +216,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <PrimaryButton label="Back to home" variant="outline" onPress={() => navigation.popTo("MainTabs")} />
       </View>
 
@@ -236,19 +243,19 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: 120, gap: spacing.md },
-  banner: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.primarySoft, padding: spacing.md, borderRadius: radius.md },
-  group: { backgroundColor: colors.paper, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: spacing.sm },
+  wrap: { padding: spacing.lg, paddingBottom: 140, gap: spacing.md },
+  banner: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.amberTint, padding: spacing.lg, borderRadius: radius.lg },
+  group: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   groupHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   groupTitle: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
   itemRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   rateLink: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.turmericDeep, marginTop: 2 },
   liveRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   liveText: { flex: 1, fontFamily: fonts.display, fontSize: 13, color: colors.turmericDeep },
-  card: { backgroundColor: colors.paper, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: 6 },
+  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: 6 },
   line: { flexDirection: "row", justifyContent: "space-between" },
   error: { color: colors.chili, fontFamily: fonts.display },
-  footer: { position: "absolute", bottom: 0, left: 0, right: 0, padding: spacing.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.border },
   backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center", padding: spacing.xl },
   modalCard: { width: "100%", maxWidth: 380, backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, gap: spacing.sm },
   input: { backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, minHeight: 70, fontFamily: fonts.serif, fontSize: 15, borderWidth: 1, borderColor: colors.border, textAlignVertical: "top" },

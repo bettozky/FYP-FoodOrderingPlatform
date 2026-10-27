@@ -20,6 +20,16 @@ function devServerHost(): string | null {
       const h: string | undefined = (globalThis as any).location?.hostname;
       return h && isUsableHost(h) ? h : null;
     }
+    // 1) Expo Go / dev client: the address of the PC that is running `expo start` (e.g. "192.168.1.23:8081").
+    let hostUri: string | undefined;
+    try {
+      hostUri = require("expo-constants").default?.expoConfig?.hostUri;
+    } catch {
+      hostUri = undefined;
+    }
+    const fromExpo = hostUri?.split(":")[0];
+    if (fromExpo && isUsableHost(fromExpo)) return fromExpo;
+    // 2) Fallback: the address the JavaScript bundle was downloaded from.
     const scriptURL: string | undefined = NativeModules.SourceCode?.scriptURL;
     const m = scriptURL?.match(/^https?:\/\/([^:/]+)/);
     return m && isUsableHost(m[1]) ? m[1] : null;
