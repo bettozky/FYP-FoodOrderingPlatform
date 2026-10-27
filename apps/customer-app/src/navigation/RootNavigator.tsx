@@ -5,6 +5,7 @@ import { useAuth } from "../modules/auth/AuthContext";
 import AuthScreen from "../modules/auth/screens/AuthScreen";
 import MainTabs from "./MainTabs";
 import DishDetailScreen from "../modules/discovery/screens/DishDetailScreen";
+import StallScreen from "../modules/discovery/screens/StallScreen";
 import CartScreen from "../modules/ordering/screens/CartScreen";
 import CheckoutScreen from "../modules/ordering/screens/CheckoutScreen";
 import OrderTrackingScreen from "../modules/ordering/screens/OrderTrackingScreen";
@@ -33,6 +34,8 @@ export default function RootNavigator() {
         <Stack.Group>
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="DishDetail" component={DishDetailScreen} options={{ animation: "slide_from_bottom" }} />
+          {/* Stall menu: navigation.navigate("Stall", { merchantId }) */}
+          <Stack.Screen name="Stall" component={StallScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
