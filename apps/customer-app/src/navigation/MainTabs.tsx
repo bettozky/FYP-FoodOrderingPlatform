@@ -9,6 +9,7 @@ import ReservationsScreen from "../modules/dine-in/screens/ReservationsScreen";
 import AIAssistantScreen from "../modules/ai-assistant/screens/AIAssistantScreen";
 import AccountScreen from "../modules/account/screens/AccountScreen";
 import { colors, fonts, shadow } from "../shared/theme/theme";
+import PayBar from "../modules/ordering/components/PayBar";
 
 // Main sections, swipeable left/right or chosen from the bottom bar (new layout, Oct 2026):
 // Home · Orders · (Assistant, raised in the middle) · Tables · Account.
@@ -57,6 +58,11 @@ export default function MainTabs({ navigation, route }: any) {
         renderTabBar={() => null}
         swipeEnabled
       />
+
+      {/* While an order is confirmed but unpaid, keep a "Pay now" bar on Home and Orders (even if the top banner was swiped away). */}
+      {(ROUTES[index].key === "home" || ROUTES[index].key === "orders") && (
+        <PayBar bottom={TAB_BAR_HEIGHT + insets.bottom + 8} onPress={(orderId) => navigation.navigate("Pay", { orderId })} />
+      )}
 
       <View style={[styles.bar, { paddingBottom: insets.bottom, height: TAB_BAR_HEIGHT + insets.bottom }]} accessibilityRole="tablist">
         {ROUTES.map((r, i) => {

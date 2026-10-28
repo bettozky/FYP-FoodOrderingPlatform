@@ -116,8 +116,17 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
 
       <View style={styles.rowBetween}>
         <Text style={type.h3}>RM {order.total.toFixed(2)}</Text>
-        {order.refunded > 0 && <Text style={type.small}>Refunded RM {order.refunded.toFixed(2)}</Text>}
+        {order.refunded > 0 && <Text style={type.small}>{order.paymentMethod === "cash" ? "Deducted" : "Refunded"} RM {order.refunded.toFixed(2)}</Text>}
       </View>
+
+      {order.paymentMethod && (
+        <Text style={type.small} testID="pay-method">
+          {order.paymentMethod === "card" ? "Paid by card" : order.paymentMethod === "fpx" ? "Paid by FPX" : order.cashReceivedAt ? "Cash received" : `Cash order: collect RM ${(order.cashDue ?? order.total).toFixed(2)} at the stall`}
+        </Text>
+      )}
+      {order.paymentMethod === "cash" && !order.cashReceivedAt && ["preparing", "completed"].includes(order.status) && (
+        <PrimaryButton label={`Cash received (RM ${(order.cashDue ?? order.total).toFixed(2)})`} variant="success" loading={busy} testID="cash-received" onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/cash-received`))} />
+      )}
 
       {["awaiting_merchant", "awaiting_payment", "preparing"].includes(order.status) && <ChatButtons kind="order" id={order.id} allowCall />}
 

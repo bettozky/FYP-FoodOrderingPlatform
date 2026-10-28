@@ -11,7 +11,8 @@ import { useLive } from "../ordering/LiveDataContext";
 //  1. "Your food is ready - please collect" (FR-2.7): phone vibrates and the pop-up stays until collection is confirmed.
 //  2. Out-of-stock decision (FR-2.5): continue with a partial order, or cancel for a full refund.
 //  3. Everything else (order accepted / rejected / expired, reservation results, reminders ...).
-const SILENT_TYPES = ["out_of_stock"]; // handled by the decision pop-up
+// "order_accepted" has no pop-up any more: the top banner and the Pay bar show it (they read the order itself).
+const SILENT_TYPES = ["out_of_stock", "order_accepted"];
 
 export default function GlobalPopups() {
   const { notifications, orders, ack, refresh, setBookingsView } = useLive();
@@ -25,6 +26,17 @@ export default function GlobalPopups() {
   const lastGeneric = useRef(generic);
   if (generic) lastGeneric.current = generic;
   const shownGeneric = generic ?? lastGeneric.current;
+
+  // order_accepted notices are only marked as read; the banner is driven by the order status.
+  const acked = useRef(new Set<string>());
+  useEffect(() => {
+    for (const n of notifications) {
+      if (n.type === "order_accepted" && !acked.current.has(n.id)) {
+        acked.current.add(n.id);
+        ack(n.id);
+      }
+    }
+  }, [notifications]);
 
   // Buzz until the customer confirms collection. (No-op in a browser.)
   useEffect(() => {
@@ -108,12 +120,7 @@ export default function GlobalPopups() {
             </View>
             <Text style={styles.title}>{shownGeneric?.title}</Text>
             <Text style={styles.body}>{shownGeneric?.body}</Text>
-            {shownGeneric?.type === "order_accepted" ? (
-              <>
-                <PrimaryButton label="Pay now" testID="notice-pay" onPress={() => { const id = shownGeneric.data?.orderId; if (generic) ack(generic.id); if (id && navRef.isReady()) navRef.navigate("OrderTracking", { orderId: id }); }} style={{ alignSelf: "stretch" }} />
-                <PrimaryButton label="Later" variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
-              </>
-            ) : shownGeneric?.type === "reservation_accepted" ? (
+            {shownGeneric?.type === "reservation_accepted" ? (
               <>
                 <PrimaryButton label="Pay now" testID="notice-pay-res" onPress={() => { if (generic) ack(generic.id); setBookingsView("mine"); if (navRef.isReady()) navRef.navigate("MainTabs", { tab: "book", nonce: Date.now() }); }} style={{ alignSelf: "stretch" }} />
                 <PrimaryButton label="Later" variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />

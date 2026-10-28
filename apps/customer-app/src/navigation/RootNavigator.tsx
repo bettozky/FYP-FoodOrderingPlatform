@@ -9,6 +9,7 @@ import StallScreen from "../modules/discovery/screens/StallScreen";
 import CartScreen from "../modules/ordering/screens/CartScreen";
 import CheckoutScreen from "../modules/ordering/screens/CheckoutScreen";
 import OrderTrackingScreen from "../modules/ordering/screens/OrderTrackingScreen";
+import PayScreen from "../modules/ordering/screens/PayScreen";
 import BookTableScreen from "../modules/dine-in/screens/BookTableScreen";
 import JobsScreen from "../modules/jobs/screens/JobsScreen";
 import LiveTrackingScreen from "../modules/delivery/screens/LiveTrackingScreen";
@@ -39,6 +40,8 @@ export default function RootNavigator() {
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+          {/* Step 3 of an order: choose card, FPX or cash. navigation.navigate("Pay", { orderId }) */}
+          <Stack.Screen name="Pay" component={PayScreen} />
           <Stack.Screen name="LiveTracking" component={LiveTrackingScreen} />
           <Stack.Screen name="BookTable" component={BookTableScreen} />
           <Stack.Screen name="Jobs" component={JobsScreen} />

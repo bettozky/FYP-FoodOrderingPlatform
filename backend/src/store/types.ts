@@ -93,7 +93,10 @@ export interface Order {
   discount: number;
   total: number;
   refunded: number;
-  paymentId?: string; // set when the customer pays, after the restaurant has confirmed
+  paymentId?: string; // set when the customer pays online (card or FPX), after the restaurant has confirmed
+  paymentMethod?: PaymentMethod; // how the customer chose to pay
+  cashDue?: number; // cash orders: what the customer still owes at the stall (dine-in and takeaway only)
+  cashReceivedAt?: number; // cash orders: when the merchant marked the cash as received
   voucherId?: string;
   status: OrderStatus;
   decision?: "pending" | "accepted_partial" | "cancelled"; // out-of-stock decision by the customer
@@ -107,8 +110,11 @@ export interface Order {
   reviewedDishIds: string[];
 }
 
+export type PaymentMethod = "card" | "fpx" | "cash";
+
 export interface Payment {
   id: string;
+  method?: "card" | "fpx";
   ref: string; // simulated Stripe payment intent id
   amount: number;
   refunded: number;

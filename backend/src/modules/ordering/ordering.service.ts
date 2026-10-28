@@ -6,7 +6,7 @@ import { db } from "../../store/db.js";
 import type { FulfilmentMode, Order, OrderItem } from "../../store/types.js";
 import { startDelivery } from "../delivery/delivery.service.js";
 import { notify, notifyMerchant } from "../notifications/notifications.service.js";
-import { charge, refund } from "../payment/payment.service.js";
+import { charge, chargeFpx, refund } from "../payment/payment.service.js";
 
 const MODES: FulfilmentMode[] = ["delivery", "dine_in", "takeaway"];
 const DONE = ["collected", "delivered", "out_of_stock", "cancelled"];
@@ -80,6 +80,13 @@ function voucherDiscount(voucherId: string | undefined, merchantId: string, item
 }
 
 function refundOrder(o: Order, amount: number, reason: string) {
+  if (o.paymentMethod === "cash") {
+    // Nothing was paid online, so there is nothing to send back: the customer just owes less at the stall.
+    const cut = money(Math.min(amount, o.cashDue ?? 0));
+    o.cashDue = money((o.cashDue ?? 0) - cut);
+    o.refunded = money(o.refunded + cut);
+    return;
+  }
   o.refunded = money(o.refunded + refund(o.paymentId, amount, reason));
 }
 
@@ -99,8 +106,13 @@ export function merchantRespond(o: Order, accept: boolean) {
   }
 }
 
-/** FR-2.4: the customer pays after the restaurant confirmed. One payment covers every mode. */
-export function payOrder(o: Order, card: unknown) {
+export type PayInput = { method?: unknown; card?: { number?: unknown }; bank?: unknown };
+
+/** FR-2.1: the customer pays after the restaurant confirmed. One payment covers every mode.
+ *  Methods: card (Stripe), FPX online banking, or cash at the stall (dine-in and takeaway only, not delivery). */
+export function payOrder(o: Order, input: PayInput) {
+  const method = input.method === undefined ? "card" : input.method;
+  if (method !== "card" && method !== "fpx" && method !== "cash") throw new HttpError(400, "Choose card, FPX or cash");
   if (o.status !== "awaiting_payment") throw new HttpError(409, o.status === "awaiting_merchant" ? "Wait for the restaurant to confirm first" : "This order cannot be paid");
   if (!o.payBy || Date.now() > o.payBy) throw new HttpError(409, "The payment window has passed. Please send a new order.");
   for (const i of o.items) {
@@ -109,8 +121,14 @@ export function payOrder(o: Order, card: unknown) {
   }
   const v = o.voucherId ? db.vouchers.find((x) => x.id === o.voucherId) : undefined;
   if (v) voucherDiscount(v.id, o.merchantId, o.items, o.subtotal); // still valid? throws if not
-  const payment = charge(o.total, card, o.id);
-  o.paymentId = payment.id;
+  if (method === "cash" && o.items.some((i) => i.mode === "delivery")) throw new HttpError(400, "Cash is only for dine-in and takeaway. Pay by card or FPX for delivery.");
+  if (method === "cash") {
+    o.cashDue = o.total; // nothing is charged now: the customer pays at the stall when collecting
+  } else {
+    const payment = method === "fpx" ? chargeFpx(o.total, input.bank, o.id) : charge(o.total, input.card?.number, o.id);
+    o.paymentId = payment.id;
+  }
+  o.paymentMethod = method;
   o.paidAt = Date.now();
   o.status = "preparing";
   for (const i of o.items) {
@@ -121,7 +139,21 @@ export function payOrder(o: Order, card: unknown) {
     }
   }
   if (v) { v.claimed += 1; v.costSpent = money(v.costSpent + o.discount); }
-  notifyMerchant(o.merchantId, "order_paid", "Order paid", `${o.customerName} paid RM${o.total.toFixed(2)} for order ${o.id}. Start preparing.`, { orderId: o.id });
+  notifyMerchant(
+    o.merchantId, "order_paid", method === "cash" ? "Cash order" : "Order paid",
+    method === "cash"
+      ? `${o.customerName} will pay RM${o.total.toFixed(2)} in cash at the stall for order ${o.id}. Start preparing.`
+      : `${o.customerName} paid RM${o.total.toFixed(2)}${method === "fpx" ? " by FPX" : ""} for order ${o.id}. Start preparing.`,
+    { orderId: o.id },
+  );
+}
+
+/** The merchant marks the cash as received when the customer pays at the stall. */
+export function markCashReceived(o: Order) {
+  if (o.paymentMethod !== "cash") throw new HttpError(409, "This order was not a cash order");
+  if (o.cashReceivedAt) throw new HttpError(409, "Cash was already marked as received");
+  if (o.status !== "preparing" && o.status !== "completed") throw new HttpError(409, "This order is not active");
+  o.cashReceivedAt = Date.now();
 }
 
 /** The customer withdraws a request before paying. */

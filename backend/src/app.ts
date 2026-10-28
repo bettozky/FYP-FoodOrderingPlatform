@@ -13,11 +13,14 @@ import { notificationsRouter } from "./modules/notifications/notifications.route
 import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.routes.js";
 import { resetDb } from "./store/db.js";
 import { env } from "./config/env.js";
+import { MEDIA_DIR } from "./jobs/fetchDishPhotos.js";
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+// Dish photos (and later uploads): GET /media/dishes/d1.jpg
+app.use("/media", express.static(MEDIA_DIR, { maxAge: "1d" }));
 
 app.get("/", (_req, res) => {
   res.json({ message: "ScootMeal backend is running" });

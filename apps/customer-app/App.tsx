@@ -20,6 +20,7 @@ import { FavouritesProvider } from "./src/modules/favourites/FavouritesContext";
 import { ChatProvider } from "./src/modules/chat/ChatContext";
 import { CallProvider } from "./src/modules/calls/CallContext";
 import GlobalPopups from "./src/modules/notifications/GlobalPopups";
+import PayBanner from "./src/modules/notifications/PayBanner";
 import { navRef } from "./src/navigation/navRef";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { colors } from "./src/shared/theme/theme";
@@ -59,6 +60,7 @@ export default function App() {
                     <ChatProvider>
                       <RootNavigator />
                       <GlobalPopups />
+                      <PayBanner />
                     </ChatProvider>
                   </CallProvider>
                 </View>

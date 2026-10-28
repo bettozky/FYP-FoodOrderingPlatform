@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../auth/AuthContext";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { colors, spacing, type } from "../../../shared/theme/theme";
@@ -14,7 +15,7 @@ export default function PendingApprovalScreen() {
   const rejected = approval === "rejected" || approval === "suspended";
   return (
     <View style={styles.wrap} testID="pending-approval">
-      <Text style={{ fontSize: 56 }}>{rejected ? "⛔" : "⏳"}</Text>
+      <Ionicons name={rejected ? "close-circle" : "time"} size={64} color={rejected ? colors.chili : colors.turmericDeep} />
       <Text style={[type.h1, { textAlign: "center" }]}>{rejected ? `Business ${approval}` : "Waiting for approval"}</Text>
       <Text style={[type.bodyMuted, { textAlign: "center" }]}>
         {rejected
