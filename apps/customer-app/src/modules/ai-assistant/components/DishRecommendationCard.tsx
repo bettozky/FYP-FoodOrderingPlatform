@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import type { Dish, Merchant } from "../../../shared/api/types";
+import { isPhoto, mediaUrl } from "../../../shared/media";
 import {
   colors,
   fonts,
@@ -35,8 +36,8 @@ export default function DishRecommendationCard({
   const { dish, merchant } = recommendation;
   const [imageFailed, setImageFailed] = useState(false);
 
-  const hasPhoto =
-    /^https:\/\//i.test(dish.image) && !imageFailed;
+  const photoUri = mediaUrl(dish.image);
+  const hasPhoto = isPhoto(photoUri) && !imageFailed;
 
   const unavailable = dish.soldOut || !merchant.openNow;
 
@@ -44,7 +45,7 @@ export default function DishRecommendationCard({
     <View style={styles.card}>
       {hasPhoto ? (
         <Image
-          source={{ uri: dish.image }}
+          source={{ uri: photoUri }}
           style={styles.photo}
           accessibilityLabel={dish.name}
           onError={() => setImageFailed(true)}

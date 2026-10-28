@@ -114,6 +114,15 @@ merchantRouter.get("/dishes", (_req, res) => {
   res.json({ dishes: [...db.dishes.values()].filter((d) => d.merchantId === m.id) });
 });
 
+/** A dish picture is a photo link (https://... or /media/...). Empty means "no photo yet"; the apps show a plain icon. */
+function dishImage(v: unknown): string {
+  const t = typeof v === "string" ? v.trim() : "";
+  if (!t) return "";
+  if (/^(https?:\/\/|\/media\/)/i.test(t) && t.length <= 400) return t;
+  if (t.length <= 8) return t; // older data: a single emoji
+  throw new HttpError(400, "Photo must be a link starting with https:// (or leave it empty)");
+}
+
 function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | "merchantId"> {
   const price = Number(b.price ?? base?.price);
   if (!Number.isFinite(price) || price <= 0 || price > 500) throw new HttpError(400, "Price must be above 0");
@@ -122,7 +131,7 @@ function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | 
   return {
     name: str(b.name ?? base?.name, "Name", { max: 80 }),
     price: money(price),
-    image: str(b.image ?? base?.image ?? "🍽️", "Icon", { max: 8, optional: true }) || "🍽️",
+    image: dishImage(b.image ?? base?.image),
     description: str(b.description ?? base?.description ?? "", "Description", { max: 300, optional: true }),
     category: str(b.category ?? base?.category ?? "Mains", "Category", { max: 40 }),
     calories: b.calories === undefined ? base?.calories ?? 0 : int(b.calories, "Calories", 0, 5000),

@@ -163,7 +163,7 @@ export default function ReservationsScreen({ navigation }: any) {
           ListEmptyComponent={<EmptyState icon="restaurant-outline" title="No venues here yet" hint="Try another category." />}
           renderItem={({ item }) => (
             <Pressable style={styles.venue} onPress={() => navigation.navigate("BookTable", { merchantId: item.id })} testID={`venue-${item.id}`}>
-              <View style={[styles.venueDot, { backgroundColor: item.color }]}><Text style={{ fontSize: 22 }}>🍽️</Text></View>
+              <View style={[styles.venueDot, { backgroundColor: item.color }]}><Ionicons name="restaurant" size={22} color={colors.white} /></View>
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={type.h3}>{item.name}</Text>
                 <Text style={type.bodyMuted}>{item.stallNo} · {item.distanceKm} km</Text>

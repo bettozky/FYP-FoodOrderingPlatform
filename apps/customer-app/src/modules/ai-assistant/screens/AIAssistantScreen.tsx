@@ -35,7 +35,7 @@ const SUGGESTIONS = ["Where's my order?", "I want a refund", "Recommend somethin
 const INTRO: Message = {
   id: "intro",
   from: "bot",
-  text: "Hi, I'm the ScootMeal Assistant 👋 Ask me about your order, a dish, or an account issue.",
+  text: "Hi, I'm the ScootMeal Assistant. Ask me about your order, a dish, or an account issue.",
 };
 
 function getFallbackReply(message: string): string {

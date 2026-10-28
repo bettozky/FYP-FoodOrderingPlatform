@@ -12,7 +12,7 @@ export type Order = {
   deliveryAddress?: { label: string; line: string };
   subtotal: number; deliveryFee: number; discount: number; total: number; refunded: number;
   status: "awaiting_merchant" | "awaiting_payment" | "preparing" | "completed" | "rejected" | "expired" | "cancelled";
-  payBy?: number; paidAt?: number; cancelReason?: "no_reply" | "not_paid" | "customer";
+  payBy?: number; paidAt?: number; paymentMethod?: "card" | "fpx" | "cash"; cashDue?: number; cashReceivedAt?: number; cancelReason?: "no_reply" | "not_paid" | "customer";
   decision?: "pending" | "accepted_partial" | "cancelled";
   respondBy: number; createdAt: number;
 };

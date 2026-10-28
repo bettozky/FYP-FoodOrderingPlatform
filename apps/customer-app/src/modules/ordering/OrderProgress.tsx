@@ -24,7 +24,7 @@ export function progressSteps(o: Order): Step[] | null {
   const flags: { label: string; done: boolean; time?: number }[] = [
     { label: "Request sent", done: true, time: o.createdAt },
     { label: "Restaurant confirmed", done: o.status !== "awaiting_merchant" },
-    { label: "Payment received", done: o.status === "preparing" || completed, time: o.paidAt },
+    { label: o.paymentMethod === "cash" ? "Confirmed, pay at the stall" : "Payment received", done: o.status === "preparing" || completed, time: o.paidAt },
     { label: "Preparing your food", done: anyAhead || completed },
     { label: "Ready or on the way", done: allAhead || completed },
     { label: "Completed", done: completed },

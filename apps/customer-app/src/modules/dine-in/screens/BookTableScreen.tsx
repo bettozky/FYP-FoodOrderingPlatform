@@ -7,6 +7,7 @@ import { api, errorText } from "../../../shared/api/client";
 import { Dish, Reservation } from "../../../shared/api/types";
 import { prettyDate } from "../../../shared/util/format";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import DishImage from "../../../shared/components/DishImage";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
 
@@ -126,7 +127,7 @@ export default function BookTableScreen({ route, navigation }: any) {
             <Text style={type.small}>The restaurant approves or declines the pre-order separately from the table.</Text>
             {dishes.filter((d) => !d.soldOut).map((d) => (
               <View key={d.id} style={styles.dishRow}>
-                <Text style={{ fontSize: 24 }}>{d.image}</Text>
+                <DishImage image={d.image} size={44} label={d.name} />
                 <View style={{ flex: 1 }}>
                   <Text style={type.body}>{d.name}</Text>
                   <Text style={type.small}>RM {d.price.toFixed(2)}</Text>

@@ -18,7 +18,7 @@ export default function PromoBanner({ onBrowse }: { onBrowse?: () => void }) {
           </Pressable>
         ) : null}
       </View>
-      <DishImage image="🍜" size={64} shape="circle" tint={colors.paper} />
+      <DishImage image="/media/dishes/d1.jpg" size={64} shape="circle" tint={colors.paper} />
     </View>
   );
 }

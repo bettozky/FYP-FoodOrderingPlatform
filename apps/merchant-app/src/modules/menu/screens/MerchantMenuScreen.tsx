@@ -13,6 +13,7 @@ import {
 import { api, errorText } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
+import DishImage from "../../../shared/components/DishImage";
 import { colors, spacing, type } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
 
@@ -76,7 +77,7 @@ export default function MerchantMenuScreen() {
   const [dishCost, setDishCost] = useState("");
   const [dishQuantity, setDishQuantity] = useState("10");
   const [dishCategory, setDishCategory] = useState("Noodles");
-  const [dishEmoji, setDishEmoji] = useState("🍜");
+  const [dishPhoto, setDishPhoto] = useState("");
   const [dishDietary, setDishDietary] = useState<string[]>([]);
   const [dishStyle, setDishStyle] = useState<"" | "dry" | "wet">("");
   const [dishCustom, setDishCustom] = useState("");
@@ -106,7 +107,7 @@ export default function MerchantMenuScreen() {
     setDishCost("");
     setDishQuantity("20");
     setDishCategory("Noodles");
-    setDishEmoji("🍜");
+    setDishPhoto("");
     setDishDietary([]);
     setDishStyle("");
     setDishCustom("");
@@ -121,7 +122,7 @@ export default function MerchantMenuScreen() {
     setDishCost(dish.cost !== undefined ? dish.cost.toString() : "");
     setDishQuantity(dish.quantity >= NO_LIMIT ? "" : dish.quantity.toString());
     setDishCategory(dish.category || "General");
-    setDishEmoji(dish.image || "🍜");
+    setDishPhoto(dish.image || "");
     setDishDietary(dish.dietary);
     setDishStyle(dish.style ?? "");
     setDishCustom(dish.customisations.join(", "));
@@ -144,7 +145,7 @@ export default function MerchantMenuScreen() {
       stock: qty,
       soldOut: qty === 0,
       category: dishCategory.trim() || "General",
-      image: dishEmoji.trim() || "🍽️",
+      image: dishPhoto.trim(),
       dietary: dishDietary,
       style: dishStyle,
       customisations: dishCustom.split(",").map((x) => x.trim()).filter(Boolean),
@@ -233,8 +234,8 @@ export default function MerchantMenuScreen() {
           return (
             <View style={[styles.card, isUnavailable && styles.cardSoldOut]}>
               <View style={styles.mainRow}>
-                {/* Dish Emoji / Thumbnail */}
-                <Text style={styles.emoji}>{item.image}</Text>
+                {/* Dish photo */}
+                <DishImage image={item.image} size={56} />
 
                 {/* Dish Info & Financial Breakdown */}
                 <View style={{ flex: 1, gap: 3 }}>
@@ -336,14 +337,18 @@ export default function MerchantMenuScreen() {
                 onChangeText={setDishName}
               />
 
-              {/* Dish Icon / Emoji */}
-              <Text style={styles.inputLabel}>Emoji Icon</Text>
+              {/* Dish photo link. Uploading a photo from the phone needs the real database and file storage (next phase). */}
+              <Text style={styles.inputLabel}>Photo link (optional)</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. 🍛, 🍜, 🧋, 🍗"
-                value={dishEmoji}
-                onChangeText={setDishEmoji}
+                placeholder="https://... link to a photo of the dish"
+                value={dishPhoto}
+                onChangeText={setDishPhoto}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
               />
+              {dishPhoto.trim() ? <DishImage image={dishPhoto.trim()} size={72} /> : null}
 
               {/* Category: Manual Typing + Quick Pick Chips */}
               <Text style={styles.inputLabel}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, Linking } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator, Linking, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api, errorText } from "../../../shared/api/client";
@@ -9,6 +9,7 @@ import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { isPhoto, mediaUrl } from "../../../shared/media";
 
 // Stall menu (new screen, Badrul's mock-up Oct 2026). Route: navigation.navigate("Stall", { merchantId }).
 // Stall-colour band with a big dish picture → floating info card (name, Open pill, stall no. and tags,
@@ -71,7 +72,8 @@ export default function StallScreen({ navigation, route }: any) {
     );
   }
 
-  const heroImage = dishes?.find((d) => !d.soldOut)?.image ?? dishes?.[0]?.image ?? "🍽️";
+  const heroImage = dishes?.find((d) => !d.soldOut)?.image ?? dishes?.[0]?.image;
+  const heroUri = mediaUrl(heroImage);
   const cartHere = cartMerchant?.id === merchant.id && itemCount > 0;
   const avg = reviews && reviews.length ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10 : null;
 
@@ -79,10 +81,17 @@ export default function StallScreen({ navigation, route }: any) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: cartHere ? 120 + insets.bottom : spacing.xxl + insets.bottom }}>
         <View style={[styles.hero, { backgroundColor: merchant.color || colors.turmericDeep, paddingTop: insets.top + spacing.sm }]}>
-          <Pressable style={ui.iconButton} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back" testID="back">
+          {isPhoto(heroUri) ? (
+            <>
+              <Image source={{ uri: heroUri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
+              <View style={[StyleSheet.absoluteFill, styles.heroShade]} pointerEvents="none" />
+            </>
+          ) : (
+            <Ionicons name="restaurant" size={72} color={colors.ink} style={styles.heroIcon} />
+          )}
+          <Pressable style={[ui.iconButton, { position: "absolute", left: spacing.lg, top: insets.top + spacing.sm }]} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back" testID="back">
             <Ionicons name="chevron-back" size={20} color={colors.ink} />
           </Pressable>
-          <Text style={styles.heroEmoji} allowFontScaling={false} accessibilityElementsHidden importantForAccessibility="no">{heroImage}</Text>
         </View>
 
         <View style={styles.infoCard}>
@@ -219,7 +228,8 @@ function InfoRow({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap;
 const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
   hero: { height: 230, paddingHorizontal: spacing.lg },
-  heroEmoji: { fontSize: 84, textAlign: "center", marginTop: spacing.xs },
+  heroIcon: { alignSelf: "center", marginTop: spacing.xl, opacity: 0.6 },
+  heroShade: { backgroundColor: "rgba(0,0,0,0.12)" },
   infoCard: { ...ui.cardRaised, marginHorizontal: spacing.lg, marginTop: -48, padding: spacing.lg, gap: 4 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   pill: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },

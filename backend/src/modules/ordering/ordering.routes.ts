@@ -3,8 +3,9 @@ import { HttpError, str } from "../../lib/http.js";
 import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
 import { db } from "../../store/db.js";
 import type { Order } from "../../store/types.js";
+import { FPX_BANKS } from "../payment/payment.service.js";
 import {
-  cancelRequest, confirmCollected, customerDecision, handOver, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
+  cancelRequest, confirmCollected, customerDecision, handOver, markCashReceived, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
 } from "./ordering.service.js";
 
 function view(o: Order) {
@@ -38,12 +39,17 @@ ordersRouter.get("/", (_req, res) => {
   res.json({ serverNow: Date.now(), orders: list.map(view) });
 });
 
+// Payment methods the customer can pick from: card, FPX online banking (with its bank list) and cash at the stall.
+ordersRouter.get("/payment-methods", (_req, res) => {
+  res.json({ methods: ["card", "fpx", "cash"], banks: FPX_BANKS });
+});
+
 ordersRouter.get("/:id", (req, res) => res.json({ serverNow: Date.now(), order: view(mine(res, req.params.id as string)) }));
 
 // The customer pays only after the restaurant has confirmed the request.
 ordersRouter.post("/:id/pay", (req, res) => {
   const o = mine(res, req.params.id as string);
-  payOrder(o, req.body?.card?.number);
+  payOrder(o, { method: req.body?.method, card: req.body?.card, bank: req.body?.bank });
   res.json({ serverNow: Date.now(), order: view(o) });
 });
 
@@ -101,6 +107,13 @@ merchantOrdersRouter.post("/:id/respond", (req, res) => {
   if (typeof req.body?.accept !== "boolean") throw new HttpError(400, "accept must be true or false");
   merchantRespond(o, req.body.accept);
   res.json({ serverNow: Date.now(), order: view(o) });
+});
+
+// Cash orders: the customer pays at the stall, and the merchant ticks it off here.
+merchantOrdersRouter.post("/:id/cash-received", (req, res) => {
+  const o = own(res, req.params.id as string);
+  markCashReceived(o);
+  res.json({ order: view(o) });
 });
 
 merchantOrdersRouter.post("/:id/items/:itemId/out-of-stock", (req, res) => {
