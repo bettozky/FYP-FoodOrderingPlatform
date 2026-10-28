@@ -1,12 +1,14 @@
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
+import multer from "multer";
 import { env } from "../../config/env.js";
 import { distanceKm } from "../../lib/geo.js";
 import { HttpError, int, money, str } from "../../lib/http.js";
-import { uid } from "../../lib/ids.js";
+import { removeByPublicUrl, removeObject, upload, uploadPublic } from "../../lib/storage.js";
 import { isWithinHours } from "../../lib/time.js";
 import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
 import { CAMPUS, db } from "../../store/db.js";
-import type { Dish, Merchant } from "../../store/types.js";
+import type { Dish, Job, Merchant, Voucher } from "../../store/types.js";
+import * as repo from "./merchants.repository.js";
 
 /** Public catalog used by the customer app (browse, search, filter - FR-1.3 to FR-1.6). */
 export const catalogRouter = Router();
@@ -87,18 +89,23 @@ merchantRouter.get("/me", (_req, res) => {
   res.json({ serverNow: Date.now(), merchant: { ...merchantView(m), approval: m.approval } });
 });
 
-merchantRouter.patch("/me", (req, res) => {
+merchantRouter.patch("/me", async (req, res) => {
   const m = approvedMerchant(res);
   const b = req.body ?? {};
+  const next = { ...m };
   if (b.storeMode !== undefined) {
     if (!["online", "dine_in", "offline"].includes(b.storeMode)) throw new HttpError(400, "Unknown store mode");
-    m.storeMode = b.storeMode;
+    next.storeMode = b.storeMode;
   }
   if (b.hours) {
     for (const t of [b.hours.open, b.hours.close]) if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(t))) throw new HttpError(400, "Times must look like 09:00");
-    m.hours = { open: b.hours.open, close: b.hours.close };
+    if (b.hours.open === b.hours.close) throw new HttpError(400, "Opening and closing times must be different");
+    next.hours = { open: b.hours.open, close: b.hours.close };
   }
-  if (b.prepMinutes !== undefined) m.prepMinutes = int(b.prepMinutes, "Prep time", 1, 180);
+  if (b.prepMinutes !== undefined) next.prepMinutes = int(b.prepMinutes, "Prep time", 1, 180);
+  await repo.saveStoreSettings(next);
+  if (b.hours) await repo.saveHours(m.id, next.hours);
+  Object.assign(m, next);
   res.json({ merchant: merchantView(m) });
 });
 
@@ -137,29 +144,139 @@ function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | 
   };
 }
 
-merchantRouter.post("/dishes", (req, res) => {
+merchantRouter.post("/dishes", async (req, res) => {
   const m = approvedMerchant(res);
-  const d: Dish = { id: uid("d"), merchantId: m.id, ...dishFields(req.body ?? {}) };
+  const fields = dishFields(req.body ?? {});
+  const d: Dish = { id: await repo.insertDish(m.id, fields), merchantId: m.id, ...fields };
   db.dishes.set(d.id, d);
   res.status(201).json({ dish: d });
 });
 
-merchantRouter.patch("/dishes/:id", (req, res) => {
+merchantRouter.patch("/dishes/:id", async (req, res) => {
   const d = ownDish(res, req.params.id as string);
-  Object.assign(d, dishFields(req.body ?? {}, d));
+  const next: Dish = { ...d, ...dishFields(req.body ?? {}, d) };
+  await repo.saveDish(next);
+  Object.assign(d, next);
   res.json({ dish: d });
 });
 
-merchantRouter.delete("/dishes/:id", (req, res) => {
+merchantRouter.delete("/dishes/:id", async (req, res) => {
   const d = ownDish(res, req.params.id as string);
+  await repo.deleteDish(d.id);
   db.dishes.delete(d.id);
   res.json({ ok: true });
 });
 
+// Dish photo: multipart/form-data with one "file" (JPG / PNG / WebP, max 2 MB), stored in Supabase Storage.
+const PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+const photoUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024, files: 1 } }).single("file");
+const readPhoto: RequestHandler = (req, res, next) =>
+  photoUpload(req, res, (err: unknown) => {
+    if (err instanceof multer.MulterError) return next(new HttpError(400, err.code === "LIMIT_FILE_SIZE" ? "Photo must be 2 MB or smaller" : "Send one photo in the \"file\" field"));
+    next(err);
+  });
+
+merchantRouter.post("/dishes/:id/image", readPhoto, async (req, res) => {
+  const d = ownDish(res, req.params.id as string);
+  const file = req.file;
+  if (!file) throw new HttpError(400, "Choose a photo to upload");
+  const ext = PHOTO_TYPES[file.mimetype];
+  if (!ext) throw new HttpError(400, "Photo must be a JPG, PNG or WebP image");
+  // A new file name each time, so phones and browsers don't keep showing a cached old photo.
+  const url = await uploadPublic(env.menuPhotoBucket, `${d.merchantId}/${d.id}-${Date.now()}.${ext}`, file.buffer, file.mimetype);
+  const old = d.imageUrl;
+  const next: Dish = { ...d, imageUrl: url };
+  await repo.saveDish(next);
+  Object.assign(d, next);
+  removeByPublicUrl(old);
+  res.json({ dish: d });
+});
+
+merchantRouter.delete("/dishes/:id/image", async (req, res) => {
+  const d = ownDish(res, req.params.id as string);
+  const old = d.imageUrl;
+  const next: Dish = { ...d, imageUrl: undefined };
+  await repo.saveDish(next);
+  Object.assign(d, next);
+  removeByPublicUrl(old);
+  res.json({ dish: d });
+});
+
+// Files from the shop sign-up (apps/merchant-app/src/modules/onboarding/signup/upload.ts).
+// Sent right after the account is created, so a PENDING merchant may use this.
+//   kind = ssm_certificate | halal_certificate  -> private bucket, JPG / PNG / PDF; the admin opens it with a signed link
+//   kind = logo | cover                         -> public shop-photos bucket
+//   kind = menu_photo + index                   -> public menu-photos bucket, set on the dish from application.menuItems[index]
+// The file's location is saved in merchant.application (files.<key> or menuItems[index].photo).
+const DOCUMENT_TYPES: Record<string, string> = { ...PHOTO_TYPES, "application/pdf": "pdf" };
+const UPLOAD_FILE_KEYS: Record<string, string> = { ssm_certificate: "ssmCertificate", halal_certificate: "halalCertificate", logo: "logo", cover: "cover" };
+const fileUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024, files: 1 } }).single("file");
+const readFile: RequestHandler = (req, res, next) =>
+  fileUpload(req, res, (err: unknown) => {
+    if (err instanceof multer.MulterError) return next(new HttpError(400, err.code === "LIMIT_FILE_SIZE" ? "File must be 2 MB or smaller" : "Send one file in the \"file\" field"));
+    next(err);
+  });
+
+merchantRouter.post("/uploads", readFile, async (req, res) => {
+  const u = currentUser(res);
+  const m = u.merchantId ? db.merchants.get(u.merchantId) : undefined;
+  if (!m) throw new HttpError(404, "No business profile");
+  const file = req.file;
+  if (!file) throw new HttpError(400, "Choose a file to upload");
+  const kind = String(req.body?.kind ?? "");
+  const isDocument = kind === "ssm_certificate" || kind === "halal_certificate";
+  const ext = (isDocument ? DOCUMENT_TYPES : PHOTO_TYPES)[file.mimetype];
+  if (!ext) throw new HttpError(400, isDocument ? "Certificate must be a JPG, PNG or PDF" : "Photo must be a JPG, PNG or WebP image");
+  const meta = { name: file.originalname.slice(0, 120), size: file.size, mimeType: file.mimetype };
+  const application: Record<string, any> = structuredClone(m.application ?? {});
+  const stamp = Date.now();
+
+  if (kind === "menu_photo") {
+    const index = Number(req.body?.index);
+    const item = Array.isArray(application.menuItems) ? application.menuItems[index] : undefined;
+    if (!Number.isInteger(index) || !item) throw new HttpError(400, "index must point at one of the sign-up menu items");
+    // Sign-up dishes are created from menuItems, so the name finds the dish.
+    const dish = [...db.dishes.values()].find((d) => d.merchantId === m.id && d.name === String(item.name ?? "").trim());
+    const url = await uploadPublic(env.menuPhotoBucket, `${m.id}/signup-${index}-${stamp}.${ext}`, file.buffer, file.mimetype);
+    const oldUrls = new Set([item.photo?.url, dish?.imageUrl]);
+    item.photo = { ...meta, url };
+    await repo.saveApplication(m.id, application);
+    m.application = application;
+    if (dish) {
+      const next: Dish = { ...dish, imageUrl: url };
+      await repo.saveDish(next);
+      Object.assign(dish, next);
+    }
+    oldUrls.forEach((old) => removeByPublicUrl(old));
+    return res.status(201).json({ url });
+  }
+
+  const key = UPLOAD_FILE_KEYS[kind];
+  if (!key) throw new HttpError(400, "kind must be ssm_certificate, halal_certificate, logo, cover or menu_photo");
+  application.files ??= {};
+  const old = application.files[key];
+  let url: string | null;
+  if (isDocument) {
+    const path = `${m.id}/${kind}-${stamp}.${ext}`;
+    await upload(env.documentBucket, path, file.buffer, file.mimetype, false);
+    application.files[key] = { ...meta, bucket: env.documentBucket, path };
+    url = null; // private: never sent back as a public link
+  } else {
+    url = await uploadPublic(env.shopPhotoBucket, `${m.id}/${kind}-${stamp}.${ext}`, file.buffer, file.mimetype);
+    application.files[key] = { ...meta, url };
+  }
+  await repo.saveApplication(m.id, application);
+  m.application = application;
+  if (old?.url) removeByPublicUrl(old.url);
+  else if (old?.bucket && old?.path) removeObject(old.bucket, old.path);
+  res.status(201).json({ url });
+});
+
 // FR-5.3: suspend a whole category without deleting it.
-merchantRouter.post("/categories/:name/sold-out", (req, res) => {
+merchantRouter.post("/categories/:name/sold-out", async (req, res) => {
   const m = approvedMerchant(res);
   const soldOut = req.body?.soldOut !== false;
+  await repo.setCategorySoldOut(m.id, req.params.name as string, soldOut);
   let n = 0;
   for (const d of db.dishes.values()) if (d.merchantId === m.id && d.category === req.params.name) { d.soldOut = soldOut; n++; }
   res.json({ updated: n });
@@ -195,7 +312,7 @@ merchantRouter.get("/vouchers", (_req, res) => {
   const m = approvedMerchant(res);
   res.json({ vouchers: db.vouchers.filter((v) => v.merchantId === m.id) });
 });
-merchantRouter.post("/vouchers", (req, res) => {
+merchantRouter.post("/vouchers", async (req, res) => {
   const m = approvedMerchant(res);
   const b = req.body ?? {};
   const amount = Number(b.amount), minSpend = Number(b.minSpend ?? 0);
@@ -205,26 +322,34 @@ merchantRouter.post("/vouchers", (req, res) => {
   if (!Number.isFinite(minSpend) || minSpend < 0) throw new HttpError(400, "Minimum spend cannot be negative");
   const limit = b.totalLimit === undefined || b.totalLimit === "" ? undefined : int(b.totalLimit, "Total limit", 1, 100000);
   const title = str(b.title, "Voucher code", { max: 30 }).toUpperCase();
-  const v = {
-    id: uid("v"), title,
+  if (db.vouchers.some((x) => x.title === title)) throw new HttpError(409, "That voucher code is already used");
+  const expiryDate = b.expiryDate ? str(b.expiryDate, "Expiry date", { max: 10 }) : undefined;
+  if (expiryDate && (!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate) || Number.isNaN(Date.parse(expiryDate)))) throw new HttpError(400, "Expiry date must be YYYY-MM-DD");
+  const fields: Omit<Voucher, "id"> = {
+    title,
     description: str(b.description, "Description", { max: 120, optional: true }) || `${kind === "percent" ? `${amount}% off` : `RM${amount} off`}, min spend RM${minSpend} at ${m.name}`,
-    amount: money(amount), kind: kind as "fixed" | "percent", minSpend: money(minSpend), merchantId: m.id,
-    totalLimit: limit, claimed: 0, costSpent: 0, expiryDate: b.expiryDate ? str(b.expiryDate, "Expiry date", { max: 10 }) : undefined, active: true,
+    amount: money(amount), kind, minSpend: money(minSpend), merchantId: m.id,
+    totalLimit: limit, claimed: 0, costSpent: 0, expiryDate, active: true,
   };
+  const v: Voucher = { id: await repo.insertVoucher(fields), ...fields };
   db.vouchers.push(v);
   res.status(201).json({ voucher: v });
 });
-merchantRouter.patch("/vouchers/:id", (req, res) => {
+merchantRouter.patch("/vouchers/:id", async (req, res) => {
   const m = approvedMerchant(res);
   const v = db.vouchers.find((x) => x.id === req.params.id && x.merchantId === m.id);
   if (!v) throw new HttpError(404, "Voucher not found");
-  if (typeof req.body?.active === "boolean") v.active = req.body.active;
+  if (typeof req.body?.active === "boolean") {
+    await repo.setVoucherActive(v.id, req.body.active);
+    v.active = req.body.active;
+  }
   res.json({ voucher: v });
 });
-merchantRouter.delete("/vouchers/:id", (req, res) => {
+merchantRouter.delete("/vouchers/:id", async (req, res) => {
   const m = approvedMerchant(res);
   const i = db.vouchers.findIndex((v) => v.id === req.params.id && v.merchantId === m.id);
   if (i < 0) throw new HttpError(404, "Voucher not found");
+  await repo.deleteVoucher(db.vouchers[i]!.id);
   db.vouchers.splice(i, 1);
   res.json({ ok: true });
 });
@@ -234,39 +359,44 @@ merchantRouter.get("/jobs", (_req, res) => {
   const m = approvedMerchant(res);
   res.json({ jobs: [...db.jobs.values()].filter((j) => j.merchantId === m.id) });
 });
-merchantRouter.post("/jobs", (req, res) => {
+merchantRouter.post("/jobs", async (req, res) => {
   const m = approvedMerchant(res);
   const b = req.body ?? {};
-  const j = {
-    id: uid("j"), merchantId: m.id, merchantName: m.name, title: str(b.title, "Job title", { max: 80 }),
+  const fields: Omit<Job, "id"> = {
+    merchantId: m.id, merchantName: m.name, title: str(b.title, "Job title", { max: 80 }),
     type: str(b.type, "Type", { optional: true, max: 30 }) || "Part-time", pay: str(b.pay, "Pay", { max: 40 }),
     description: str(b.description, "Description", { optional: true, max: 300 }), postedAt: Date.now(), open: true,
     role: str(b.role, "Role", { optional: true, max: 40 }) || undefined,
     openings: b.openings === undefined ? 1 : int(b.openings, "Openings", 1, 100),
     perks: str(b.perks, "Perks", { optional: true, max: 200 }) || undefined, applicants: 0,
   };
+  const j: Job = { id: await repo.insertJob(fields), ...fields };
   db.jobs.set(j.id, j);
   res.status(201).json({ job: j });
 });
-merchantRouter.patch("/jobs/:id", (req, res) => {
+merchantRouter.patch("/jobs/:id", async (req, res) => {
   const m = approvedMerchant(res);
   const j = db.jobs.get(req.params.id as string);
   if (!j || j.merchantId !== m.id) throw new HttpError(404, "Job not found");
   const b = req.body ?? {};
-  if (typeof b.open === "boolean") j.open = b.open;
-  if (b.title !== undefined) j.title = str(b.title, "Job title", { max: 80 });
-  if (b.pay !== undefined) j.pay = str(b.pay, "Pay", { max: 40 });
-  if (b.type !== undefined) j.type = str(b.type, "Type", { max: 30 });
-  if (b.description !== undefined) j.description = str(b.description, "Description", { optional: true, max: 300 });
-  if (b.role !== undefined) j.role = str(b.role, "Role", { optional: true, max: 40 });
-  if (b.perks !== undefined) j.perks = str(b.perks, "Perks", { optional: true, max: 200 });
-  if (b.openings !== undefined) j.openings = int(b.openings, "Openings", 1, 100);
+  const next = { ...j };
+  if (typeof b.open === "boolean") next.open = b.open;
+  if (b.title !== undefined) next.title = str(b.title, "Job title", { max: 80 });
+  if (b.pay !== undefined) next.pay = str(b.pay, "Pay", { max: 40 });
+  if (b.type !== undefined) next.type = str(b.type, "Type", { max: 30 });
+  if (b.description !== undefined) next.description = str(b.description, "Description", { optional: true, max: 300 });
+  if (b.role !== undefined) next.role = str(b.role, "Role", { optional: true, max: 40 });
+  if (b.perks !== undefined) next.perks = str(b.perks, "Perks", { optional: true, max: 200 });
+  if (b.openings !== undefined) next.openings = int(b.openings, "Openings", 1, 100);
+  await repo.saveJob(next);
+  Object.assign(j, next);
   res.json({ job: j });
 });
-merchantRouter.delete("/jobs/:id", (req, res) => {
+merchantRouter.delete("/jobs/:id", async (req, res) => {
   const m = approvedMerchant(res);
   const j = db.jobs.get(req.params.id as string);
   if (!j || j.merchantId !== m.id) throw new HttpError(404, "Job not found");
+  await repo.deleteJob(j.id);
   db.jobs.delete(j.id);
   res.json({ ok: true });
 });

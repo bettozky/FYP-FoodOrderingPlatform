@@ -11,7 +11,8 @@ import ModerationPage from "../modules/moderation/ModerationPage";
 import AnalyticsPage from "../modules/analytics/AnalyticsPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, checking } = useAuth();
+  if (checking) return <p className="muted" style={{ padding: 28 }}>Loading…</p>;
   return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />;
 }
 

@@ -5,6 +5,7 @@ import { isWithinHours } from "../../lib/time.js";
 import { db } from "../../store/db.js";
 import type { FulfilmentMode, Order, OrderItem } from "../../store/types.js";
 import { startDelivery } from "../delivery/delivery.service.js";
+import { saveDishInBackground } from "../merchants/merchants.repository.js";
 import { notify, notifyMerchant } from "../notifications/notifications.service.js";
 import { charge, refund } from "../payment/payment.service.js";
 
@@ -118,6 +119,7 @@ export function payOrder(o: Order, card: unknown) {
     if (d && d.stock !== undefined) {
       d.stock = Math.max(0, d.stock - i.qty);
       if (d.stock === 0) d.soldOut = true;
+      saveDishInBackground(d);
     }
   }
   if (v) { v.claimed += 1; v.costSpent = money(v.costSpent + o.discount); }
@@ -157,7 +159,7 @@ export function markOutOfStock(o: Order, itemId: string) {
   if (item.status !== "preparing") throw new HttpError(409, "That item is already " + item.status.replace("_", " "));
   item.status = "out_of_stock";
   const dish = db.dishes.get(item.dishId);
-  if (dish) dish.soldOut = true; // FR-5.6: also hide it from the menu
+  if (dish) { dish.soldOut = true; saveDishInBackground(dish); } // FR-5.6: also hide it from the menu
   o.decision = "pending";
   notify(o.customerId, "out_of_stock", "Item out of stock", `${item.name} is out of stock at ${o.merchantName}. Continue without it or cancel for a full refund?`, { orderId: o.id, itemId });
 }

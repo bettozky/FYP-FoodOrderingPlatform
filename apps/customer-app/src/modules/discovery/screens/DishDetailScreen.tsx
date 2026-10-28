@@ -9,6 +9,7 @@ import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import Badge from "../../../shared/components/Badge";
+import DishImage from "../../../shared/components/DishImage";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 
 type Review = { id: string; userName: string; rating: number; comment?: string };
@@ -74,7 +75,7 @@ export default function DishDetailScreen({ route }: any) {
             </Pressable>
           </View>
           <View style={styles.photoWrap}>
-            <Text style={styles.heroEmoji}>{dish.image}</Text>
+            <DishImage dish={dish} imageStyle={StyleSheet.absoluteFill} emojiStyle={styles.heroEmoji} />
           </View>
         </View>
 
@@ -228,6 +229,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     borderWidth: 6,
     borderColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
   },
   heroEmoji: { fontSize: 88 },
   sheet: {

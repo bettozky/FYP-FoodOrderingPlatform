@@ -22,3 +22,36 @@ th { background: #f4f1ea; }
 .btn { background: var(--ink); color: #fff; cursor: pointer; border: none; }
 .btn.small { padding: 6px 10px; font-size: 12px; }
 .btn.danger { background: #e8483a; }
+.error { color: #c0392b; margin: 8px 0; }
+.warn { color: #9a6700; font-size: 13px; }
+.small { font-size: 12px; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.link { background: none; border: none; padding: 0; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; text-align: left; }
+.link:hover { text-decoration: underline; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.tab { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+.tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.tab .count { opacity: 0.7; margin-left: 4px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+tr.selected td { background: #fff8e8; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: capitalize; vertical-align: middle; }
+.badge.pending { background: #fff1d6; color: #9a6700; }
+.badge.approved { background: #dcf3e3; color: #1d7a3d; }
+.badge.rejected { background: #fde2df; color: #b42318; }
+.badge.suspended { background: #ececec; color: #555; }
+.detail { margin-top: 20px; }
+.detail header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.detail h2 { margin: 0; font-size: 20px; }
+.detail h3 { font-size: 14px; margin: 16px 0 8px; }
+.detail .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.block { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.block h3 { margin-top: 0; }
+.block dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: 13px; }
+.block dt { color: var(--muted); }
+.block dd { margin: 0; overflow-wrap: anywhere; }
+td.dish { display: flex; align-items: center; gap: 8px; }
+td.dish img { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; }
+.login .error { margin: 0; font-size: 13px; }
+.file { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.file img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }

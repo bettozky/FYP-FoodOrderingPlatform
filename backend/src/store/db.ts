@@ -1,6 +1,13 @@
-// In-memory demo store (resets whenever the server restarts).
-// Swap this for a real database later: every module reads/writes through `db`.
+// In-memory store that every module reads/writes through `db`.
+// With DATABASE_URL set, users, merchants, dishes, vouchers and jobs are loaded from PostgreSQL at
+// startup and merchant changes are written back (see modules/*/*.repository.ts). Orders, reservations,
+// chat and calls still live only in memory and reset when the server restarts.
+// Without DATABASE_URL everything is the in-memory demo data below.
 import { hashPassword } from "../lib/ids.js";
+import { loadFromPostgres } from "./postgres/load.js";
+import { migrate } from "./postgres/migrate.js";
+import { usingPostgres } from "./postgres/pool.js";
+import { seed } from "./postgres/seed.js";
 import type {
   Call, ChatMessage, Delivery, Dish, Job, Merchant, Notification, Order, Payment, Reservation, Review, User, Voucher,
 } from "./types.js";
@@ -43,13 +50,28 @@ function d(x: Partial<Dish> & Pick<Dish, "id" | "merchantId" | "name" | "price" 
   return { soldOut: false, dietary: [], customisations: [], cost: Math.round(x.price * 0.4 * 100) / 100, ...x };
 }
 
-export function resetDb() {
+/** Called once before the server starts listening. */
+export async function initDb() {
+  if (usingPostgres) {
+    await migrate();
+    if (await seed()) console.log("Database: demo data created");
+  }
+  await resetDb();
+}
+
+/** Empties memory and reloads: from PostgreSQL when connected, otherwise the demo data. */
+export async function resetDb() {
   for (const k of Object.keys(db) as (keyof Db)[]) {
     const v = db[k] as unknown;
     if (v instanceof Map) v.clear();
     else if (Array.isArray(v)) v.length = 0;
   }
+  if (usingPostgres) await loadFromPostgres(db);
+  else loadDemoData();
+  seedHistory();
+}
 
+function loadDemoData() {
   const merchants: Merchant[] = [
     m({ id: "m1", name: "Ah Seng Noodle House", stallNo: "Canteen A, Stall 3", rating: 4.6, lat: 1.5541, lng: 110.3601, prepMinutes: 12, tags: ["Noodles", "Halal-friendly"], color: "#C97F03", phone: "+60 12-300 0001", venueCategory: "Trending" }),
     m({ id: "m2", name: "Nasi Kak Yah", stallNo: "Canteen A, Stall 7", rating: 4.8, lat: 1.5538, lng: 110.3596, prepMinutes: 15, tags: ["Malay", "Rice"], color: "#3F5B34", phone: "+60 12-300 0002", venueCategory: "Buffet" }),
@@ -107,16 +129,19 @@ export function resetDb() {
     { id: "j3", merchantId: "m2", merchantName: "Nasi Kak Yah", title: "Cashier", type: "Part-time", pay: "RM9.50/hr", description: "Evening shift, 5pm-9pm.", postedAt: now - 3 * 86400000, open: true },
   ];
   jobs.forEach((j) => db.jobs.set(j.id, j));
-
-  seedHistory();
 }
 
-// Past completed orders for Ah Seng (m1) so analytics and History look real from the first launch.
-// They belong to made-up customers and are all older than today, so "orders today" starts at 0.
+// Past completed orders for the demo merchant (ahseng@scootmeal.test) so analytics and History look
+// real from the first launch. They belong to made-up customers and are all older than today, so
+// "orders today" starts at 0. Kept in memory only.
 function seedHistory() {
+  const owner = [...db.users.values()].find((u) => u.email === "ahseng@scootmeal.test");
+  const merchant = owner?.merchantId ? db.merchants.get(owner.merchantId) : undefined;
+  if (!merchant) return;
+  const menu = [...db.dishes.values()].filter((d) => d.merchantId === merchant.id).slice(0, 3).map((d) => d.id);
+  if (menu.length < 3) return;
   const names = ["Aisyah", "Jun Hao", "Priya", "Daniel", "Siti", "Marcus", "Hana", "Kelvin"];
   const dish = (id: string) => db.dishes.get(id)!;
-  const menu = ["d1", "d2", "d11"];
   const modes = ["dine_in", "takeaway", "delivery"] as const;
   const DAY = 86400000;
   let n = 0;
@@ -136,12 +161,10 @@ function seedHistory() {
       const at = Date.now() - day * DAY - (3 + k * 2) * 3600000 + 12 * 60000;
       const id = `SM-H${String(n).padStart(3, "0")}`;
       db.orders.set(id, {
-        id, customerId: "u_seed", customerName: names[n % names.length]!, merchantId: "m1", merchantName: "Ah Seng Noodle House",
+        id, customerId: "u_seed", customerName: names[n % names.length]!, merchantId: merchant.id, merchantName: merchant.name,
         items, subtotal, deliveryFee: fee, discount: 0, total: subtotal + fee, refunded: 0, paymentId: `pay_${id}`,
         status: "completed", respondBy: at + 600000, createdAt: at, acceptedAt: at + 60000, completedAt: at + 25 * 60000, reviewedDishIds: [],
       });
     }
   }
 }
-
-resetDb();

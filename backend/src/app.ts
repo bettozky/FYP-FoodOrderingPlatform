@@ -40,8 +40,8 @@ app.use("/api/ai", aiAssistantRouter);
 
 // Demo helper: put the seed data back (not mounted in production).
 if (!env.isProduction) {
-  app.post("/api/dev/reset", (_req, res) => {
-    resetDb();
+  app.post("/api/dev/reset", async (_req, res) => {
+    await resetDb();
     res.json({ ok: true });
   });
 }

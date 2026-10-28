@@ -12,7 +12,7 @@ Shop sign-up and approval status (FR-5.1). Owner: Nathan (screens). Server side:
 
 ## Request body (for David)
 
-`POST /api/auth/register-merchant`. The top-level fields are the ones the current route already reads, so sign-up works today without backend changes. The new answers are under `application`; until David stores them they are ignored.
+`POST /api/auth/register-merchant`. The top-level fields are the ones the current route already reads. The new answers are under `application`. When the backend runs with PostgreSQL, the whole object is saved in `merchant.application` (JSONB) for the admin, the per-day hours go to `operating_hours`, `location.lat/lng` to `venue`, `service.prepMinutes` to `merchant.prep_minutes`, and `menuItems` become the shop's first dishes (see `backend/src/modules/auth/auth.routes.ts`). The table below is the original suggestion.
 
 | Step | Field in the request | Suggested table / column |
 | --- | --- | --- |
@@ -42,7 +42,12 @@ file  = JPG / PNG / PDF, max 2 MB
 reply = { url }
 ```
 
-Until that route exists the server answers 404, the uploads are skipped, and sign-up still completes. Please confirm or change the path and field names in the group chat; only `UPLOAD_PATH` in `upload.ts` needs to change.
+The route is built (`backend/src/modules/merchants/merchants.routes.ts`) and stores the files in Supabase Storage:
+certificates (JPG / PNG / PDF) in the private bucket `merchant-documents`, which the admin opens with a 1-hour signed link;
+logo and cover in the public bucket `shop-photos`; menu photos in `menu-photos`, also set as the photo of the matching sign-up dish.
+Where each file went is saved in `merchant.application` (`files.<key>` and `menuItems[index].photo`). A pending shop may upload.
+If the server has no Supabase settings it answers 503, the upload counts as failed, and sign-up still completes.
+Files that fail are listed on `PendingApprovalScreen` with the server's reason and an "Upload again" button (the list is kept in `AuthContext.failedUploads`, so it is gone after logging out).
 
 ## Photos on phones (one command)
 

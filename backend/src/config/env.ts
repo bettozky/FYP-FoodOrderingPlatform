@@ -6,6 +6,16 @@ const num = (v: string | undefined, d: number) => (v !== undefined && v !== "" &
 
 export const env = {
   port: num(process.env.PORT, 3001),
+  // PostgreSQL connection, e.g. postgres://postgres:secret@localhost:5432/foodapp
+  // When unset the server runs on the in-memory demo data instead.
+  databaseUrl: process.env.DATABASE_URL || undefined,
+  // Supabase Storage for dish photos (Supabase dashboard -> Project Settings -> API).
+  // The service role key stays on the server; the apps only ever see the public photo URL.
+  supabaseUrl: process.env.SUPABASE_URL?.replace(/\/+$/, "") || undefined,
+  supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || undefined,
+  menuPhotoBucket: process.env.SUPABASE_MENU_BUCKET || "menu-photos",
+  shopPhotoBucket: process.env.SUPABASE_SHOP_BUCKET || "shop-photos", // logo and cover (public)
+  documentBucket: process.env.SUPABASE_DOCUMENT_BUCKET || "merchant-documents", // SSM / halal certificates (private)
   openaiApiKey: process.env.OPENAI_API_KEY,
   // Model used by the AI assistant. Override with AI_MODEL in .env.
   aiModel: process.env.AI_MODEL ?? "gpt-6-luna",

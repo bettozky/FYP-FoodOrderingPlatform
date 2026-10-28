@@ -50,7 +50,7 @@ export default function ShopSignupWizard({ onCancel, scrollToTop }: { onCancel: 
     setSubmitError("");
     try {
       // Files go up with the new account's token before the app switches to the "waiting for approval" screen.
-      await register(toSignupRequest(a, !canPickFiles), (token: string) => uploadSignupFiles(token, a).then(() => undefined));
+      await register(toSignupRequest(a, !canPickFiles), () => uploadSignupFiles(a));
     } catch (err) {
       setSubmitError(errorText(err));
       setBusy(false);

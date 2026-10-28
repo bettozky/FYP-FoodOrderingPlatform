@@ -10,7 +10,7 @@ export type Merchant = {
 };
 
 export type Dish = {
-  id: string; merchantId: string; name: string; price: number; image: string; description: string; category: string;
+  id: string; merchantId: string; name: string; price: number; image: string; imageUrl?: string; description: string; category: string;
   calories: number; soldOut: boolean; spicy?: boolean; dietary: string[]; style?: "dry" | "wet"; customisations: string[];
 };
 

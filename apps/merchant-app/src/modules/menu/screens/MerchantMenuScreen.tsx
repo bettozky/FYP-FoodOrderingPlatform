@@ -9,8 +9,12 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  Image,
 } from "react-native";
-import { api, errorText } from "../../../shared/api/client";
+import { Ionicons } from "@expo/vector-icons";
+import { api, apiUpload, errorText } from "../../../shared/api/client";
+import { pickFile } from "../../onboarding/signup/pickFile";
+import type { PickedFile } from "../../onboarding/signup/types";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import { colors, spacing, type } from "../../../shared/theme/theme";
@@ -20,7 +24,7 @@ export interface ExtendedDish {
   id: string;
   name: string;
   price: number;
-  image: string;
+  imageUrl?: string; // dish photo in Supabase Storage
   description: string;
   category: string;
   calories: number;
@@ -33,6 +37,7 @@ export interface ExtendedDish {
 }
 
 const NO_LIMIT = 999;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const DIETARY = [
   { key: "vegetarian", label: "Vegetarian" },
   { key: "plant_based", label: "Plant-based" },
@@ -41,7 +46,7 @@ const DIETARY = [
 ];
 
 const fromApi = (d: any): ExtendedDish => ({
-  id: d.id, name: d.name, price: d.price, image: d.image, description: d.description, category: d.category,
+  id: d.id, name: d.name, price: d.price, imageUrl: d.imageUrl, description: d.description, category: d.category,
   calories: d.calories, soldOut: d.soldOut, quantity: d.stock ?? NO_LIMIT, cost: d.cost ?? 0,
   dietary: d.dietary ?? [], style: d.style, customisations: d.customisations ?? [],
 });
@@ -76,7 +81,10 @@ export default function MerchantMenuScreen() {
   const [dishCost, setDishCost] = useState("");
   const [dishQuantity, setDishQuantity] = useState("10");
   const [dishCategory, setDishCategory] = useState("Noodles");
-  const [dishEmoji, setDishEmoji] = useState("🍜");
+  const [dishImageUrl, setDishImageUrl] = useState<string | null>(null); // photo already saved
+  const [dishPhoto, setDishPhoto] = useState<PickedFile | null>(null); // new photo, uploaded on save
+  const [photoError, setPhotoError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [dishDietary, setDishDietary] = useState<string[]>([]);
   const [dishStyle, setDishStyle] = useState<"" | "dry" | "wet">("");
   const [dishCustom, setDishCustom] = useState("");
@@ -106,7 +114,9 @@ export default function MerchantMenuScreen() {
     setDishCost("");
     setDishQuantity("20");
     setDishCategory("Noodles");
-    setDishEmoji("🍜");
+    setDishImageUrl(null);
+    setDishPhoto(null);
+    setPhotoError("");
     setDishDietary([]);
     setDishStyle("");
     setDishCustom("");
@@ -121,7 +131,9 @@ export default function MerchantMenuScreen() {
     setDishCost(dish.cost !== undefined ? dish.cost.toString() : "");
     setDishQuantity(dish.quantity >= NO_LIMIT ? "" : dish.quantity.toString());
     setDishCategory(dish.category || "General");
-    setDishEmoji(dish.image || "🍜");
+    setDishImageUrl(dish.imageUrl ?? null);
+    setDishPhoto(null);
+    setPhotoError("");
     setDishDietary(dish.dietary);
     setDishStyle(dish.style ?? "");
     setDishCustom(dish.customisations.join(", "));
@@ -133,9 +145,27 @@ export default function MerchantMenuScreen() {
     api("DELETE", `/merchant/dishes/${id}`).then(load).catch((e) => setMessage(errorText(e)));
   };
 
-  // Save (Create or Update) Dish
+  // Choose a dish photo (JPG / PNG, up to 2 MB). It is uploaded when the dish is saved.
+  const handlePickPhoto = async () => {
+    const r = await pickFile("image");
+    if ("unavailable" in r) return setPhotoError(r.unavailable);
+    if ("cancelled" in r) return;
+    if (!["image/jpeg", "image/png"].includes(r.file.mimeType)) return setPhotoError("Choose a JPG or PNG photo.");
+    if (r.file.size > MAX_PHOTO_BYTES) return setPhotoError("Photo must be 2 MB or smaller.");
+    setPhotoError("");
+    setDishPhoto(r.file);
+  };
+
+  const handleRemovePhoto = () => {
+    setDishPhoto(null);
+    setDishImageUrl(null);
+  };
+
+  const photoPreview = dishPhoto?.uri ?? dishImageUrl;
+
+  // Save (Create or Update) Dish, then upload / remove its photo
   const handleSaveDish = async () => {
-    if (!dishName.trim() || !dishPrice.trim()) return;
+    if (!dishName.trim() || !dishPrice.trim() || saving) return;
     const qty = dishQuantity.trim() === "" ? undefined : Math.max(0, parseInt(dishQuantity, 10) || 0);
     const body = {
       name: dishName.trim(),
@@ -144,19 +174,33 @@ export default function MerchantMenuScreen() {
       stock: qty,
       soldOut: qty === 0,
       category: dishCategory.trim() || "General",
-      image: dishEmoji.trim() || "🍽️",
       dietary: dishDietary,
       style: dishStyle,
       customisations: dishCustom.split(",").map((x) => x.trim()).filter(Boolean),
     };
+    setSaving(true);
     try {
-      if (editingDishId) await api("PATCH", `/merchant/dishes/${editingDishId}`, body);
-      else await api("POST", "/merchant/dishes", body);
+      const saved = editingDishId
+        ? await api<{ dish: any }>("PATCH", `/merchant/dishes/${editingDishId}`, body)
+        : await api<{ dish: any }>("POST", "/merchant/dishes", body);
+      const id = saved.dish.id;
+      try {
+        if (dishPhoto) await apiUpload(`/merchant/dishes/${id}/image`, dishPhoto);
+        else if (!dishImageUrl && saved.dish.imageUrl) await api("DELETE", `/merchant/dishes/${id}/image`);
+      } catch (e) {
+        // The dish itself is saved; keep the form open on it so the merchant can retry the photo.
+        setEditingDishId(id);
+        setPhotoError(`Dish saved, but the photo was not: ${errorText(e)}`);
+        load();
+        return;
+      }
       setIsModalOpen(false);
       setMessage("");
       load();
     } catch (e) {
       setMessage(errorText(e));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -233,8 +277,14 @@ export default function MerchantMenuScreen() {
           return (
             <View style={[styles.card, isUnavailable && styles.cardSoldOut]}>
               <View style={styles.mainRow}>
-                {/* Dish Emoji / Thumbnail */}
-                <Text style={styles.emoji}>{item.image}</Text>
+                {/* Dish Photo / Thumbnail */}
+                {item.imageUrl ? (
+                  <Image source={{ uri: item.imageUrl }} style={styles.thumb} />
+                ) : (
+                  <View style={[styles.thumb, styles.thumbEmpty]}>
+                    <Ionicons name="image-outline" size={22} color={colors.textFaint} />
+                  </View>
+                )}
 
                 {/* Dish Info & Financial Breakdown */}
                 <View style={{ flex: 1, gap: 3 }}>
@@ -336,14 +386,29 @@ export default function MerchantMenuScreen() {
                 onChangeText={setDishName}
               />
 
-              {/* Dish Icon / Emoji */}
-              <Text style={styles.inputLabel}>Emoji Icon</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. 🍛, 🍜, 🧋, 🍗"
-                value={dishEmoji}
-                onChangeText={setDishEmoji}
-              />
+              {/* Dish Photo (saved to Supabase Storage through the backend) */}
+              <Text style={styles.inputLabel}>Dish Photo</Text>
+              <Pressable style={styles.photoBox} onPress={handlePickPhoto}>
+                {photoPreview ? (
+                  <Image source={{ uri: photoPreview }} style={styles.photoPreview} />
+                ) : (
+                  <View style={{ alignItems: "center", gap: 4 }}>
+                    <Ionicons name="camera-outline" size={28} color={colors.textMuted} />
+                    <Text style={{ fontSize: 12, color: colors.textMuted }}>Tap to add a photo (JPG or PNG, up to 2 MB)</Text>
+                  </View>
+                )}
+              </Pressable>
+              {photoPreview ? (
+                <View style={{ flexDirection: "row", gap: spacing.md, marginTop: 6 }}>
+                  <Pressable onPress={handlePickPhoto}>
+                    <Text style={styles.photoLink}>Change photo</Text>
+                  </Pressable>
+                  <Pressable onPress={handleRemovePhoto}>
+                    <Text style={[styles.photoLink, { color: colors.danger }]}>Remove photo</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+              {photoError ? <Text style={{ fontSize: 12, color: colors.danger, marginTop: 4 }}>{photoError}</Text> : null}
 
               {/* Category: Manual Typing + Quick Pick Chips */}
               <Text style={styles.inputLabel}>
@@ -473,11 +538,12 @@ export default function MerchantMenuScreen() {
                 </Pressable>
 
                 <Pressable
-                  style={[styles.modalBtn, styles.saveBtn]}
+                  style={[styles.modalBtn, styles.saveBtn, saving && { opacity: 0.6 }]}
                   onPress={handleSaveDish}
+                  disabled={saving}
                 >
                   <Text style={styles.saveBtnText}>
-                    {editingDishId ? "Update Dish" : "Create Dish"}
+                    {saving ? "Saving..." : editingDishId ? "Update Dish" : "Create Dish"}
                   </Text>
                 </Pressable>
               </View>

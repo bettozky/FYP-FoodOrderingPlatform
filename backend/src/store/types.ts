@@ -30,6 +30,7 @@ export interface Merchant {
   venueCategory?: "Trending" | "Buffet" | "Luxury" | "Aesthetic Cafe";
   phone: string;
   ownerUserId?: string;
+  application?: Record<string, any>; // the sign-up answers (FR-5.1), shown to the admin
 }
 
 export interface Dish {
@@ -37,7 +38,8 @@ export interface Dish {
   merchantId: string;
   name: string;
   price: number;
-  image: string;
+  image: string; // emoji, shown when there is no photo
+  imageUrl?: string; // photo in Supabase Storage (public URL)
   description: string;
   category: string;
   calories: number;

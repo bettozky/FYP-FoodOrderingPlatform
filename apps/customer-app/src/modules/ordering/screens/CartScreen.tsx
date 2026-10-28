@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCart, lineTotalQty } from "../CartContext";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
+import DishImage from "../../../shared/components/DishImage";
 import { MODE_ICON, MODE_LABEL, Mode } from "../../../shared/api/types";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 
@@ -43,7 +44,7 @@ export default function CartScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <View style={styles.line}>
             <View style={styles.lineTop}>
-              <Text style={styles.lineEmoji}>{item.dish.image}</Text>
+              <DishImage dish={item.dish} imageStyle={styles.lineImage} emojiStyle={styles.lineEmoji} />
               <View style={{ flex: 1 }}>
                 <Text style={type.h3}>{item.dish.name}</Text>
                 <Text style={type.bodyMuted}>RM {item.dish.price.toFixed(2)} each{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
   line: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, gap: spacing.sm, borderWidth: 1, borderColor: colors.border },
   lineTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   lineEmoji: { fontSize: 32 },
+  lineImage: { width: 44, height: 44, borderRadius: radius.sm },
   modeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.sm, paddingVertical: 6, paddingHorizontal: spacing.md },
   modeLabel: { flex: 1, fontFamily: fonts.display, fontSize: 13, color: colors.ink },
   stepper: { flexDirection: "row", alignItems: "center", gap: spacing.sm },

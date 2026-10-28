@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Dish, Merchant } from "../../../shared/api/types";
 import { colors, radius, shadow, spacing, type, fonts } from "../../../shared/theme/theme";
 import Badge from "../../../shared/components/Badge";
+import DishImage from "../../../shared/components/DishImage";
 
 type Props = {
   dish: Dish;
@@ -50,7 +51,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd }: Props) {
     >
       <View style={styles.imageOuter}>
         <View style={[styles.imageWrap, { backgroundColor: merchant?.color ?? colors.surfaceAlt }]}>
-          <Text style={styles.emoji}>{dish.image}</Text>
+          <DishImage dish={dish} imageStyle={StyleSheet.absoluteFill} emojiStyle={styles.emoji} />
           {unavailable && (
             <View style={styles.soldOutOverlay}>
               <Text style={styles.soldOutText}>{dish.soldOut ? "Sold out" : "Closed"}</Text>

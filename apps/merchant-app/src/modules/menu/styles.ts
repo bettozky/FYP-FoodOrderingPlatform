@@ -75,8 +75,35 @@ export const merchantMenuStyles = StyleSheet.create({
     alignItems: "center",
     gap: spacing?.md || 16,
   },
-  emoji: {
-    fontSize: 32,
+  thumb: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+  },
+  thumbEmpty: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  photoBox: {
+    height: 160,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  photoPreview: {
+    width: "100%",
+    height: "100%",
+  },
+  photoLink: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.primary,
   },
   textMuted: {
     color: colors?.textMuted || "#64748b",

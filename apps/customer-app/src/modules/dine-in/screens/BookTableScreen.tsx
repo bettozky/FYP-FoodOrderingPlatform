@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
+import DishImage from "../../../shared/components/DishImage";
 import { api, errorText } from "../../../shared/api/client";
 import { Dish, Reservation } from "../../../shared/api/types";
 import { prettyDate } from "../../../shared/util/format";
@@ -128,7 +129,7 @@ export default function BookTableScreen({ route, navigation }: any) {
             <Text style={type.small}>The restaurant approves or declines the pre-order separately from the table.</Text>
             {dishes.filter((d) => !d.soldOut).map((d) => (
               <View key={d.id} style={styles.dishRow}>
-                <Text style={{ fontSize: 24 }}>{d.image}</Text>
+                <DishImage dish={d} imageStyle={styles.dishImage} emojiStyle={{ fontSize: 24 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={type.body}>{d.name}</Text>
                   <Text style={type.small}>RM {d.price.toFixed(2)}</Text>
@@ -180,6 +181,7 @@ const styles = StyleSheet.create({
   stepVal: { fontFamily: fonts.displayBold, fontSize: 16, minWidth: 18, textAlign: "center" },
   input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border, marginTop: spacing.sm },
   dishRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm },
+  dishImage: { width: 36, height: 36, borderRadius: 8 },
   option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, marginTop: spacing.sm },
   optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
