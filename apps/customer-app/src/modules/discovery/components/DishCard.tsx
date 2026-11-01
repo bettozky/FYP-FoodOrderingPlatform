@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Dish, Merchant } from "../../../shared/api/types";
 import { colors, shadow, spacing, type, fonts, ui } from "../../../shared/theme/theme";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
+import { readyText } from "./ReadyChip";
 import { useFavourites } from "../../favourites/FavouritesContext";
 
 // One dish, in the two layouts from Badrul's mock-up (Oct 2026):
@@ -98,7 +99,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
         <View style={styles.gridInfo}>
           <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
           {merchant && showMerchant ? (
-            <Text style={styles.meta} numberOfLines={2}>{merchant.name} · {merchant.prepMinutes} min</Text>
+            <Text style={styles.meta} numberOfLines={2}>{merchant.name} · {readyText(merchant).toLowerCase()}</Text>
           ) : null}
           <View style={styles.bottom}>
             <Text style={ui.price}>RM {dish.price.toFixed(2)}</Text>
