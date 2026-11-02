@@ -102,7 +102,7 @@ export function addSignal(u: User, id: string, type: unknown, data: unknown) {
   if (!live(c)) throw new HttpError(409, "This call has ended");
   if (type !== "offer" && type !== "answer" && type !== "candidate") throw new HttpError(400, "Unknown signal type");
   if (JSON.stringify(data ?? null).length > 20000) throw new HttpError(400, "Signal too large");
-  c.signals.push({ seq: ++signalSeq, from: roleOf(c, u), type, data });
+  c.signals.push({ seq: (signalSeq = Math.max(signalSeq, ...c.signals.map((x) => x.seq)) + 1), from: roleOf(c, u), type, data });
 }
 
 export function callView(c: Call, u: User, after = 0) {

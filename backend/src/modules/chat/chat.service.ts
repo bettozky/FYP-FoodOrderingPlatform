@@ -47,10 +47,10 @@ export function roleIn(t: Thread, u: User): ChatRole {
   throw new HttpError(404, "Conversation not found");
 }
 
-let seq = 0;
+let seq = 0; // message counter; continues from the saved messages after a restart
 
 export function addMessage(t: Thread, from: ChatRole | "system", text: string): ChatMessage {
-  const m: ChatMessage = { seq: ++seq, id: uid("msg"), kind: t.kind, threadId: t.id, from, text, at: Date.now(), readBy: from === "system" ? [] : [from] };
+  const m: ChatMessage = { seq: (seq = Math.max(seq, db.messages.at(-1)?.seq ?? 0) + 1), id: uid("msg"), kind: t.kind, threadId: t.id, from, text, at: Date.now(), readBy: from === "system" ? [] : [from] };
   db.messages.push(m);
   return m;
 }

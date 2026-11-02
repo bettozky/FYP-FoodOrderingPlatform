@@ -7,6 +7,8 @@ import { Dish } from "../../../shared/api/types";
 import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
+import { useFavourites } from "../../favourites/FavouritesContext";
+import ReviewsList from "../../reviews/ReviewsList";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 import { isPhoto, mediaUrl } from "../../../shared/media";
@@ -15,7 +17,6 @@ import { isPhoto, mediaUrl } from "../../../shared/media";
 // Stall-colour band with a big dish picture → floating info card (name, Open pill, stall no. and tags,
 // rating / prep time / delivery chips) → Menu · Reviews · Info tabs → dark "View cart" bar.
 type Tab = "menu" | "reviews" | "info";
-type Review = { id: string; userName: string; rating: number; comment?: string; dishName: string };
 type MenuFilter = "all" | "dry" | "wet" | "vegetarian";
 const FILTER_LABEL: Record<MenuFilter, string> = { all: "All", dry: "Dry", wet: "Wet / soup", vegetarian: "Vegetarian" };
 
@@ -23,31 +24,19 @@ export default function StallScreen({ navigation, route }: any) {
   const { merchantId } = route.params;
   const insets = useSafeAreaInsets();
   const { merchantById } = useCatalog();
+  const { isFavShop, toggleShop } = useFavourites();
   const { addToCart, merchant: cartMerchant, itemCount, subtotal } = useCart();
   const merchant = merchantById[merchantId];
   const [dishes, setDishes] = useState<Dish[] | null>(null);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("menu");
   const [filter, setFilter] = useState<MenuFilter>("all");
-  const [reviews, setReviews] = useState<Review[] | null>(null);
 
   useEffect(() => {
     api<{ dishes: Dish[] }>("GET", `/dishes?merchantId=${encodeURIComponent(merchantId)}`)
       .then((r) => { setDishes(r.dishes); setError(""); })
       .catch((e) => setError(errorText(e)));
   }, [merchantId]);
-
-  // Reviews are stored per dish, so the stall's reviews are its dishes' reviews put together.
-  useEffect(() => {
-    if (tab !== "reviews" || reviews || !dishes) return;
-    Promise.all(
-      dishes.map((d) =>
-        api<{ reviews: Omit<Review, "dishName">[] }>("GET", `/dishes/${d.id}/reviews`)
-          .then((r) => r.reviews.map((x) => ({ ...x, dishName: d.name })))
-          .catch(() => [] as Review[])
-      )
-    ).then((all) => setReviews(all.flat()));
-  }, [tab, dishes, reviews]);
 
   // Only show filter chips that match at least one dish.
   const filters = useMemo(() => {
@@ -72,10 +61,9 @@ export default function StallScreen({ navigation, route }: any) {
     );
   }
 
-  const heroImage = dishes?.find((d) => !d.soldOut)?.image ?? dishes?.[0]?.image;
+  const heroImage = merchant.cover || merchant.logo || dishes?.find((d) => !d.soldOut)?.image || dishes?.[0]?.image;
   const heroUri = mediaUrl(heroImage);
   const cartHere = cartMerchant?.id === merchant.id && itemCount > 0;
-  const avg = reviews && reviews.length ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10 : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -91,6 +79,9 @@ export default function StallScreen({ navigation, route }: any) {
           )}
           <Pressable style={[ui.iconButton, { position: "absolute", left: spacing.lg, top: insets.top + spacing.sm }]} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back" testID="back">
             <Ionicons name="chevron-back" size={20} color={colors.ink} />
+          </Pressable>
+          <Pressable style={[ui.iconButton, { position: "absolute", right: spacing.lg, top: insets.top + spacing.sm }]} onPress={() => toggleShop(merchant.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={isFavShop(merchant.id) ? "Remove from saved stalls" : "Save this stall"} testID="fav-stall">
+            <Ionicons name={isFavShop(merchant.id) ? "heart" : "heart-outline"} size={19} color={isFavShop(merchant.id) ? colors.chili : colors.ink} />
           </Pressable>
         </View>
 
@@ -159,25 +150,7 @@ export default function StallScreen({ navigation, route }: any) {
 
         {tab === "reviews" ? (
           <View style={styles.body}>
-            {reviews === null ? (
-              <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} />
-            ) : reviews.length === 0 ? (
-              <EmptyState icon="star-outline" title="No reviews yet" hint="Reviews appear after customers rate their dishes." />
-            ) : (
-              <>
-                <Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>{avg}★ from {reviews.length} {reviews.length === 1 ? "review" : "reviews"}</Text>
-                {reviews.map((r) => (
-                  <View key={r.id} style={styles.review}>
-                    <View style={styles.reviewTop}>
-                      <Text style={type.h3}>{r.userName}</Text>
-                      <Text style={styles.stars} accessibilityLabel={`${r.rating} out of 5`}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</Text>
-                    </View>
-                    <Text style={type.small}>{r.dishName}</Text>
-                    {r.comment ? <Text style={type.bodyMuted}>{r.comment}</Text> : null}
-                  </View>
-                ))}
-              </>
-            )}
+            <ReviewsList merchantId={merchantId} />
           </View>
         ) : null}
 

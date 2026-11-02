@@ -1,10 +1,11 @@
 import { env } from "../../config/env.js";
 import { HttpError, money } from "../../lib/http.js";
 import { nextOrderId, uid } from "../../lib/ids.js";
-import { isWithinHours } from "../../lib/time.js";
+import { isOpenNow } from "../../lib/time.js";
 import { db } from "../../store/db.js";
 import type { FulfilmentMode, Order, OrderItem } from "../../store/types.js";
 import { startDelivery } from "../delivery/delivery.service.js";
+import { screenReview } from "../admin/moderation.js";
 import { notify, notifyMerchant } from "../notifications/notifications.service.js";
 import { charge, chargeFpx, refund } from "../payment/payment.service.js";
 
@@ -23,7 +24,7 @@ export function placeOrder(inp: NewOrderInput): Order {
   const customer = db.users.get(inp.customerId)!;
   const m = db.merchants.get(inp.merchantId);
   if (!m || m.approval !== "approved") throw new HttpError(404, "Restaurant not found");
-  if (m.storeMode === "offline" || !isWithinHours(m.hours)) throw new HttpError(409, `${m.name} is closed right now`);
+  if (m.storeMode === "offline" || !isOpenNow(m)) throw new HttpError(409, `${m.name} is closed right now`);
   if (!Array.isArray(inp.items) || !inp.items.length) throw new HttpError(400, "Your cart is empty");
   if (inp.items.length > 40) throw new HttpError(400, "Too many items");
 
@@ -79,7 +80,7 @@ function voucherDiscount(voucherId: string | undefined, merchantId: string, item
   return money(Math.min(v.kind === "percent" ? (subtotal * v.amount) / 100 : v.amount, subtotal));
 }
 
-function refundOrder(o: Order, amount: number, reason: string) {
+export function refundOrder(o: Order, amount: number, reason: string) {
   if (o.paymentMethod === "cash") {
     // Nothing was paid online, so there is nothing to send back: the customer just owes less at the stall.
     const cut = money(Math.min(amount, o.cashDue ?? 0));
@@ -266,5 +267,9 @@ export function reviewItem(o: Order, dishId: string, rating: number, comment: st
   if (o.reviewedDishIds.includes(dishId)) throw new HttpError(409, "You already reviewed this item");
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new HttpError(400, "Rating must be 1-5");
   o.reviewedDishIds.push(dishId);
-  db.reviews.push({ id: uid("r"), orderId: o.id, dishId, userId: o.customerId, userName, rating, comment: comment?.slice(0, 300), createdAt: Date.now() });
+  const text = comment?.slice(0, 300);
+  const flagReason = screenReview(text);
+  db.reviews.push({ id: uid("r"), orderId: o.id, dishId, userId: o.customerId, userName, rating, comment: text, createdAt: Date.now(), ...(flagReason ? { flagged: true, flagReason } : {}) });
+  const dish = db.dishes.get(dishId);
+  if (dish && !flagReason) notifyMerchant(dish.merchantId, "new_review", `New ${rating}-star review`, `${userName} rated ${dish.name}${text ? `: ${text.slice(0, 100)}` : ""}`, { dishId });
 }

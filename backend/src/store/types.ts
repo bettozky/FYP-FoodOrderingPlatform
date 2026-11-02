@@ -12,6 +12,8 @@ export interface User {
   dob?: string; // YYYY-MM-DD
   passwordHash: string;
   merchantId?: string;
+  avatar?: string; // emoji or image link
+  suspended?: boolean; // set by an admin: the user can no longer log in or use the API
 }
 
 export interface Merchant {
@@ -25,11 +27,15 @@ export interface Merchant {
   tags: string[];
   color: string;
   hours: { open: string; close: string }; // "HH:MM" local time
+  weeklyHours?: { day: number; open: string; close: string }[]; // per-day hours (0 = Sunday); days without a row are closed
   approval: MerchantApproval;
   storeMode: StoreMode;
   venueCategory?: "Trending" | "Buffet" | "Luxury" | "Aesthetic Cafe";
   phone: string;
   ownerUserId?: string;
+  application?: Record<string, any>; // the sign-up answers (FR-5.1), shown to the admin
+  logo?: string; // shop profile photo (public link), set from the merchant app
+  cover?: string; // shop banner photo (public link)
 }
 
 export interface Dish {
@@ -37,7 +43,7 @@ export interface Dish {
   merchantId: string;
   name: string;
   price: number;
-  image: string;
+  image: string; // photo link (Supabase Storage URL, /media/... or https://...); empty = no photo
   description: string;
   category: string;
   calories: number;
@@ -227,6 +233,25 @@ export interface Review {
   rating: number;
   comment?: string;
   createdAt: number;
+  editedAt?: number;
+  // The shop's public answer to the review.
+  reply?: { text: string; at: number };
+  // Admin moderation: hidden reviews are not shown to customers and do not count towards ratings.
+  flagged?: boolean;
+  flagReason?: string;
+  hidden?: boolean;
+  adminNote?: string;
+  moderatedAt?: number;
+}
+
+/** One line in the admin activity log (who did what, when). */
+export interface AuditEntry {
+  id: string;
+  at: number;
+  admin: string;
+  action: string; // e.g. "review_hidden", "merchant_suspended"
+  target: string; // short readable target, e.g. "Golden Wok"
+  detail?: string;
 }
 
 export type ChatRole = "customer" | "merchant";
@@ -266,4 +291,80 @@ export interface Call {
   answeredAt?: number;
   endedAt?: number;
   signals: CallSignal[];
+}
+
+/** A saved delivery address (customer only). */
+export interface Address {
+  id: string;
+  userId: string;
+  label: string;
+  line: string;
+  lat: number;
+  lng: number;
+  note?: string;
+  isDefault: boolean;
+  createdAt: number;
+}
+
+/** Saved ("favourite") dishes and shops of one customer. */
+export interface Favourites {
+  userId: string;
+  dishes: string[];
+  merchants: string[];
+}
+
+// ---- job applications ----
+export type ApplicationStatus = "submitted" | "viewed" | "shortlisted" | "interview" | "hired" | "rejected" | "withdrawn";
+
+/** A file the applicant attached (kept in private storage; the shop opens it with a short-lived link). */
+export interface StoredDocument {
+  name: string;
+  size: number;
+  mimeType: string;
+  bucket: string;
+  path: string;
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  merchantId: string;
+  merchantName: string;
+  userId: string;
+  // What the applicant filled in
+  fullName: string;
+  email: string;
+  phone: string;
+  institution?: string; // university / college
+  course?: string;
+  yearOfStudy?: string;
+  availableDays: string[]; // mon..sun
+  hoursPerWeek?: number;
+  startDate?: string; // YYYY-MM-DD
+  experience?: string;
+  languages?: string;
+  hasTransport?: boolean;
+  eligibleToWork: boolean; // confirms they may legally work part-time (e.g. student pass conditions)
+  message?: string; // short cover note
+  documents: { resume?: StoredDocument; other?: StoredDocument };
+  status: ApplicationStatus;
+  history: { status: ApplicationStatus; at: number }[];
+  note?: string; // the shop's private note, never sent to the applicant
+  interview?: { at: string; place?: string; message?: string };
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ---- announcements ----
+export interface Announcement {
+  id: string;
+  authorType: "admin" | "merchant";
+  merchantId?: string; // set for a shop's own announcement
+  merchantName?: string;
+  title: string;
+  body: string;
+  pinned?: boolean;
+  createdAt: number;
+  expiresAt?: number; // epoch ms; hidden after this
 }

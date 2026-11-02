@@ -6,7 +6,7 @@ export const MODE_ICON: Record<Mode, string> = { delivery: "bicycle", dine_in: "
 export type Merchant = {
   id: string; name: string; stallNo: string; rating: number; prepMinutes: number; tags: string[]; color: string;
   hours: { open: string; close: string }; venueCategory?: string; phone: string; lat: number; lng: number;
-  openNow: boolean; dineInOnly: boolean; distanceKm: number;
+  openNow: boolean; dineInOnly: boolean; distanceKm: number; logo?: string; cover?: string;
 };
 
 export type Dish = {
@@ -43,4 +43,18 @@ export type Voucher = { id: string; title: string; description: string; amount: 
 
 export type AppNotification = { id: string; type: string; title: string; body: string; data?: Record<string, any>; createdAt: number };
 
-export type Job = { id: string; merchantName: string; title: string; type: string; pay: string; description: string; postedAt: number };
+export type Job = {
+  id: string; merchantId: string; merchantName: string; title: string; type: string; pay: string; description: string; postedAt: number;
+  role?: string; openings?: number; perks?: string; open?: boolean; applied?: boolean;
+};
+
+export type ApplicationStatus = "submitted" | "viewed" | "shortlisted" | "interview" | "hired" | "rejected" | "withdrawn";
+export type JobApplication = {
+  id: string; jobId: string; jobTitle: string; merchantId: string; merchantName: string; jobOpen: boolean;
+  fullName: string; email: string; phone: string; institution?: string; course?: string; yearOfStudy?: string;
+  availableDays: string[]; hoursPerWeek?: number; startDate?: string; experience?: string; languages?: string; hasTransport?: boolean; message?: string;
+  documents: { resume?: { name: string; size: number }; other?: { name: string; size: number } };
+  status: ApplicationStatus; history: { status: ApplicationStatus; at: number }[];
+  interview?: { at: string; place?: string; message?: string };
+  createdAt: number; updatedAt: number;
+};

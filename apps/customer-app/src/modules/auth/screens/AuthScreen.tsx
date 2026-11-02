@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../AuthContext";
 import { errorText } from "../../../shared/api/client";
+import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
 import { colors, spacing, type, radius, fonts, shadow } from "../../../shared/theme/theme";
 
 const TABS = ["Sign In", "Sign Up"];
@@ -47,6 +48,7 @@ export default function AuthScreen() {
   const [email, setEmail] = useState("demo@scootmeal.test");
   const [password, setPassword] = useState("demo123");
   const [showPassword, setShowPassword] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   // sign up
   const [fullName, setFullName] = useState("");
@@ -163,6 +165,10 @@ export default function AuthScreen() {
                 </Pressable>
               </View>
 
+              <Pressable onPress={() => setForgot(true)} hitSlop={8} style={{ alignSelf: "flex-end", marginTop: spacing.sm }} accessibilityRole="button" testID="forgot-link">
+                <Text style={[type.small, { textDecorationLine: "underline" }]}>Forgot password?</Text>
+              </Pressable>
+
               {activeTab === 0 && error ? <Text style={styles.error}>{error}</Text> : null}
 
               <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={doLogin} disabled={busy} testID="login-button">
@@ -207,6 +213,7 @@ export default function AuthScreen() {
           <View style={{ height: spacing.xxl }} />
         </View>
       </ScrollView>
+          <ForgotPasswordModal visible={forgot} onClose={() => setForgot(false)} defaultEmail={email} onDone={(e) => { setEmail(e); setPassword(""); }} />
     </KeyboardAvoidingView>
   );
 }

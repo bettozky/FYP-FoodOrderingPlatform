@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { keepIfSame } from "../../shared/util/same";
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, View } from "react-native";
 import { api } from "../../shared/api/client";
 import { colors, spacing } from "../../shared/theme/theme";
@@ -22,7 +23,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoggedIn) { setUnread({}); setSheet(null); return; }
     let stop = false;
-    const run = () => api<{ unread: Record<string, number> }>("GET", "/chat/unread").then((r) => { if (!stop) setUnread(r.unread); }).catch(() => {});
+    const run = () => api<{ unread: Record<string, number> }>("GET", "/chat/unread").then((r) => { if (!stop) setUnread((p) => keepIfSame(p, r.unread)); }).catch(() => {});
     run();
     const t = setInterval(run, 2500);
     return () => { stop = true; clearInterval(t); };

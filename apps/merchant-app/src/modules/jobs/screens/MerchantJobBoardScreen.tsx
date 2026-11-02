@@ -27,6 +27,7 @@ export interface JobPosting {
   salaryRange: string;
   openings: number;
   applicantsCount: number;
+  newApplicants: number;
   description: string;
   perks: string;
   status: "active" | "closed";
@@ -49,11 +50,11 @@ const ago = (t: number) => {
 };
 const fromApi = (j: any): JobPosting => ({
   id: j.id, title: j.title, role: j.role ?? "Staff", type: (j.type as JobType) ?? "Part-Time", salaryRange: j.pay,
-  openings: j.openings ?? 1, applicantsCount: j.applicants ?? 0, description: j.description ?? "", perks: j.perks ?? "",
+  openings: j.openings ?? 1, applicantsCount: j.applicants ?? 0, newApplicants: j.newApplicants ?? 0, description: j.description ?? "", perks: j.perks ?? "",
   status: j.open ? "active" : "closed", postedDate: ago(j.postedAt),
 });
 
-export default function MerchantJobBoardScreen() {
+export default function MerchantJobBoardScreen({ navigation }: any) {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [message, setMessage] = useState("");
   const load = () =>
@@ -238,6 +239,21 @@ export default function MerchantJobBoardScreen() {
                   <Text style={s.perksContent}>{item.perks}</Text>
                 </View>
               ) : null}
+
+              {/* Applicants: opens the people who applied for this job in the customer app */}
+              <Pressable
+                style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: spacing.md, borderRadius: 999, borderWidth: 1, borderColor: item.newApplicants ? colors.turmeric : colors.border, backgroundColor: item.newApplicants ? colors.amberTint : colors.surface, marginBottom: spacing.sm }}
+                onPress={() => navigation.navigate("MerchantApplicants", { jobId: item.id, jobTitle: item.title })}
+                accessibilityRole="button"
+                accessibilityLabel={`Applicants for ${item.title}`}
+                testID={`applicants-${item.id}`}
+              >
+                <Ionicons name="people-outline" size={18} color={colors.ink} />
+                <Text style={{ flex: 1, fontWeight: "700", color: colors.ink }}>
+                  Applicants ({item.applicantsCount}){item.newApplicants ? ` · ${item.newApplicants} new` : ""}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.stone} />
+              </Pressable>
 
               {/* Action Buttons */}
               <View style={s.actionRow}>

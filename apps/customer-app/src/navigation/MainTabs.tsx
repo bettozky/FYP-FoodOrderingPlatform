@@ -9,6 +9,8 @@ import ReservationsScreen from "../modules/dine-in/screens/ReservationsScreen";
 import AIAssistantScreen from "../modules/ai-assistant/screens/AIAssistantScreen";
 import AccountScreen from "../modules/account/screens/AccountScreen";
 import { colors, fonts, shadow } from "../shared/theme/theme";
+import { DrawerEdge } from "../shared/components/SideDrawer";
+import { useLive } from "../modules/ordering/LiveDataContext";
 import PayBar from "../modules/ordering/components/PayBar";
 
 // Main sections, swipeable left/right or chosen from the bottom bar (new layout, Oct 2026):
@@ -33,6 +35,8 @@ export default function MainTabs({ navigation, route }: any) {
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
+  const { notifications } = useLive();
+  const unread = notifications.length;
 
   // Other screens can jump to a tab: navigation.popTo("MainTabs", { tab: "book" })
   useEffect(() => {
@@ -59,6 +63,9 @@ export default function MainTabs({ navigation, route }: any) {
         swipeEnabled
       />
 
+      {/* Swipe from the left edge of Home to open the side menu. */}
+      {ROUTES[index].key === "home" ? <DrawerEdge top={insets.top + 70} bottom={TAB_BAR_HEIGHT + insets.bottom + 20} /> : null}
+
       {/* While an order is confirmed but unpaid, keep a "Pay now" bar on Home and Orders (even if the top banner was swiped away). */}
       {(ROUTES[index].key === "home" || ROUTES[index].key === "orders") && (
         <PayBar bottom={TAB_BAR_HEIGHT + insets.bottom + 8} onPress={(orderId) => navigation.navigate("Pay", { orderId })} />
@@ -78,7 +85,10 @@ export default function MainTabs({ navigation, route }: any) {
           }
           return (
             <Pressable key={r.key} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={r.title} accessibilityState={{ selected: focused }}>
-              <Ionicons name={focused ? r.iconOn : r.icon} size={22} color={focused ? colors.turmericDeep : colors.stone} />
+              <View>
+                <Ionicons name={focused ? r.iconOn : r.icon} size={22} color={focused ? colors.turmericDeep : colors.stone} />
+                {r.key === "account" && unread > 0 ? <View style={styles.dot} /> : null}
+              </View>
               <Text style={[styles.label, focused && styles.labelOn]} numberOfLines={1}>{r.title}</Text>
             </Pressable>
           );
@@ -101,6 +111,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.stoneLine,
     ...shadow.sheet,
   },
+  dot: { position: "absolute", top: -2, right: -4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.chili, borderWidth: 1.5, borderColor: colors.paper },
   item: { flex: 1, height: TAB_BAR_HEIGHT, alignItems: "center", justifyContent: "center", gap: 3 },
   label: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneText },
   labelOn: { color: colors.ink, fontFamily: fonts.displayBold },

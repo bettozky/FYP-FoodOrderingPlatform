@@ -1,7 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api } from "../../shared/api/client";
 import { MerchantProfile, Order, Reservation } from "../../shared/api/types";
+import { isInboxType } from "../notifications/inbox";
 import { useAuth } from "../auth/AuthContext";
+import { keepIfSame } from "../../shared/util/same";
 
 // Polls the backend every 2 s. This stands in for push / WebSocket until those are added; the pop-ups
 // still reach the app within the 5 s target (NFR-2) and every countdown is based on SERVER time.
@@ -9,6 +11,8 @@ type LiveValue = {
   orders: Order[];
   reservations: Reservation[];
   profile: MerchantProfile | null;
+  /** Small red-dot counts for the side menu: unread notifications and applicants nobody has looked at yet. */
+  badges: { unread: number; newApplicants: number };
   refresh: () => Promise<void>;
 };
 const LiveContext = createContext<LiveValue | undefined>(undefined);
@@ -19,19 +23,29 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [profile, setProfile] = useState<MerchantProfile | null>(null);
+  const [badges, setBadges] = useState({ unread: 0, newApplicants: 0 });
+  const tick = useRef(0);
   const inflight = useRef<Promise<void> | null>(null);
 
   const load = useCallback(async () => {
     try {
       const me = await api<{ merchant: MerchantProfile }>("GET", "/merchant/me");
-      setProfile(me.merchant);
+      setProfile((p) => keepIfSame(p, me.merchant));
       if (me.merchant.approval === "approved") {
         const [o, r] = await Promise.all([
           api<{ orders: Order[] }>("GET", "/merchant/orders"),
           api<{ reservations: Reservation[] }>("GET", "/merchant/reservations"),
         ]);
-        setOrders(o.orders);
-        setReservations(r.reservations);
+        setOrders((p) => keepIfSame(p, o.orders));
+        setReservations((p) => keepIfSame(p, r.reservations));
+        // The side-menu badges change slowly, so they are fetched on every 5th poll (about every 10 s).
+        if (tick.current++ % 5 === 0) {
+          const [n, a] = await Promise.all([
+            api<{ notifications: { type: string }[] }>("GET", "/notifications").catch(() => null),
+            api<{ counts: Record<string, number> }>("GET", "/merchant/applications?status=submitted").catch(() => null),
+          ]);
+          setBadges((b) => ({ unread: n ? n.notifications.filter((x) => isInboxType(x.type)).length : b.unread, newApplicants: a?.counts.submitted ?? b.newApplicants }));
+        }
       }
     } catch {
       /* try again next tick */
@@ -51,7 +65,7 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
     if (!isLoggedIn || approval !== "approved") {
       setOrders([]);
       setReservations([]);
-      if (!isLoggedIn) setProfile(null);
+      if (!isLoggedIn) { setProfile(null); setBadges({ unread: 0, newApplicants: 0 }); tick.current = 0; }
       return;
     }
     refresh();
@@ -59,7 +73,7 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(t);
   }, [isLoggedIn, approval, refresh]);
 
-  return <LiveContext.Provider value={{ orders, reservations, profile, refresh }}>{children}</LiveContext.Provider>;
+  return <LiveContext.Provider value={{ orders, reservations, profile, badges, refresh }}>{children}</LiveContext.Provider>;
 }
 
 export function useLive() {

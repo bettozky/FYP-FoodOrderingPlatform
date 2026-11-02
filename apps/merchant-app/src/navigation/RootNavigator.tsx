@@ -11,6 +11,13 @@ import MerchantVouchersScreen from "../modules/promotions/screens/MerchantVouche
 import MerchantAnalyticsScreen from "../modules/analytics/screens/MerchantAnalyticsScreen";
 import MerchantReservationsScreen from "../modules/reservations/screens/MerchantReservationsScreen";
 import MerchantJobBoardScreen from "../modules/jobs/screens/MerchantJobBoardScreen";
+import MerchantReviewsScreen from "../modules/reviews/screens/MerchantReviewsScreen";
+
+import MerchantApplicantsScreen from "../modules/jobs/screens/MerchantApplicantsScreen";
+import MerchantApplicantDetailScreen from "../modules/jobs/screens/MerchantApplicantDetailScreen";
+import MerchantAnnouncementsScreen from "../modules/announcements/MerchantAnnouncementsScreen";
+import MerchantNotificationsScreen from "../modules/notifications/MerchantNotificationsScreen";
+import ShopProfileScreen from "../modules/shop/ShopProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +39,12 @@ export default function RootNavigator() {
           <Stack.Screen name="MerchantAnalytics" component={MerchantAnalyticsScreen} />
           <Stack.Screen name="MerchantReservations" component={MerchantReservationsScreen} />
           <Stack.Screen name="MerchantJobBoard" component={MerchantJobBoardScreen} />
+          <Stack.Screen name="MerchantReviews" component={MerchantReviewsScreen} />
+          <Stack.Screen name="MerchantApplicants" component={MerchantApplicantsScreen} />
+          <Stack.Screen name="MerchantApplicantDetail" component={MerchantApplicantDetailScreen} />
+          <Stack.Screen name="MerchantAnnouncements" component={MerchantAnnouncementsScreen} />
+          <Stack.Screen name="MerchantNotifications" component={MerchantNotificationsScreen} />
+          <Stack.Screen name="ShopProfile" component={ShopProfileScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

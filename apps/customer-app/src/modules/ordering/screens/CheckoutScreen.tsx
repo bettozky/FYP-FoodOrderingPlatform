@@ -29,6 +29,11 @@ export default function CheckoutScreen({ navigation }: any) {
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
 
+  // A saved address can carry a standing note ("Room 2-14, call on arrival"); start from it.
+  useEffect(() => {
+    setNote(address.note ?? "");
+  }, [address.id, address.note]);
+
   useEffect(() => {
     api<{ vouchers: Voucher[] }>("GET", "/vouchers").then((r) => setVouchers(r.vouchers)).catch(() => {});
   }, []);
@@ -125,7 +130,7 @@ export default function CheckoutScreen({ navigation }: any) {
                 return (
                   <Pressable key={a.line} onPress={() => setAddress(a)} style={[styles.option, on && styles.optionOn]}>
                     <Ionicons name="location" size={16} color={on ? colors.turmericDeep : colors.stone} />
-                    <Text style={[type.body, { flex: 1 }]}>{a.line}</Text>
+                    <Text style={[type.body, { flex: 1 }]}>{a.id ? `${a.label} · ${a.line}` : a.line}</Text>
                     <View style={[styles.radio, on && styles.radioOn]} />
                   </Pressable>
                 );

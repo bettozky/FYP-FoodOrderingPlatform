@@ -8,7 +8,18 @@ import { checkComplete, expireOrder, expireUnpaid } from "../modules/ordering/or
 import { expireCalls } from "../modules/calls/calls.service.js";
 import { expireReservation, expireUnpaidReservation } from "../modules/dine-in/reservations.service.js";
 
+const DAY = 86400000;
+let lastTidy = 0;
+/** Once a minute: forget expired logins and dismissed notifications older than a week (keeps the data set small). */
+function tidy(now: number) {
+  if (now - lastTidy < 60_000) return;
+  lastTidy = now;
+  for (const [t, exp] of db.tokenExpiry) if (exp < now) { db.tokenExpiry.delete(t); db.tokens.delete(t); }
+  for (const [id, n] of db.notifications) if (n.ackedAt && now - n.ackedAt > 7 * DAY) db.notifications.delete(id);
+}
+
 export function sweep(now = Date.now()) {
+  tidy(now);
   expireCalls(now);
   for (const o of db.orders.values()) {
     if (o.status === "awaiting_merchant" && now > o.respondBy) expireOrder(o);

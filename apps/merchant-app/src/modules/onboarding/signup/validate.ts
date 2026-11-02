@@ -56,7 +56,7 @@ export function validateStep(step: number, a: ShopApplication, filesRequired = t
       if (!a.address.trim()) e.address = "Enter your address or stall number.";
       else if (a.address.trim().length > 80) e.address = "Keep the address under 80 characters.";
       if (!a.lat.trim() || !a.lng.trim()) e.pin = "Set the map pin so customers can find you.";
-      else if (Math.abs(Number(a.lat)) > 90 || Math.abs(Number(a.lng)) > 180 || isNaN(Number(a.lat)) || isNaN(Number(a.lng))) e.pin = "That pin location is not valid.";
+      else { const bad = pinProblem(a.lat, a.lng); if (bad) e.pin = bad; }
       break;
     case 3:
       if (!a.cuisine.trim()) e.cuisine = "Enter at least one cuisine type.";
@@ -110,4 +110,14 @@ export function validateStep(step: number, a: ShopApplication, filesRequired = t
 export function firstIncompleteStep(a: ShopApplication, filesRequired = true): number {
   for (let i = 0; i < 8; i++) if (Object.keys(validateStep(i, a, filesRequired)).length) return i;
   return -1;
+}
+
+/** Why a latitude / longitude pair cannot be used, or "" when it is fine. Shared by the form and the pin card. */
+export function pinProblem(lat: string, lng: string): string {
+  const la = Number(lat.trim()), lo = Number(lng.trim());
+  if (!Number.isFinite(la) || lat.trim() === "") return "Latitude must be a number such as 1.5533.";
+  if (!Number.isFinite(lo) || lng.trim() === "") return "Longitude must be a number such as 110.3592.";
+  if (Math.abs(la) > 90) return "Latitude must be between -90 and 90 (Kuching is about 1.55).";
+  if (Math.abs(lo) > 180) return "Longitude must be between -180 and 180 (Kuching is about 110.36). Check for a missing decimal point.";
+  return "";
 }

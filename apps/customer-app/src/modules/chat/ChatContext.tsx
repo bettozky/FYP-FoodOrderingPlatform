@@ -4,6 +4,7 @@ import { api } from "../../shared/api/client";
 import { colors, spacing } from "../../shared/theme/theme";
 import { useAuth } from "../auth/AuthContext";
 import ChatPanel, { ChatKind } from "./ChatPanel";
+import { keepIfSame } from "../../shared/util/same";
 
 // Unread counts for every conversation (polled), plus one chat sheet any screen can open.
 type ChatValue = {
@@ -22,7 +23,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoggedIn) { setUnread({}); setSheet(null); return; }
     let stop = false;
-    const run = () => api<{ unread: Record<string, number> }>("GET", "/chat/unread").then((r) => { if (!stop) setUnread(r.unread); }).catch(() => {});
+    const run = () => api<{ unread: Record<string, number> }>("GET", "/chat/unread").then((r) => { if (!stop) setUnread((p) => keepIfSame(p, r.unread)); }).catch(() => {});
     run();
     const t = setInterval(run, 2500);
     return () => { stop = true; clearInterval(t); };
