@@ -81,6 +81,39 @@ ok(r.status === 201, "item review");
 r = await call("POST", `/api/orders/${o1.id}/reviews`, cust, { dishId: "d1", rating: 4 });
 ok(r.status === 409, "no double review");
 
+// ---- review section: my reviews, to-review list, shop replies, privacy ----
+r = await call("GET", "/api/reviews/pending", cust);
+ok(r.status === 200 && Array.isArray(r.body.pending) && !r.body.pending.some((p) => p.orderId === o1.id && p.dishId === "d1"), "to-review list excludes what I already reviewed");
+r = await call("GET", "/api/reviews/mine", cust);
+const myRev = r.body.reviews.find((x) => x.orderId === o1.id && x.dishId === "d1");
+ok(myRev && myRev.merchantName && myRev.dishName && !("userId" in myRev) && !("flagReason" in myRev), "my reviews show shop + dish and hide moderation fields");
+r = await call("PATCH", `/api/reviews/${myRev.id}`, cust, { rating: 4, comment: "Great, a bit salty" });
+ok(r.status === 200 && r.body.review.rating === 4 && r.body.review.editedAt, "editing my review marks it edited");
+r = await call("PATCH", `/api/reviews/${myRev.id}`, cust, {});
+ok(r.status === 400, "empty edit rejected");
+r = await call("PATCH", `/api/reviews/${myRev.id}`, cust, { rating: 9 });
+ok(r.status === 400, "bad rating rejected on edit");
+r = await call("GET", "/api/dishes/d1/reviews");
+ok(r.body.reviews.length > 0 && r.body.reviews.every((x) => !("userId" in x) && !("flagReason" in x) && !("adminNote" in x)), "public dish reviews never leak moderation fields");
+r = await call("GET", "/api/merchants/m1/reviews?dishId=d1&limit=5");
+ok(r.status === 200 && r.body.breakdown.length === 5 && r.body.reviews.every((x) => x.dishId === "d1"), "shop reviews can be filtered by dish and carry a star breakdown");
+r = await call("GET", "/api/merchant/reviews", cust);
+ok(r.status === 403, "customers cannot use the shop review inbox");
+r = await call("GET", "/api/merchant/reviews?unanswered=true", merch);
+ok(r.status === 200 && r.body.unanswered >= 1 && r.body.reviews.some((x) => x.id === myRev.id), "shop sees unanswered reviews");
+r = await call("PUT", `/api/merchant/reviews/${myRev.id}/reply`, merch, { text: "" });
+ok(r.status === 400, "empty reply rejected");
+r = await call("PUT", `/api/merchant/reviews/${myRev.id}/reply`, merch, { text: "Thanks! We will ease off the salt." });
+ok(r.status === 200 && r.body.review.reply.text.startsWith("Thanks"), "shop replies to a review");
+r = await call("GET", "/api/dishes/d1/reviews");
+ok(r.body.reviews.some((x) => x.id === myRev.id && x.reply), "the reply is public");
+r = await call("GET", "/api/notifications", cust);
+ok(r.body.notifications.some((n) => n.type === "review_reply"), "customer is told about the reply");
+r = await call("PUT", "/api/merchant/reviews/nope/reply", merch, { text: "x" });
+ok(r.status === 404, "reply to unknown review is 404");
+r = await call("DELETE", `/api/merchant/reviews/${myRev.id}/reply`, merch);
+ok(r.status === 200, "shop removes its reply");
+
 // merchant never answers -> cancelled, nothing to refund
 r = await call("POST", "/api/orders", cust, { merchantId: "m1", items: [{ dishId: "d1", mode: "takeaway", qty: 1 }] });
 const o2 = r.body.order;
@@ -204,6 +237,109 @@ await sleep(6000);
 r = await call("GET", "/api/reservations", cust);
 const exp = r.body.reservations.find((x) => x.id === rs.id);
 ok(exp.status === "expired" && exp.paid === 0, "reservation expiry (shortened): nothing was charged");
+
+
+// ---- admin: dashboard, watchlist, review moderation, refunds, customers, vouchers, announcements, audit ----
+r = await call("GET", "/api/admin/overview", admin);
+ok(r.status === 200 && r.body.daily.length === 14 && r.body.kpis.merchantsApproved >= 5, "admin overview has a 14-day trend and KPIs");
+ok(r.body.payments.length === 3 && r.body.topMerchants.length > 0, "overview has payment split and top shops");
+r = await call("GET", "/api/admin/overview", cust);
+ok(r.status === 403, "customer cannot see admin overview");
+
+r = await call("GET", "/api/admin/watchlist", admin);
+const wok = r.body.merchants.find((x) => x.id === "m3");
+ok(wok && wok.level === "at_risk" && wok.flags.some((f) => f.code === "no_reply") && wok.flags.some((f) => f.code === "low_rating"), "watchlist flags Golden Wok (low rating, missed orders)");
+ok(!r.body.merchants.some((x) => x.id === "m5"), "healthy shop is not on the watchlist");
+r = await call("POST", "/api/admin/merchants/m3/warn", admin, { message: "Please reply to orders within 5 minutes." });
+ok(r.status === 200, "admin can warn a shop");
+r = await call("POST", "/api/admin/merchants/m3/warn", admin, {});
+ok(r.status === 400, "warning needs a message");
+
+// review moderation
+r = await call("GET", "/api/admin/reviews?filter=queue", admin);
+ok(r.body.counts.queue >= 2 && r.body.reviews.every((x) => x.flagged), "moderation queue lists auto-flagged reviews");
+const flagged = r.body.reviews[0];
+const before = (await call("GET", "/api/merchants")).body.merchants.find((x) => x.id === "m3").rating;
+for (const rv of r.body.reviews) await call("PATCH", `/api/admin/reviews/${rv.id}`, admin, { hidden: true });
+const after = (await call("GET", "/api/merchants")).body.merchants.find((x) => x.id === "m3").rating;
+ok(after > before, "hiding abusive reviews raises the shop rating customers see");
+r = await call("GET", `/api/dishes/${flagged.dishName === "Sweet & Sour Chicken" ? "d6" : "d5"}/reviews`);
+ok(!r.body.reviews.some((x) => x.id === flagged.id), "hidden review no longer shown to customers");
+r = await call("GET", "/api/admin/reviews?filter=hidden", admin);
+ok(r.body.counts.hidden >= 2, "hidden reviews are kept for admin");
+r = await call("PATCH", `/api/admin/reviews/${flagged.id}`, admin, { hidden: false });
+ok(r.status === 200 && r.body.review.hidden === false, "admin can restore a review");
+r = await call("PATCH", "/api/admin/reviews/nope", admin, { hidden: true });
+ok(r.status === 404, "unknown review is 404");
+
+// a new rude review is auto-flagged and lands in the moderation queue
+{
+  const o = (await call("POST", "/api/orders", cust, { merchantId: "m1", items: [{ dishId: "d1", mode: "dine_in", qty: 1 }] })).body.order;
+  await call("POST", `/api/merchant/orders/${o.id}/respond`, merch, { accept: true });
+  await call("POST", `/api/orders/${o.id}/pay`, cust, { method: "card", card: { number: "4242 4242 4242 4242" } });
+  await call("POST", `/api/merchant/orders/${o.id}/ready`, merch, { mode: "dine_in" });
+  await call("POST", `/api/orders/${o.id}/collected`, cust, { mode: "dine_in" });
+  r = await call("POST", `/api/orders/${o.id}/reviews`, cust, { dishId: "d1", rating: 1, comment: "Stupid food, see www.spam.example" });
+  ok(r.status === 201, "customer posts a rude review");
+  r = await call("GET", "/api/admin/reviews?filter=queue&q=stupid", admin);
+  ok(r.body.reviews.length === 1 && r.body.reviews[0].flagReason === "Possible abusive language", "rude review is auto-flagged for moderation");
+  r = await call("PATCH", `/api/admin/reviews/${r.body.reviews[0].id}`, admin, { flagged: false, note: "Reviewed, acceptable" });
+  ok(r.body.review.flagged === false && r.body.review.adminNote === "Reviewed, acceptable", "admin dismisses a flag with a note");
+}
+
+// refunds
+r = await call("GET", "/api/admin/orders/SM-H001", admin);
+ok(r.status === 200 && r.body.order.canRefund && r.body.timeline.length >= 3, "admin order detail has timeline and refund flag");
+r = await call("POST", "/api/admin/orders/SM-H001/refund", admin, { amount: 999, reason: "test" });
+ok(r.status === 400, "cannot refund more than was paid");
+r = await call("POST", "/api/admin/orders/SM-H001/refund", admin, { amount: 2, reason: "Cold food" });
+ok(r.status === 200 && r.body.refunded === 2, "admin refunds part of an order");
+r = await call("GET", "/api/admin/orders?q=SM-H001", admin);
+ok(r.body.orders.length === 1 && r.body.orders[0].refunded === 2, "order search finds it and shows the refund");
+r = await call("POST", "/api/admin/orders/SM-H001/refund", merch, { amount: 1, reason: "x" });
+ok(r.status === 403, "merchant cannot refund via admin API");
+const fresh = (await call("GET", "/api/admin/orders?status=awaiting_merchant", admin)).body.orders[0];
+if (fresh) { r = await call("POST", `/api/admin/orders/${fresh.id}/refund`, admin, { amount: 1, reason: "x" }); ok(r.status === 409, "unpaid order cannot be refunded"); }
+
+// customers
+r = await call("GET", "/api/admin/users?role=customer&q=aisyah", admin);
+ok(r.body.users.length === 1 && r.body.users[0].orders > 0, "admin finds a customer with their order count");
+const aisyah = r.body.users[0];
+r = await call("POST", "/api/auth/login", null, { email: "aisyah@scootmeal.test", password: "demo123" });
+const aisyahToken = r.body.token;
+ok(!!aisyahToken, "seeded customer can log in before suspension");
+r = await call("PATCH", `/api/admin/users/${aisyah.id}`, admin, { suspended: true });
+ok(r.status === 200, "admin suspends a customer");
+r = await call("GET", "/api/orders", aisyahToken);
+ok(r.status === 401 || r.status === 403, "suspended customer is logged out straight away");
+r = await call("POST", "/api/auth/login", null, { email: "aisyah@scootmeal.test", password: "demo123" });
+ok(r.status === 403, "suspended customer cannot log in");
+r = await call("PATCH", `/api/admin/users/${aisyah.id}`, admin, { suspended: false });
+r = await call("POST", "/api/auth/login", null, { email: "aisyah@scootmeal.test", password: "demo123" });
+ok(r.status === 200, "restored customer can log in again");
+r = await call("PATCH", "/api/admin/users/u_admin", admin, { suspended: true });
+ok(r.status === 403, "admin account cannot be suspended");
+
+// reservations, vouchers, announcements, audit
+r = await call("GET", "/api/admin/reservations", admin);
+ok(r.body.reservations.length >= 4, "admin sees reservations");
+r = await call("POST", "/api/admin/vouchers", admin, { title: "welcome5", amount: 5, kind: "fixed", minSpend: 15 });
+ok(r.status === 201 && r.body.voucher.title === "WELCOME5" && r.body.voucher.scope === "Platform-wide", "admin creates a platform voucher");
+const vid = r.body.voucher.id;
+r = await call("POST", "/api/admin/vouchers", admin, { title: "welcome5", amount: 5 });
+ok(r.status === 409, "duplicate voucher code blocked");
+r = await call("PATCH", `/api/admin/vouchers/${vid}`, admin, { active: false });
+ok(r.status === 200 && r.body.voucher.active === false, "admin disables a voucher");
+r = await call("POST", "/api/admin/announcements", admin, { audience: "customers", title: "Raya promo", body: "Free delivery this weekend." });
+ok(r.status === 201 && r.body.sent >= 1, "announcement sent to customers");
+r = await call("GET", "/api/notifications", cust);
+ok(r.body.notifications.some((n) => n.type === "announcement" && n.title === "Raya promo"), "customer receives the announcement");
+r = await call("POST", "/api/admin/announcements", admin, { audience: "everyone", title: "x", body: "y" });
+ok(r.status === 400, "announcement needs a valid audience");
+r = await call("GET", "/api/admin/audit", admin);
+ok(r.body.entries.length >= 8 && r.body.entries.some((e) => e.action === "order_refunded") && r.body.entries.some((e) => e.action === "review_hidden"), "activity log records admin actions");
+r = await call("GET", "/api/admin/audit", merch);
+ok(r.status === 403, "merchant cannot read the activity log");
 
 console.log(fails ? `\n${fails} FAILED` : "\nALL PASSED");
 process.exit(fails ? 1 : 0);

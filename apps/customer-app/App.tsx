@@ -22,6 +22,8 @@ import { CallProvider } from "./src/modules/calls/CallContext";
 import GlobalPopups from "./src/modules/notifications/GlobalPopups";
 import PayBanner from "./src/modules/notifications/PayBanner";
 import { navRef } from "./src/navigation/navRef";
+import { DrawerProvider } from "./src/shared/components/SideDrawer";
+import AppDrawer from "./src/navigation/AppDrawer";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { colors } from "./src/shared/theme/theme";
 
@@ -53,6 +55,7 @@ export default function App() {
         <CatalogProvider>
           <CartProvider>
             <LiveDataProvider>
+              <DrawerProvider>
               <NavigationContainer ref={navRef}>
                 <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
                   <StatusBar style="dark" />
@@ -61,10 +64,12 @@ export default function App() {
                       <RootNavigator />
                       <GlobalPopups />
                       <PayBanner />
+                      <AppDrawer />
                     </ChatProvider>
                   </CallProvider>
                 </View>
               </NavigationContainer>
+              </DrawerProvider>
             </LiveDataProvider>
           </CartProvider>
         </CatalogProvider>

@@ -12,6 +12,7 @@ import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
 import { itemBadge, orderBadge } from "../orderStatus";
+import { useReorder } from "../useReorder";
 import OrderProgress from "../OrderProgress";
 import { OrderSteps } from "../components/OrderSteps";
 
@@ -52,6 +53,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const insets = useSafeAreaInsets();
+  const { reorder, busyId } = useReorder(navigation);
 
   if (!order) {
     return (
@@ -200,6 +202,9 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        {!["awaiting_merchant", "awaiting_payment", "preparing"].includes(order.status) && (
+          <PrimaryButton label={busyId === order.id ? "Adding to cart…" : "Order again"} onPress={() => reorder(order)} disabled={busyId === order.id} testID="reorder" style={{ marginBottom: spacing.sm }} />
+        )}
         <PrimaryButton label="Back to home" variant="outline" onPress={() => navigation.popTo("MainTabs")} />
       </View>
 

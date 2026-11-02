@@ -12,11 +12,17 @@ import OrderTrackingScreen from "../modules/ordering/screens/OrderTrackingScreen
 import PayScreen from "../modules/ordering/screens/PayScreen";
 import BookTableScreen from "../modules/dine-in/screens/BookTableScreen";
 import JobsScreen from "../modules/jobs/screens/JobsScreen";
+import JobDetailScreen from "../modules/jobs/screens/JobDetailScreen";
+import ApplyJobScreen from "../modules/jobs/screens/ApplyJobScreen";
+import MyApplicationsScreen from "../modules/jobs/screens/MyApplicationsScreen";
+import AnnouncementsScreen from "../modules/announcements/AnnouncementsScreen";
 import LiveTrackingScreen from "../modules/delivery/screens/LiveTrackingScreen";
 import FavouritesScreen from "../modules/favourites/FavouritesScreen";
 import AddressesScreen from "../modules/account/screens/AddressesScreen";
 import PaymentsScreen from "../modules/account/screens/PaymentsScreen";
 import NotificationsScreen from "../modules/notifications/NotificationsScreen";
+import MyReviewsScreen from "../modules/reviews/MyReviewsScreen";
+import ProfileScreen from "../modules/account/screens/ProfileScreen";
 import HelpScreen from "../modules/account/screens/HelpScreen";
 import LoyaltyScreen from "../modules/loyalty/screens/LoyaltyScreen";
 
@@ -45,10 +51,16 @@ export default function RootNavigator() {
           <Stack.Screen name="LiveTracking" component={LiveTrackingScreen} />
           <Stack.Screen name="BookTable" component={BookTableScreen} />
           <Stack.Screen name="Jobs" component={JobsScreen} />
+          <Stack.Screen name="JobDetail" component={JobDetailScreen} />
+          <Stack.Screen name="ApplyJob" component={ApplyJobScreen} />
+          <Stack.Screen name="MyApplications" component={MyApplicationsScreen} />
+          <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
           <Stack.Screen name="Addresses" component={AddressesScreen} />
           <Stack.Screen name="PaymentMethods" component={PaymentsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Help" component={HelpScreen} />
           {/* Loyalty left the bottom bar in the new layout; opened from Account. */}
           <Stack.Screen name="Loyalty" component={LoyaltyScreen} />

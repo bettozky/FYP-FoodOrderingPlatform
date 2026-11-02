@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { api } from "../../shared/api/client";
 import { AppNotification, Order, Reservation } from "../../shared/api/types";
 import { useAuth } from "../auth/AuthContext";
+import { keepIfSame } from "../../shared/util/same";
 
 // Polls the backend every 2 s for orders, reservations and notifications. This is the prototype's
 // stand-in for WebSocket / push (FR-2.5, FR-2.7, FR-3.4); the server owns every timer (NFR-2).
@@ -35,9 +36,9 @@ export function LiveDataProvider({ children }: { children: React.ReactNode }) {
         api<{ reservations: Reservation[] }>("GET", "/reservations"),
         api<{ notifications: AppNotification[] }>("GET", "/notifications"),
       ]);
-      setOrders(o.orders);
-      setReservations(r.reservations);
-      setNotifications(n.notifications);
+      setOrders((p) => keepIfSame(p, o.orders));
+      setReservations((p) => keepIfSame(p, r.reservations));
+      setNotifications((p) => keepIfSame(p, n.notifications));
     } catch {
       /* offline or logged out: try again on the next tick */
     } finally {

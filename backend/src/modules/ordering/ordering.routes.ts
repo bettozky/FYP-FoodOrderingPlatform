@@ -20,8 +20,15 @@ ordersRouter.use(auth("customer"));
 ordersRouter.post("/", (req, res) => {
   const u = currentUser(res);
   const b = req.body ?? {};
+  // A saved address can be used instead of typing one: { addressId }.
+  let address = b.address;
+  if (b.addressId) {
+    const a = db.addresses.get(String(b.addressId));
+    if (!a || a.userId !== u.id) throw new HttpError(404, "Address not found");
+    address = { label: a.label, line: a.line, lat: a.lat, lng: a.lng };
+  }
   const order = placeOrder({
-    customerId: u.id, merchantId: String(b.merchantId ?? ""), items: b.items, address: b.address,
+    customerId: u.id, merchantId: String(b.merchantId ?? ""), items: b.items, address,
     voucherId: b.voucherId || undefined,
   });
   res.status(201).json({ serverNow: Date.now(), order: view(order) });

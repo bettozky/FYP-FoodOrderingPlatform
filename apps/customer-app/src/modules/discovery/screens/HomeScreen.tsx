@@ -11,6 +11,9 @@ import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import StallCard from "../components/StallCard";
+import { MenuButton } from "../../../shared/components/SideDrawer";
+import AnnouncementStrip from "../../announcements/AnnouncementStrip";
+import { useLive } from "../../ordering/LiveDataContext";
 import PromoBanner from "../components/PromoBanner";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
@@ -46,6 +49,7 @@ export default function HomeScreen({ navigation }: any) {
   const [allDishes, setAllDishes] = useState<Dish[]>([]);
   const [error, setError] = useState("");
   const [pickAddress, setPickAddress] = useState(false);
+  const unread = useLive().notifications.length;
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // The full menu: categories, stall pictures and "Popular near you" come from it.
@@ -151,6 +155,7 @@ export default function HomeScreen({ navigation }: any) {
   const header = (
     <View>
       <View style={[styles.topRow, { paddingTop: insets.top + spacing.md }]}>
+        <MenuButton badge={unread} />
         <Pressable style={styles.addr} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
           <View style={styles.addrIcon}>
             <Ionicons name="location-outline" size={16} color={colors.amberText} />
@@ -205,6 +210,7 @@ export default function HomeScreen({ navigation }: any) {
         </Pressable>
       </View>
 
+      {!gridMode ? <AnnouncementStrip onOpen={() => navigation.navigate("Announcements")} /> : null}
       {!gridMode ? <PromoBanner onBrowse={browseStalls} /> : null}
 
       {venues.length ? (

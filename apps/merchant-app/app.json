@@ -33,7 +33,14 @@
       "expo-asset",
       "expo-audio",
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ScootMeal needs your photos so you can choose a picture to upload.",
+          "cameraPermission": "ScootMeal uses the camera so you can take a photo to upload."
+        }
+      ]
     ]
   }
 }

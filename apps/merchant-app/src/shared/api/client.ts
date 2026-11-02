@@ -26,18 +26,21 @@ export const setOnUnauthorized = (fn: (() => void) | null) => {
 };
 
 const REQUEST_TIMEOUT_MS = 20_000;
+const UPLOAD_TIMEOUT_MS = 90_000; // photos and documents over Wi-Fi take longer
 
-export async function api<T = any>(method: "GET" | "POST" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
+export async function api<T = any>(method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<T> {
   // A request that never answers (weak Wi-Fi) must not hang forever: it would leave buttons spinning and stop polling.
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  // A FormData body is a file upload (see shared/util/files.ts): no JSON headers, longer timeout.
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+  const timer = setTimeout(() => controller.abort(), isForm ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS);
   let res: Response;
   let data: any;
   try {
     res = await fetch(`${API_URL}/api${path}`, {
       method,
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: { ...(isForm ? {} : { "Content-Type": "application/json" }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
       signal: controller.signal,
     });
     data = await res.json().catch(() => ({}));

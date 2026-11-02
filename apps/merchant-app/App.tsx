@@ -18,6 +18,9 @@ import { ChatProvider } from "./src/modules/chat/ChatContext";
 import { CallProvider } from "./src/modules/calls/CallContext";
 import PopupHost from "./src/modules/notifications/PopupHost";
 import RootNavigator from "./src/navigation/RootNavigator";
+import AppDrawer from "./src/navigation/AppDrawer";
+import { navRef } from "./src/navigation/navRef";
+import { DrawerProvider } from "./src/shared/components/SideDrawer";
 import { colors } from "./src/shared/theme/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -45,17 +48,20 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <LiveDataProvider>
-          <NavigationContainer>
+          <DrawerProvider>
+          <NavigationContainer ref={navRef}>
             <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
               <StatusBar style="dark" />
               <CallProvider>
                 <ChatProvider>
                   <RootNavigator />
+                  <AppDrawer />
                   <PopupHost />
                 </ChatProvider>
               </CallProvider>
             </View>
           </NavigationContainer>
+          </DrawerProvider>
         </LiveDataProvider>
       </AuthProvider>
     </SafeAreaProvider>

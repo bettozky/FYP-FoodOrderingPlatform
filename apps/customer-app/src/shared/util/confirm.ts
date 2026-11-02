@@ -12,3 +12,12 @@ export function confirmAsync(title: string, message: string, okLabel = "Yes"): P
     ])
   );
 }
+
+/** A message with one OK button that also works in the browser build. */
+export function alertAsync(title: string, message: string): Promise<void> {
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined") window.alert(`${title}\n\n${message}`);
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => Alert.alert(title, message, [{ text: "OK", onPress: () => resolve() }], { onDismiss: () => resolve() }));
+}

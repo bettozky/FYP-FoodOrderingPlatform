@@ -8,6 +8,7 @@ import { Dish } from "../../../shared/api/types";
 import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import { useFavourites } from "../../favourites/FavouritesContext";
+import ReviewsList from "../../reviews/ReviewsList";
 import DishImage from "../../../shared/components/DishImage";
 import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
 
@@ -153,6 +154,9 @@ export default function DishDetailScreen({ route }: any) {
             </View>
           </>
         ) : null}
+
+        <Text style={[ui.sectionTitle, styles.section]}>Reviews</Text>
+        <ReviewsList dishId={dishId} showDish={false} />
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>

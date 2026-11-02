@@ -1,6 +1,7 @@
 import type { Merchant } from "../../shared/api/types";
 
-export type Address = { label: string; line: string; lat: number; lng: number };
+/** A place to order to. Saved addresses (from the server) also have an id; shop places do not. */
+export type Address = { id?: string; label: string; line: string; lat: number; lng: number; note?: string; isDefault?: boolean };
 
 /**
  * Groups shops by the place before the comma in their stall number ("Canteen A, Stall 3" -> "Canteen A")

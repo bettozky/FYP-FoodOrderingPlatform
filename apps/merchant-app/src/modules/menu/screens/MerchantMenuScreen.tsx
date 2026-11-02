@@ -14,6 +14,8 @@ import { api, errorText } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import DishImage from "../../../shared/components/DishImage";
+import PhotoField from "../../../shared/components/PhotoField";
+import { form, LocalFile } from "../../../shared/util/files";
 import { colors, spacing, type } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
 
@@ -77,7 +79,9 @@ export default function MerchantMenuScreen() {
   const [dishCost, setDishCost] = useState("");
   const [dishQuantity, setDishQuantity] = useState("10");
   const [dishCategory, setDishCategory] = useState("Noodles");
-  const [dishPhoto, setDishPhoto] = useState("");
+  const [dishPhoto, setDishPhoto] = useState(""); // the photo the dish has now (a link from the server)
+  const [dishFile, setDishFile] = useState<LocalFile | null>(null); // a new photo chosen on this phone, uploaded on save
+  const [saving, setSaving] = useState(false);
   const [dishDietary, setDishDietary] = useState<string[]>([]);
   const [dishStyle, setDishStyle] = useState<"" | "dry" | "wet">("");
   const [dishCustom, setDishCustom] = useState("");
@@ -108,6 +112,7 @@ export default function MerchantMenuScreen() {
     setDishQuantity("20");
     setDishCategory("Noodles");
     setDishPhoto("");
+    setDishFile(null);
     setDishDietary([]);
     setDishStyle("");
     setDishCustom("");
@@ -123,6 +128,7 @@ export default function MerchantMenuScreen() {
     setDishQuantity(dish.quantity >= NO_LIMIT ? "" : dish.quantity.toString());
     setDishCategory(dish.category || "General");
     setDishPhoto(dish.image || "");
+    setDishFile(null);
     setDishDietary(dish.dietary);
     setDishStyle(dish.style ?? "");
     setDishCustom(dish.customisations.join(", "));
@@ -136,28 +142,44 @@ export default function MerchantMenuScreen() {
 
   // Save (Create or Update) Dish
   const handleSaveDish = async () => {
-    if (!dishName.trim() || !dishPrice.trim()) return;
+    if (!dishName.trim() || !dishPrice.trim() || saving) return;
     const qty = dishQuantity.trim() === "" ? undefined : Math.max(0, parseInt(dishQuantity, 10) || 0);
-    const body = {
+    const body: Record<string, unknown> = {
       name: dishName.trim(),
       price: parseFloat(dishPrice) || 0,
       cost: parseFloat(dishCost) || 0,
       stock: qty,
       soldOut: qty === 0,
       category: dishCategory.trim() || "General",
-      image: dishPhoto.trim(),
       dietary: dishDietary,
       style: dishStyle,
       customisations: dishCustom.split(",").map((x) => x.trim()).filter(Boolean),
     };
+    // Photo: a new photo is uploaded after the dish is saved; "Remove" clears it; otherwise the current photo stays.
+    if (!dishFile && !dishPhoto) body.image = "";
+    setSaving(true);
+    setMessage("");
     try {
-      if (editingDishId) await api("PATCH", `/merchant/dishes/${editingDishId}`, body);
-      else await api("POST", "/merchant/dishes", body);
+      const saved = editingDishId
+        ? await api<{ dish: { id: string } }>("PATCH", `/merchant/dishes/${editingDishId}`, body)
+        : await api<{ dish: { id: string } }>("POST", "/merchant/dishes", body);
+      if (dishFile) {
+        try {
+          await api("POST", `/merchant/dishes/${saved.dish.id}/image`, await form({}, { file: dishFile }));
+        } catch (e) {
+          // The dish itself is saved; only the picture failed. Keep the form open on the saved dish so they can retry.
+          setEditingDishId(saved.dish.id);
+          setMessage(`Dish saved, but the photo did not upload: ${errorText(e)}`);
+          load();
+          return;
+        }
+      }
       setIsModalOpen(false);
-      setMessage("");
       load();
     } catch (e) {
       setMessage(errorText(e));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -337,18 +359,10 @@ export default function MerchantMenuScreen() {
                 onChangeText={setDishName}
               />
 
-              {/* Dish photo link. Uploading a photo from the phone needs the real database and file storage (next phase). */}
-              <Text style={styles.inputLabel}>Photo link (optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="https://... link to a photo of the dish"
-                value={dishPhoto}
-                onChangeText={setDishPhoto}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-              />
-              {dishPhoto.trim() ? <DishImage image={dishPhoto.trim()} size={72} /> : null}
+              {/* Dish photo: choose from the gallery or take one now. It is resized on the phone, then uploaded on save. */}
+              <View style={{ marginTop: spacing.md }}>
+                <PhotoField label="Dish photo" current={dishPhoto} picked={dishFile} aspect={[4, 3]} busy={saving} onPick={setDishFile} onRemove={() => { setDishFile(null); setDishPhoto(""); }} />
+              </View>
 
               {/* Category: Manual Typing + Quick Pick Chips */}
               <Text style={styles.inputLabel}>
@@ -468,11 +482,13 @@ export default function MerchantMenuScreen() {
               <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Customisations customers can pick (comma separated)</Text>
               <TextInput style={styles.input} placeholder="e.g. No spring onion, Extra sambal, Less sweet" value={dishCustom} onChangeText={setDishCustom} />
 
+              {message ? <Text style={{ color: colors.danger, marginTop: spacing.sm }}>{message}</Text> : null}
+
               {/* Action Buttons */}
               <View style={styles.modalBtnRow}>
                 <Pressable
                   style={[styles.modalBtn, styles.cancelBtn]}
-                  onPress={() => setIsModalOpen(false)}
+                  onPress={() => !saving && setIsModalOpen(false)}
                 >
                   <Text style={styles.cancelBtnText}>Cancel</Text>
                 </Pressable>
@@ -482,7 +498,7 @@ export default function MerchantMenuScreen() {
                   onPress={handleSaveDish}
                 >
                   <Text style={styles.saveBtnText}>
-                    {editingDishId ? "Update Dish" : "Create Dish"}
+                    {saving ? "Saving…" : editingDishId ? "Update Dish" : "Create Dish"}
                   </Text>
                 </Pressable>
               </View>

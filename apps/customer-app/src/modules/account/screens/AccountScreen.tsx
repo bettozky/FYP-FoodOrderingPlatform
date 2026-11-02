@@ -1,13 +1,18 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Avatar from "../../../shared/components/Avatar";
 import { useAuth } from "../../auth/AuthContext";
 import { useLoyalty } from "../../loyalty/useLoyalty";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 
 // Every row opens a real screen. One icon set (Ionicons) instead of emoji.
 const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; go: string }[] = [
+  { icon: "person-outline", label: "Edit profile & photo", go: "Profile" },
+  { icon: "document-text-outline", label: "My job applications", go: "MyApplications" },
+  { icon: "megaphone-outline", label: "Announcements", go: "Announcements" },
   { icon: "gift-outline", label: "Loyalty & vouchers", go: "Loyalty" },
+  { icon: "star-outline", label: "My reviews", go: "MyReviews" },
   { icon: "heart-outline", label: "Saved dishes", go: "Favourites" },
   { icon: "location-outline", label: "Addresses", go: "Addresses" },
   { icon: "briefcase-outline", label: "Jobs", go: "Jobs" },
@@ -24,9 +29,7 @@ export default function AccountScreen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={styles.wrap}>
         <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{(name || "S")[0].toUpperCase()}</Text>
-          </View>
+          <Pressable onPress={() => navigation.navigate("Profile")} accessibilityRole="button" accessibilityLabel="Edit profile photo"><Avatar uri={user?.avatar} name={name} size={52} /></Pressable>
           <View style={{ flex: 1 }}>
             <Text style={type.h2}>{name || "Student"}</Text>
             <Text style={type.bodyMuted}>{user?.email}</Text>

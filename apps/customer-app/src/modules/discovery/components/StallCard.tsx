@@ -15,7 +15,7 @@ export default function StallCard({ merchant, image, onPress }: { merchant: Merc
       accessibilityLabel={`${merchant.name}, ${merchant.stallNo}, rated ${merchant.rating}, ${merchant.openNow ? "open" : "closed"}`}
       testID={`stall-${merchant.id}`}
     >
-      <DishImage image={image} size={60} tint={softTint(merchant.color)} />
+      <DishImage image={merchant.logo || image} size={60} tint={softTint(merchant.color)} />
       <View style={styles.info}>
         <View style={styles.titleRow}>
           <Text style={styles.name} numberOfLines={1}>{merchant.name}</Text>

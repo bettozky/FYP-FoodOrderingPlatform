@@ -6,7 +6,7 @@ import { colors, fonts, radius, spacing, type } from "../../../shared/theme/them
 import { Chips, Field, FieldError, Label, styles as f, ToggleRow, UploadTile } from "./fields";
 import { canPickFiles } from "./pickFile";
 import { ALLERGENS, BUSINESS_TYPES, DAYS, emptyMenuItem, ShopApplication } from "./types";
-import type { Errors } from "./validate";
+import { pinProblem, type Errors } from "./validate";
 
 export type StepProps = {
   a: ShopApplication;
@@ -59,15 +59,18 @@ export function LocationStep({ a, set, errors }: StepProps) {
   }
 
   const hasPin = !!a.lat.trim() && !!a.lng.trim();
+  const pinBad = hasPin ? pinProblem(a.lat, a.lng) : "";
+  // Keep only digits, a minus sign and ONE decimal point (a comma typed on a phone keyboard becomes a point).
+  const cleanNumber = (v: string) => { const t = v.replace(/,/g, ".").replace(/[^0-9.\-]/g, ""); const i = t.indexOf("."); return i < 0 ? t : t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, ""); };
   return (
     <>
       <Field label="Address or stall number" value={a.address} onChange={(v) => set({ address: v })} error={errors.address} placeholder="Canteen B, Stall 6" autoCapitalize="words" testID="reg-location" />
       <View style={f.block}>
         <Label>Map pin</Label>
         <View style={[s.pinCard, !!errors.pin && f.inputError]}>
-          <Ionicons name="location" size={28} color={hasPin ? colors.turmericDeep : colors.stone} />
+          <Ionicons name={pinBad ? "warning" : "location"} size={28} color={pinBad ? colors.chiliText : hasPin ? colors.turmericDeep : colors.stone} />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={type.h3}>{hasPin ? "Pin set" : "No pin yet"}</Text>
+            <Text style={type.h3}>{pinBad ? "Check the numbers" : hasPin ? "Pin set" : "No pin yet"}</Text>
             <Text style={type.small}>{hasPin ? `${a.lat}, ${a.lng}` : "Stand at your shop and tap the button, or type the numbers."}</Text>
           </View>
         </View>
@@ -77,14 +80,14 @@ export function LocationStep({ a, set, errors }: StepProps) {
         </Pressable>
         <View style={s.row}>
           <View style={{ flex: 1 }}>
-            <Field label="Latitude" value={a.lat} onChange={(v) => set({ lat: v })} placeholder="1.5533" keyboardType="numbers-and-punctuation" testID="reg-lat" />
+            <Field label="Latitude" value={a.lat} onChange={(v) => set({ lat: cleanNumber(v) })} placeholder="1.5533" keyboardType="numbers-and-punctuation" testID="reg-lat" />
           </View>
           <View style={{ flex: 1 }}>
-            <Field label="Longitude" value={a.lng} onChange={(v) => set({ lng: v })} placeholder="110.3592" keyboardType="numbers-and-punctuation" testID="reg-lng" />
+            <Field label="Longitude" value={a.lng} onChange={(v) => set({ lng: cleanNumber(v) })} placeholder="110.3592" keyboardType="numbers-and-punctuation" testID="reg-lng" />
           </View>
         </View>
         <Text style={type.small}>The pin shows your shop on the customer map.</Text>
-        <FieldError text={errors.pin || locError} />
+        <FieldError text={errors.pin || pinBad || locError} />
       </View>
       <Field label="Nearby landmark (optional)" value={a.landmark} onChange={(v) => set({ landmark: v })} placeholder="e.g. Next to the campus bookshop" testID="reg-landmark" />
     </>

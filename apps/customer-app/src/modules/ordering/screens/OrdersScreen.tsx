@@ -7,6 +7,7 @@ import { useCountdown, mmss } from "../../../shared/util/format";
 import { colors, radius, spacing, type } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import { isActive, orderBadge } from "../orderStatus";
+import { useReorder } from "../useReorder";
 
 function Countdown({ deadline }: { deadline: number }) {
   const s = useCountdown(deadline);
@@ -15,6 +16,7 @@ function Countdown({ deadline }: { deadline: number }) {
 
 export default function OrdersScreen({ navigation }: any) {
   const { orders } = useLive();
+  const { reorder, busyId } = useReorder(navigation);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -43,6 +45,11 @@ export default function OrdersScreen({ navigation }: any) {
               <View style={{ alignItems: "flex-end", gap: 6 }}>
                 <Text style={type.h3}>RM {item.total.toFixed(2)}</Text>
                 <Badge label={b.label} tone={b.tone} />
+                {!isActive(item) && (
+                  <Pressable onPress={() => reorder(item)} disabled={busyId === item.id} hitSlop={6} style={styles.again} accessibilityRole="button" accessibilityLabel={`Order again from ${item.merchantName}`} testID={`reorder-${item.id}`}>
+                    <Text style={styles.againText}>{busyId === item.id ? "Adding…" : "Order again"}</Text>
+                  </Pressable>
+                )}
               </View>
             </Pressable>
           );
@@ -56,5 +63,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.md },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 140 },
   orderRow: { flexDirection: "row", justifyContent: "space-between", backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border, gap: spacing.md },
+  again: { paddingHorizontal: spacing.md, minHeight: 30, justifyContent: "center", borderRadius: radius.pill, backgroundColor: colors.turmeric },
+  againText: { fontSize: 12, fontWeight: "700", color: colors.ink },
   orderActive: { borderColor: colors.turmeric, backgroundColor: colors.primarySoft },
 });

@@ -1,14 +1,65 @@
+// All settings in one place. Everything can be changed from backend/.env (see .env.example).
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const num = (v: string | undefined, d: number) => (v !== undefined && v !== "" && !Number.isNaN(Number(v)) ? Number(v) : d);
+const flag = (v: string | undefined, d: boolean) => (v === undefined || v === "" ? d : !/^(0|false|no|off)$/i.test(v));
+const text = (v: string | undefined) => (v && v.trim() ? v.trim() : undefined);
+
+const supabaseUrl = text(process.env.SUPABASE_URL)?.replace(/\/+$/, "");
 
 export const env = {
+  // ---- server ----
   port: num(process.env.PORT, 3001),
+  isProduction: process.env.NODE_ENV === "production",
+  timeZone: process.env.APP_TIME_ZONE ?? "Asia/Kuching",
+  /** Public address of this server, used to build links to locally stored uploads (only needed behind a proxy). */
+  publicUrl: text(process.env.PUBLIC_URL)?.replace(/\/+$/, ""),
+
+  // ---- database (Supabase or any PostgreSQL). Leave DATABASE_URL empty to run on in-memory demo data. ----
+  databaseUrl: text(process.env.DATABASE_URL),
+  /** "auto" = use SSL for every host except localhost (what Supabase needs). */
+  databaseSsl: (process.env.DATABASE_SSL ?? "auto").toLowerCase() as "auto" | "true" | "false",
+  /** How often changed data is saved to the database (milliseconds). Changes from API calls are saved sooner. */
+  persistIntervalMs: num(process.env.PERSIST_INTERVAL_MS, 2000),
+  /** Put the demo shops and logins in an empty database. Set to false for a real launch. */
+  seedDemoData: flag(process.env.SEED_DEMO_DATA, true),
+  /** Optional: create this admin account at start-up if the database has no admin yet. */
+  bootstrapAdminEmail: text(process.env.ADMIN_EMAIL)?.toLowerCase(),
+  bootstrapAdminPassword: text(process.env.ADMIN_PASSWORD),
+
+  // ---- Supabase Storage (photos and documents). Without it, uploads are kept in backend/public/uploads. ----
+  supabaseUrl,
+  supabaseServiceKey: text(process.env.SUPABASE_SERVICE_ROLE_KEY),
+  menuPhotoBucket: process.env.SUPABASE_MENU_BUCKET || "menu-photos",
+  shopPhotoBucket: process.env.SUPABASE_SHOP_BUCKET || "shop-photos", // logo and cover (public)
+  documentBucket: process.env.SUPABASE_DOCUMENT_BUCKET || "merchant-documents", // SSM / halal certificates (private)
+  avatarBucket: process.env.SUPABASE_AVATAR_BUCKET || "avatars", // profile photos (public)
+  applicationBucket: process.env.SUPABASE_APPLICATION_BUCKET || "job-applications", // CVs and documents (private)
+  /** Biggest photo or document accepted, in MB (phone photos are shrunk by the apps first). */
+  maxUploadMb: num(process.env.MAX_UPLOAD_MB, 5),
+
+  // ---- email (forgot-password codes). Without SMTP_HOST the code is printed in the server console instead. ----
+  smtpHost: text(process.env.SMTP_HOST),
+  smtpPort: num(process.env.SMTP_PORT, 587),
+  smtpUser: text(process.env.SMTP_USER),
+  smtpPass: text(process.env.SMTP_PASS),
+  mailFrom: text(process.env.MAIL_FROM) ?? "ScootMeal <no-reply@scootmeal.test>",
+  /** Testing only: also return the reset code in the API reply so you can try the flow without email. Never in production. */
+  resetCodeInResponse: flag(process.env.RESET_CODE_IN_RESPONSE, false) && process.env.NODE_ENV !== "production",
+  resetCodeMinutes: num(process.env.RESET_CODE_MINUTES, 15),
+
+  // ---- AI assistant ----
   openaiApiKey: process.env.OPENAI_API_KEY,
-  // Model used by the AI assistant. Override with AI_MODEL in .env.
   aiModel: process.env.AI_MODEL ?? "gpt-6-luna",
+
+  // ---- security ----
+  /** How long a login lasts. */
+  sessionDays: num(process.env.SESSION_DAYS, 30),
+  /** Failed-login / AI-chat rate limit: requests per minute per IP. */
+  authRatePerMin: num(process.env.AUTH_RATE_PER_MIN, 30),
+  aiRatePerMin: num(process.env.AI_RATE_PER_MIN, 20),
 
   // ---- business rules (FR / NFR references in docs/requirements) ----
   // FR-5.5: merchant has 10 minutes to confirm a new order request. Payment only happens after that.
@@ -33,6 +84,6 @@ export const env = {
   deliveryStageMs: num(process.env.DELIVERY_STAGE_MS, 10 * 1000),
   // How often the server checks deadlines and delivery progress.
   sweepMs: num(process.env.SWEEP_MS, 1000),
-  timeZone: process.env.APP_TIME_ZONE ?? "Asia/Kuching",
-  isProduction: process.env.NODE_ENV === "production",
 };
+
+export const usingSupabaseStorage = Boolean(env.supabaseUrl && env.supabaseServiceKey);

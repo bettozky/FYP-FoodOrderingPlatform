@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { api } from "../../shared/api";
+import { Link } from "react-router-dom";
+import { Stars, rm } from "../../shared/ui";
 import { StatusLine, useLoad } from "../../shared/useLoad";
 
 type Status = "pending" | "approved" | "rejected" | "suspended";
-type Merchant = { id: string; name: string; stallNo: string; owner?: string; email?: string; phone: string; approval: Status };
+type Merchant = {
+  id: string; name: string; stallNo: string; owner?: string; email?: string; phone: string; approval: Status;
+  rating: number; reviewCount: number; orders30: number; revenue30: number; level: "good" | "watch" | "at_risk"; flags: { text: string }[];
+};
+const levelText = { good: "Good", watch: "Watch", at_risk: "At risk" } as const;
 
 const filters: { key: "" | Status; label: string }[] = [
   { key: "", label: "All" },
@@ -47,13 +53,23 @@ export default function MerchantsPage() {
       {rows.length > 0 ? (
         <div className="table-wrap">
           <table>
-            <thead><tr><th scope="col">Shop</th><th scope="col">Owner</th><th scope="col">Contact</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+            <thead><tr><th scope="col">Shop</th><th scope="col">Owner</th><th scope="col">Contact</th><th scope="col">Performance (30 days)</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
             <tbody>
               {rows.map((m) => (
                 <tr key={m.id}>
                   <td data-label="Shop">{m.name}<br /><span className="muted">{m.stallNo}</span></td>
                   <td data-label="Owner">{m.owner ?? "-"}</td>
                   <td data-label="Contact">{m.email ?? "-"}<br /><span className="muted">{m.phone}</span></td>
+                  <td data-label="Performance">
+                    {m.approval === "approved" ? (
+                      <>
+                        <span className={`badge ${m.level}`}>{levelText[m.level]}</span>{" "}
+                        {m.reviewCount > 0 ? <><Stars value={m.rating} /> {m.rating.toFixed(1)}<span className="muted"> ({m.reviewCount})</span></> : <span className="muted">no reviews</span>}
+                        <br /><span className="muted">{m.orders30} orders · {rm(m.revenue30)}</span>
+                        {m.flags.length > 0 ? <><br /><Link to="/watchlist">{m.flags.length} warning{m.flags.length > 1 ? "s" : ""}</Link></> : null}
+                      </>
+                    ) : <span className="muted">-</span>}
+                  </td>
                   <td data-label="Status"><span className={`badge ${m.approval}`}>{m.approval}</span></td>
                   <td data-label="Actions">
                     <div className="row-actions">

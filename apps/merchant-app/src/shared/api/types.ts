@@ -28,5 +28,5 @@ export type Reservation = {
 
 export type MerchantProfile = {
   id: string; name: string; approval: "pending" | "approved" | "rejected" | "suspended";
-  storeMode: "online" | "dine_in" | "offline"; hours: { open: string; close: string }; openNow: boolean; phone: string;
+  storeMode: "online" | "dine_in" | "offline"; hours: { open: string; close: string }; openNow: boolean; phone: string; logo?: string; cover?: string;
 };

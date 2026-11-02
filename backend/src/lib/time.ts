@@ -32,3 +32,23 @@ export function ageOn(dob: string, now = new Date()): number {
   if (m < 0 || (m === 0 && now.getUTCDate() < d.getUTCDate())) age--;
   return age;
 }
+
+/** Day of the week in the configured time zone: 0 = Sunday ... 6 = Saturday. */
+export function localDay(now = new Date()): number {
+  const w = new Intl.DateTimeFormat("en-US", { timeZone: env.timeZone, weekday: "short" }).format(now);
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(w);
+}
+
+export interface DayHours { day: number; open: string; close: string }
+
+/** Open right now? Uses the per-day hours when the shop set them (days without a row are closed), else the single open/close pair. */
+export function isOpenNow(m: { hours: { open: string; close: string }; weeklyHours?: DayHours[] }, now = new Date()): boolean {
+  if (!m.weeklyHours?.length) return isWithinHours(m.hours, now);
+  const t = localHHMM(now);
+  const today = localDay(now);
+  const yesterday = (today + 6) % 7;
+  return m.weeklyHours.some((h) => {
+    if (h.day === today && (h.open <= h.close ? t >= h.open && t <= h.close : t >= h.open)) return true;
+    return h.day === yesterday && h.open > h.close && t <= h.close; // yesterday's late-night hours running past midnight
+  });
+}

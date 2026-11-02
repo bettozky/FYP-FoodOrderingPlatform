@@ -13,25 +13,38 @@ import { api, errorText } from "../../../shared/api/client";
 import { useLive } from "../../orders/LiveDataContext";
 import { useAuth } from "../../auth/AuthContext";
 import NavRow from "../../../shared/components/NavRow";
+import Avatar from "../../../shared/components/Avatar";
+import { DrawerEdge, MenuButton } from "../../../shared/components/SideDrawer";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
 
 type StoreStatus = "online" | "dine_in" | "offline";
 
 export default function MerchantDashboardScreen({ navigation }: any) {
   const { logout } = useAuth();
-  const { orders, reservations, profile, refresh } = useLive();
+  const insets = useSafeAreaInsets(); // keeps the header clear of the clock / battery / notch
+  const { orders, reservations, profile, badges, refresh } = useLive();
   const pendingCount = orders.filter((o) => o.status === "awaiting_merchant" || o.status === "preparing").length;
   const pendingReservations = reservations.filter((r) => r.status === "awaiting_restaurant").length;
   const [stats, setStats] = useState({ orders: 0, revenue: 0, avgPrepMinutes: 0 });
   const [hoursOpen, setHoursOpen] = useState("");
   const [hoursClose, setHoursClose] = useState("");
   const [hoursMsg, setHoursMsg] = useState("");
+  const [rating, setRating] = useState<{ average: number | null; count: number; unanswered: number } | null>(null);
 
   useEffect(() => {
     const load = () => api<any>("GET", "/merchant/stats?period=today").then(setStats).catch(() => {});
     load();
     const t = setInterval(load, 10000);
+    return () => clearInterval(t);
+  }, []);
+
+  // The shop's rating, from the customer reviews
+  useEffect(() => {
+    const load = () => api<any>("GET", "/merchant/reviews?limit=1").then((r) => setRating({ average: r.average, count: r.count, unanswered: r.unanswered })).catch(() => {});
+    load();
+    const t = setInterval(load, 30000);
     return () => clearInterval(t);
   }, []);
 
@@ -114,16 +127,16 @@ export default function MerchantDashboardScreen({ navigation }: any) {
   });
 
   const activeMode = statusConfig[storeStatus];
-  const initial = (profile?.name ?? "S").trim().charAt(0).toUpperCase();
 
   const segLabelColor = (k: StoreStatus) => (storeStatus === k ? statusConfig[k].color : colors.stone);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={styles.wrap} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.wrap, { paddingTop: insets.top + spacing.md }]} showsVerticalScrollIndicator={false}>
         {/* ---------- header ---------- */}
         <View style={styles.headerRow}>
-          <View style={styles.avatar}><Text style={styles.avatarText}>{initial}</Text></View>
+          <MenuButton badge={badges.unread + badges.newApplicants} />
+          <Avatar uri={profile?.logo} name={profile?.name} size={46} />
           <View style={{ flex: 1 }}>
             <Text style={styles.hello}>Merchant dashboard</Text>
             <Text style={styles.storeName} numberOfLines={1}>{profile?.name ?? ""}</Text>
@@ -144,6 +157,16 @@ export default function MerchantDashboardScreen({ navigation }: any) {
             <Stat icon="timer-outline" value={`${stats.avgPrepMinutes}m`} label="Avg. prep" />
           </View>
         </View>
+
+        {/* ---------- rating ---------- */}
+        <Pressable style={styles.ratingCard} onPress={() => navigation.navigate("MerchantReviews")} accessibilityRole="button" accessibilityLabel="Customer reviews" testID="rating-card">
+          <Ionicons name="star" size={26} color={colors.turmeric} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>{rating?.average ? `${rating.average.toFixed(1)} / 5` : "No ratings yet"}</Text>
+            <Text style={styles.hint}>{rating ? `${rating.count} review${rating.count === 1 ? "" : "s"}${rating.unanswered ? ` · ${rating.unanswered} waiting for your reply` : ""}` : "Loading…"}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+        </Pressable>
 
         {/* ---------- store status ---------- */}
         <View style={styles.card}>
@@ -192,8 +215,13 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         <NavRow icon="restaurant-outline" tint={colors.chili} title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
         <NavRow icon="pricetags-outline" tint={colors.ink} title="Promotions & Vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
         <NavRow icon="stats-chart-outline" tint={colors.stoneText} title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
+        <NavRow icon="star-outline" tint={colors.turmericDeep} title="Customer reviews" subtitle="Read feedback and reply" onPress={() => navigation.navigate("MerchantReviews")} />
         <NavRow icon="briefcase-outline" tint={colors.amberText} title="Restaurant Job Board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
+        <NavRow icon="people-outline" tint={colors.herb} title="Applicants" subtitle="CVs and applications from students" badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
+        <NavRow icon="megaphone-outline" tint={colors.chili} title="Announcements" subtitle="Post promos and notices to customers" onPress={() => navigation.navigate("MerchantAnnouncements")} />
+        <NavRow icon="storefront-outline" tint={colors.ink} title="Shop profile & photos" subtitle="Profile photo and banner" onPress={() => navigation.navigate("ShopProfile")} />
       </ScrollView>
+      <DrawerEdge top={insets.top + 70} bottom={0} />
     </View>
   );
 }
@@ -245,5 +273,6 @@ const styles = StyleSheet.create({
   saveText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.white },
   hint: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
 
+  ratingCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, ...shadow.soft },
   section: { fontSize: 12, fontFamily: fonts.displayBold, color: colors.stone, letterSpacing: 1.1, textTransform: "uppercase", marginTop: spacing.sm, marginBottom: -spacing.xs },
 });
