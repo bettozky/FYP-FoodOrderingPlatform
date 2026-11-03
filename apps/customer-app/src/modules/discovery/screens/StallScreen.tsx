@@ -9,6 +9,7 @@ import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import ReviewsList from "../../reviews/ReviewsList";
+import ReadyChip from "../components/ReadyChip";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 import { isPhoto, mediaUrl } from "../../../shared/media";
@@ -97,9 +98,7 @@ export default function StallScreen({ navigation, route }: any) {
             <View style={[ui.infoChip, { backgroundColor: colors.amberTint }]}>
               <Text style={ui.infoChipText}>{merchant.rating.toFixed(1)}★ rating</Text>
             </View>
-            <View style={ui.infoChip}>
-              <Text style={ui.infoChipText}>{merchant.prepMinutes} min prep</Text>
-            </View>
+            <ReadyChip merchant={merchant} />
             <View style={ui.infoChip}>
               <Text style={ui.infoChipText}>{merchant.dineInOnly ? "Dine-in only" : "Delivery"}</Text>
             </View>

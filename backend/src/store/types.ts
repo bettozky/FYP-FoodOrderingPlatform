@@ -113,6 +113,7 @@ export interface Order {
   cancelReason?: "not_paid" | "no_reply" | "customer";
   acceptedAt?: number;
   completedAt?: number;
+  arrivingAt?: number; // epoch ms: when the customer said they will reach the stall ("I'm 5 min away")
   reviewedDishIds: string[];
 }
 

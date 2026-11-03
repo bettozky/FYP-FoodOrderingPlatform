@@ -10,6 +10,7 @@ import { useCatalog } from "../CatalogContext";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import ReviewsList from "../../reviews/ReviewsList";
 import DishImage from "../../../shared/components/DishImage";
+import ReadyChip from "../components/ReadyChip";
 import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
 
 // Dish detail, from Badrul's mock-up (Oct 2026):
@@ -81,7 +82,6 @@ export default function DishDetailScreen({ route }: any) {
 
   const chips = [
     dish.style ? (dish.style === "dry" ? "Dry" : "Wet / soup") : null,
-    `${merchant.prepMinutes} min prep`,
     rating.average !== null ? `${rating.average}★` : `${merchant.rating.toFixed(1)}★`,
     dish.dietary.includes("spicy") ? "Spicy" : null,
     dish.dietary.includes("vegetarian") ? "Vegetarian" : null,
@@ -119,6 +119,7 @@ export default function DishDetailScreen({ route }: any) {
         <Text style={[type.small, styles.centerText]}>Per dish · delivery fee added at checkout</Text>
 
         <View style={styles.chips}>
+          <ReadyChip merchant={merchant} />
           {chips.map((c) => (
             <View key={c} style={[ui.infoChip, c.endsWith("★") && { backgroundColor: colors.amberTint }]}>
               <Text style={ui.infoChipText}>{c}</Text>
