@@ -7,7 +7,11 @@ export type Merchant = {
   id: string; name: string; stallNo: string; rating: number; prepMinutes: number; tags: string[]; color: string;
   hours: { open: string; close: string }; venueCategory?: string; phone: string; lat: number; lng: number;
   openNow: boolean; dineInOnly: boolean; distanceKm: number; logo?: string; cover?: string;
+  /** Live wait (backend merchants/waitTime.ts): orders ahead, minutes until food is ready, and the map colour. */
+  queue?: number; waitMinutes?: number; busy?: BusyLevel;
 };
+
+export type BusyLevel = "quiet" | "busy" | "very_busy" | "closed";
 
 export type Dish = {
   id: string; merchantId: string; name: string; price: number; image: string; description: string; category: string;
