@@ -9,7 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "ScootMeal uses the microphone for calls between customers and restaurants."
+        "NSMicrophoneUsageDescription": "ScootMeal uses the microphone for calls with restaurants and to let you speak your questions to the assistant."
       }
     },
     "android": {
@@ -33,11 +33,17 @@
       "expo-font",
       "expo-splash-screen",
       "expo-status-bar",
-      [
+            [
         "expo-image-picker",
         {
           "photosPermission": "ScootMeal needs your photos so you can choose a picture to upload.",
           "cameraPermission": "ScootMeal uses the camera so you can take a photo to upload."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "ScootMeal uses the microphone for calls with restaurants and to let you speak your questions to the assistant."
         }
       ]
     ]
