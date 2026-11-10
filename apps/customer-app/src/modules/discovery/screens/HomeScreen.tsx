@@ -14,6 +14,7 @@ import StallCard from "../components/StallCard";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
+import LocationMap from "../../../shared/location/LocationMap";
 import PromoBanner from "../components/PromoBanner";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
@@ -36,7 +37,8 @@ type Row = { kind: "stall"; merchant: Merchant } | { kind: "dish"; dish: Dish };
 export default function HomeScreen({ navigation }: any) {
   const { name } = useAuth();
   const { addToCart, itemCount } = useCart();
-  const { merchants, merchantById, addresses, address, setAddress, loadError } = useCatalog();
+  const { merchants, merchantById, addresses, address, setAddress, loadError, myLocation, locating, locationError, startLiveLocation, stopLiveLocation } = useCatalog();
+  const liveOn = address.label === "My location";
   const insets = useSafeAreaInsets();
   const list = useRef<FlatList<Row>>(null);
   const [query, setQuery] = useState("");
@@ -161,7 +163,10 @@ export default function HomeScreen({ navigation }: any) {
             <Ionicons name="location-outline" size={16} color={colors.amberText} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.addrLabel}>Deliver to</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.addrLabel}>Deliver to</Text>
+              {liveOn ? <View style={styles.liveChip}><View style={styles.liveDotSm} /><Text style={styles.liveChipText}>Live</Text></View> : null}
+            </View>
             <Text style={styles.addrText} numberOfLines={1}>{address.line}</Text>
           </View>
         </Pressable>
@@ -358,6 +363,22 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.modalCard}>
             <Text style={type.h2}>Deliver to</Text>
             <Text style={[type.bodyMuted, { marginBottom: spacing.sm }]}>Distances to stalls are measured from here.</Text>
+            {myLocation ? (
+              <View style={{ marginBottom: spacing.sm }}>
+                <LocationMap lat={myLocation.lat} lng={myLocation.lng} height={150} />
+                <View style={styles.liveRow}>
+                  <View style={styles.liveDotSm} />
+                  <Text style={[type.bodyMuted, { flex: 1 }]}>Sharing your live location with ScootMeal. The pin moves as you do.</Text>
+                  <Pressable onPress={stopLiveLocation} hitSlop={8} accessibilityRole="button" testID="location-stop"><Text style={styles.linkText}>Turn off</Text></Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable style={styles.locateBtn} onPress={startLiveLocation} disabled={locating} accessibilityRole="button" testID="use-my-location">
+                <Ionicons name="navigate" size={16} color={colors.ink} />
+                <Text style={styles.locateText}>{locating ? "Finding you…" : "Use my current location"}</Text>
+              </Pressable>
+            )}
+            {locationError ? <Text style={[type.bodyMuted, { color: colors.danger ?? "#B3261E", marginBottom: spacing.sm }]}>{locationError}</Text> : null}
             {addresses.length === 0 ? <Text style={type.bodyMuted}>Loading places…</Text> : null}
             {addresses.map((a) => {
               const on = a.line === address.line;
@@ -383,6 +404,13 @@ const styles = StyleSheet.create({
   addr: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: spacing.sm },
   addrIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.amberTint, alignItems: "center", justifyContent: "center" },
   addrLabel: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneText },
+  liveChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#E4F4EA", borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1 },
+  liveChipText: { fontFamily: fonts.displayBold, fontSize: 10, color: "#1E6B43" },
+  liveDotSm: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#22A55A" },
+  liveRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.sm },
+  linkText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
+  locateBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.md, backgroundColor: colors.amberTint, marginBottom: spacing.sm },
+  locateText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
   addrText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
   cartBadge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.paper },
   cartBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },

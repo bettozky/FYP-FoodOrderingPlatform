@@ -21,3 +21,7 @@ The demo menu photos are free-licence pictures from Wikimedia Commons. The file 
 | d9 | Brown Sugar Boba Milk | [Pearl Milk Tea in Chun Shui Tang.jpg](https://commons.wikimedia.org/wiki/File:Pearl_Milk_Tea_in_Chun_Shui_Tang.jpg) |
 | d10 | Iced Lemon Tea | [Iced lemon tea.jpg](https://commons.wikimedia.org/wiki/File:Iced_lemon_tea.jpg) |
 | d15 | Matcha Oat Latte | [Matcha latte.jpg](https://commons.wikimedia.org/wiki/File:Matcha_latte.jpg) |
+
+## Shop logos and banners
+
+`public/shops/m1..m5-logo.jpg` and `-cover.jpg` are crops of the dish photos above (same licences), with a colour tint. Replace them from the merchant app (Shop profile) or by saving your own files with the same names.

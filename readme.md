@@ -44,8 +44,15 @@ Each person owns their own folders. Please do not edit another person's folder d
 - **Table reservations** with a pre-order and a booking deposit.
 - **Merchant sign-up flow** with shop details, then admin approval.
 - **AI assistant:** OpenAI called from the backend. It reads the menu, vouchers and the user's own orders on the server, and has an offline fallback when the AI is not available.
-- **Web admin:** pages and layout are built, but they still show sample data. The backend already has the merchant approve and reject endpoints.
-- **Tests:** a backend smoke test and a browser end-to-end test.
+- **Reviews:** customers rate and review dishes after an order. Shops reply, and admins can hide reviews. The merchant dashboard shows the shop's rating.
+- **Jobs:** students open Jobs in the customer app and apply with their details and a CV. Shops get an Applicants inbox, open the CV, and shortlist, invite to interview, hire or reject. Applicants are notified of each change.
+- **Announcements:** shops and admins post notices that customers see in the Announcements page.
+- **Photos from the phone:** merchants upload dish photos and the shop logo and banner. Customers change their profile photo.
+- **Side menu and badges:** a slide-out menu in both apps, with red counts for unread notifications and new applicants.
+- **Forgot password:** a 6-digit code is emailed (or printed in the backend console until SMTP is set up).
+- **Favourites, saved addresses, loyalty points and order again** are saved on the backend.
+- **Web admin:** connected to the backend (orders, shops, customers, reservations, reviews, vouchers, announcements, watchlist, activity log).
+- **Tests:** about 250 backend checks (`npm test`), a database persistence check (`npm run db:check`) and a browser end-to-end test.
 
 ### Order lifecycle
 
@@ -70,10 +77,10 @@ Nothing is charged for a request that is rejected, not answered, not paid or can
 
 | Layer | Technology | Status |
 |---|---|---|
-| Mobile apps | Expo SDK 57 / React Native, TypeScript | In use |
+| Mobile apps | Expo SDK 58 / React Native 0.88, TypeScript | In use |
 | Web admin | React + Vite, TypeScript | In use |
 | Backend | Node.js, Express 5, TypeScript | In use |
-| Database | In-memory demo store now. **Supabase** (Postgres and file storage for pictures) is being added | In progress |
+| Database | **Supabase / PostgreSQL** (set `DATABASE_URL`, see `backend/SUPABASE.md`); in-memory demo store when it is not set | Built; needs your Supabase project to be tested live |
 | Payments | Simulated Stripe (test card only, no real money) | Simulated |
 | Delivery and GPS | Simulated rider movement. Lalamove or PandaGo planned | Paused |
 | Chat and calls | Polling (about 2 s) for chat. WebRTC for calls, with STUN only. The backend only passes the call setup messages | In use |
@@ -92,32 +99,34 @@ FYP-FoodOrderingPlatform/
 │   │   └── src/
 │   │       ├── navigation/  root navigator, home tabs
 │   │       ├── modules/     auth, discovery, ordering, dine-in, delivery, payment,
-│   │       │                loyalty, favourites, jobs, notifications, chat, calls,
-│   │       │                ai-assistant, account
+│   │       │                loyalty, favourites, jobs, announcements, reviews, notifications,
+│   │       │                chat, calls, ai-assistant, account
 │   │       └── shared/      api, components, theme, voice, util, mock data, config
 │   ├── merchant-app/        Expo app for merchants
 │   │   └── src/
 │   │       ├── navigation/
 │   │       ├── modules/     auth, onboarding, dashboard, orders, reservations, menu,
-│   │       │                promotions, analytics, jobs, notifications, chat, calls
+│   │       │                promotions, analytics, jobs (incl. applicants), announcements,
+│   │       │                reviews, shop (profile photos), notifications, chat, calls
 │   │       └── shared/
 │   └── web-admin/           React + Vite admin dashboard
 │       └── src/
 │           ├── app/         routes and layout
-│           ├── modules/     auth, dashboard, merchants, users, orders,
-│           │                disputes, moderation, analytics
+│           ├── modules/     auth, dashboard, merchants, customers, orders, reservations,
+│           │                reviews, vouchers, announcements, watchlist, activity
 │           └── shared/
 ├── backend/                 Node + TypeScript + Express API
 │   ├── src/
 │   │   ├── app.ts, server.ts
 │   │   ├── config/          environment settings
 │   │   ├── middleware/      auth, error handling
-│   │   ├── modules/         auth, merchants, ordering, dine-in, payment, delivery,
-│   │   │                    chat, calls, notifications, ai-assistant, admin
-│   │   ├── store/           data store (in-memory now, moving to Supabase)
+│   │   ├── modules/         auth, account, merchants, uploads, ordering, dine-in, payment, delivery,
+│   │   │                    chat, calls, notifications, reviews, jobs, announcements, ai-assistant, admin
+│   │   ├── store/           data set + demo seed + persistence to Supabase / PostgreSQL
 │   │   └── jobs/            timers for order and reservation deadlines
-│   └── tests/               smoke.mjs
-├── database/                migrations and seed data
+│   ├── database/migrations  SQL tables (applied automatically)
+│   └── tests/               smoke, extras, ratelimit
+├── database/                pointer to backend/database (see its readme)
 └── docs/                    requirements, diagrams, planning, meeting notes, admin forms
 ```
 
@@ -136,7 +145,7 @@ cd FYP-FoodOrderingPlatform
 
 Use `npm ci` (not `npm install`) so everyone gets the same package versions. Run it again after every `git pull`.
 
-**1. Backend** (copy `backend/.env.example` to `backend/.env` first)
+**1. Backend** (copy `backend/.env.example` to `backend/.env` first; put your real keys only in `.env`, never in `.env.example`)
 ```bash
 cd backend
 npm ci
@@ -200,10 +209,9 @@ ORDER_RESPONSE_MS=40000 PAYMENT_WINDOW_MS=40000 CALL_RING_MS=15000 npm run dev
 
 ### Tests
 
-With the backend running:
 ```bash
 cd backend
-API_URL=http://localhost:3001 node tests/smoke.mjs
+npm test        # starts its own server for each test file (about 250 checks); nothing to start first
 ```
 Type check any folder with `npx tsc --noEmit` (or `npm run typecheck` in the backend and web admin).
 
@@ -216,7 +224,7 @@ Type check any folder with `npx tsc --noEmit` (or `npm run typecheck` in the bac
 | `.expo` or log files appear in GitHub Desktop | Do not commit them. Discard them or ignore the folder. |
 | App cannot reach the backend on a phone | Use your PC's IP, not `localhost`. See "Using a real phone". |
 
-Never commit `.env` files, API keys, `node_modules` or `.expo`.
+Never commit `.env` files, API keys, `node_modules` or `.expo`. GitHub blocks a push that contains a key. If that happens, remove the key from the commit (`git commit --amend`) and keep it only in `backend/.env`.
 
 ---
 
@@ -252,18 +260,21 @@ git push -u origin feat/your-task-name
 - [x] Merchant sign-up flow
 - [x] AI assistant with server-side data and offline fallback
 - [x] Automated tests (smoke and browser end-to-end)
-- [ ] Supabase database and real picture storage (in progress)
-- [ ] Web admin connected to the backend (pages built, still using sample data)
+- [x] Supabase database and picture storage in the backend (connect your project with `backend/SUPABASE.md`)
+- [x] Web admin connected to the backend
+- [x] Reviews, job applications, announcements, photo uploads, forgot password, side menu
+- [ ] Test everything on real phones against a live Supabase project
+- [ ] Email settings (SMTP) for forgot-password codes
 - [ ] Figma interactive prototype for the client
 - [ ] Colour and layout clean-up in both apps
-- [ ] Confirm-then-pay for table reservations
+- [x] Confirm-then-pay for table reservations
 - [ ] Delivery and GPS (paused; Lalamove or PandaGo sandbox needed)
 - [ ] POS entry and "Send to Kitchen" steps (waiting for the client's decision)
 
 ### Known limits
 
 - Payment and delivery are simulated. No real money or riders.
-- The demo data is in memory and resets when the backend restarts, until Supabase is connected.
+- Without `DATABASE_URL` the demo data is in memory and resets when the backend restarts; with Supabase connected it is kept.
 - Chat and calls use polling and STUN only, so calls may fail on strict networks (a TURN server is needed for that).
 - Chat messages and calls are for the prototype only. A privacy notice, retention rule and abuse reporting are needed before real users.
 

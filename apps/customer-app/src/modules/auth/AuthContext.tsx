@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setOnUnauthorized(null);
   }, []);
 
-  // FR-1.1: there is no guest mode. Everything past this screen needs an account.
+  // FR-1.1: there is no guest mode. Everything past the login screen needs an account (the login screen itself now explains what ScootMeal does).
   const login = async (email: string, password: string) => {
     const res = await api("POST", "/auth/login", { email, password, role: "customer" });
     start(res);

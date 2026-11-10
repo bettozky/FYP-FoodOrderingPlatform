@@ -42,7 +42,7 @@ export default function JobsScreen({ navigation }: any) {
         <TextInput style={styles.searchInput} value={q} onChangeText={setQ} placeholder="Search jobs or shops" placeholderTextColor={colors.textFaint} accessibilityLabel="Search jobs" testID="job-search" />
       </View>
       {types.length > 1 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.chips}>
           {["", ...types].map((t) => (
             <Pressable key={t || "all"} onPress={() => setKind(t)} style={[ui.chip, kind === t && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: kind === t }}>
               <Text style={[ui.chipText, kind === t && ui.chipTextOn]}>{t || "All"}</Text>

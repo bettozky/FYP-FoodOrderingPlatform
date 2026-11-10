@@ -13,7 +13,7 @@ npm run dev              # http://localhost:3001   (try http://localhost:3001/ap
 | Command | What it does |
 |---|---|
 | `npm run dev` | start with auto-reload |
-| `npm test` | start a fresh server per test file and run every test in `tests/` (about 160 checks) |
+| `npm test` | start a fresh server per test file and run every test in `tests/` (about 250 checks) |
 | `npm run typecheck` | TypeScript check |
 | `npm run build` then `npm start` | production build |
 | `npm run db:migrate` | create / update the database tables (also runs automatically at start-up) |
@@ -44,7 +44,8 @@ src/
     persistence/       saves `db` to PostgreSQL / Supabase and loads it back (see below)
   modules/             one folder per feature, each has <name>.routes.ts (URLs) and <name>.service.ts (rules)
     auth/ account/ (addresses, favourites, loyalty) merchants/ (catalog, portal, analytics)
-    uploads/ ordering/ payment/ dine-in/ delivery/ notifications/ chat/ calls/ reviews/ admin/ ai-assistant/
+    uploads/ jobs/ (applications, CV links) announcements/ ordering/ payment/ dine-in/ delivery/
+    notifications/ chat/ calls/ reviews/ admin/ ai-assistant/
   jobs/                the 1-second timer: expire unanswered orders (10 min) and bookings (30 min), cancel unpaid
                        orders, advance deliveries, send reminders; plus photo download for the demo dishes
 database/migrations/   SQL that creates the tables (applied automatically, in order, once)
@@ -72,17 +73,18 @@ To scale to several instances later, replace the in-memory reads with per-reques
 
 ## Files and photos
 
-- With `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`: Supabase Storage. Photos go to public buckets (`menu-photos`, `shop-photos`); SSM / halal certificates go to the private `merchant-documents` bucket and the admin opens them with a one-hour link. Buckets are created automatically.
+- With `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`: Supabase Storage. Photos go to public buckets (`menu-photos` for dishes, `shop-photos` for shop logo and banner, `avatars` for profile pictures). SSM / halal certificates go to the private `merchant-documents` bucket, and job applicants' CVs to the private `job-applications` bucket. Private files are opened with a one-hour signed link (the admin for certificates, the receiving shop for CVs). Buckets are created automatically.
 - Without them: photos are saved in `backend/public/uploads` and served at `/media/uploads/...`; certificates in `backend/private-uploads` (never served).
-- Limits: JPG / PNG / WebP photos and PDF certificates, 2 MB each.
+- Limits: JPG / PNG / WebP photos, and PDF or Word files for certificates and CVs, up to `MAX_UPLOAD_MB` (default 5 MB) each. The file's real type is checked, not just its name.
 
 ## Security notes
 
+- Forgot password: a 6-digit code (valid `RESET_CODE_MINUTES`, default 15) is emailed through SMTP, or printed in the console when `SMTP_HOST` is not set. The reply is the same whether or not the email exists.
 - Passwords are hashed (scrypt). Logins expire after `SESSION_DAYS` (30). Suspended users are signed out at once.
 - Login, sign-up and password change are limited to 30 requests / minute / address; the AI assistant to 20 (change in `.env`).
 - Customers never receive a dish's ingredient `cost` or `stock`.
 - The service-role key only lives in `backend/.env` (git-ignored). Never put it in an app.
-- `POST /api/dev/reset` exists only when `NODE_ENV` is not `production`.
+- `POST /api/dev/reset` is off by default. It exists only when `ENABLE_DEV_RESET=1` is set and `NODE_ENV` is not `production` (the test scripts set it themselves).
 
 ## Order, reservation and delivery flows
 

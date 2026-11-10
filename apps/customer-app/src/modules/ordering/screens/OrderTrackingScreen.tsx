@@ -102,9 +102,8 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           <Badge label={badge.label} tone={badge.tone} />
         </View>
-        {stepCurrent !== null && <OrderSteps current={stepCurrent} />}
-
-        <OrderProgress order={order} />
+        {/* Before payment one compact step bar is enough; the full timeline appears once the order is paid. */}
+        {stepCurrent !== null && stepCurrent < 3 ? <OrderSteps current={stepCurrent} /> : <OrderProgress order={order} />}
 
         {order.status === "awaiting_merchant" && <Waiting order={order} />}
         {order.status === "awaiting_payment" && <PayCard order={order} onPay={() => navigation.navigate("Pay", { orderId: order.id })} />}
@@ -149,7 +148,7 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
               <Text style={styles.groupTitle}>{MODE_LABEL[m]}</Text>
             </View>
             {order.items.filter((i) => i.mode === m).map((i) => {
-              const b = itemBadge(i);
+              const b = itemBadge(i, order.status);
               const canRate = ["collected", "delivered"].includes(i.status) && !order.reviewedDishIds.includes(i.dishId);
               return (
                 <View key={i.id} style={styles.itemRow}>

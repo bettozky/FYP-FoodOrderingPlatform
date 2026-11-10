@@ -123,7 +123,7 @@ export default function StallScreen({ navigation, route }: any) {
         {tab === "menu" ? (
           <>
             {filters.length > 1 ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.chipRow}>
                 {filters.map((f) => {
                   const on = filter === f;
                   return (

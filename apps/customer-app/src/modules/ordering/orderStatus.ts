@@ -15,7 +15,10 @@ export function orderBadge(o: Order): { label: string; tone: Tone } {
   }
 }
 
-export function itemBadge(i: OrderItem): { label: string; tone: Tone } {
+/** The stall has not started cooking until the order is confirmed AND paid, so say what is really happening. */
+export function itemBadge(i: OrderItem, orderStatus?: Order["status"]): { label: string; tone: Tone } {
+  if (i.status === "preparing" && orderStatus === "awaiting_merchant") return { label: "Waiting for stall", tone: "warning" };
+  if (i.status === "preparing" && orderStatus === "awaiting_payment") return { label: "Waiting for payment", tone: "warning" };
   switch (i.status) {
     case "preparing": return { label: "Preparing", tone: "primary" };
     case "ready": return { label: "Ready - collect", tone: "success" };

@@ -122,6 +122,10 @@ export default function LiveTrackingScreen({ route }: any) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={styles.mapWrap}>
         <RouteMap progress={progress} />
+        <View style={styles.previewNote} testID="route-preview-note">
+          <Ionicons name="information-circle-outline" size={14} color={colors.white} />
+          <Text style={styles.previewNoteText}>Route preview only. The phone app shows the live road map.</Text>
+        </View>
         <View style={[styles.topRow, { top: insets.top + spacing.sm }]}>
           {navigation.canGoBack() && (
             <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.circleBtn}>
@@ -181,6 +185,8 @@ export default function LiveTrackingScreen({ route }: any) {
 
 const styles = StyleSheet.create({
   mapWrap: { height: 260 },
+  previewNote: { position: "absolute", left: spacing.md, right: spacing.md, bottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(0,0,0,0.72)", borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
+  previewNoteText: { fontFamily: fonts.display, fontSize: 11, color: colors.white, flexShrink: 1 },
   mapBox: { flex: 1, overflow: "hidden" },
   topRow: {
     position: "absolute",
