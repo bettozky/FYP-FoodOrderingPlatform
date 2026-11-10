@@ -79,8 +79,8 @@ app.use("/api/admin/announcements", adminAnnouncementsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/ai", rateLimit(env.aiRatePerMin, "ai"), aiAssistantRouter);
 
-// Demo helper: put the seed data back (not mounted in production).
-if (!env.isProduction) {
+// Demo helper: put the seed data back. OFF by default; needs ENABLE_DEV_RESET=1 and never exists in production.
+if (env.enableDevReset) {
   app.post("/api/dev/reset", async (_req, res) => {
     await resetStore();
     res.json({ ok: true });

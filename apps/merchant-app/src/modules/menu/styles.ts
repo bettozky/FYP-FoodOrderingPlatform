@@ -239,10 +239,16 @@ export const merchantMenuStyles = StyleSheet.create({
     borderColor: colors?.border || colors.border,
     marginTop: spacing?.xs || 6,
   },
+  modalFooter: {
+    paddingTop: spacing?.sm || 10,
+    borderTopWidth: 1,
+    borderTopColor: colors?.border || "#e5e5e5",
+    marginTop: spacing?.sm || 10,
+  },
   modalBtnRow: {
     flexDirection: "row",
     gap: spacing?.sm || 10,
-    marginTop: spacing?.lg || 20,
+    marginTop: spacing?.xs || 6,
   },
   modalBtn: {
     flex: 1,

@@ -342,7 +342,7 @@ export default function MerchantMenuScreen() {
       <Modal visible={isModalOpen} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ flexShrink: 1 }}>
               <Text style={type.h2}>
                 {editingDishId ? "Edit Dish & Category" : "Add New Dish"}
               </Text>
@@ -482,12 +482,17 @@ export default function MerchantMenuScreen() {
               <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Customisations customers can pick (comma separated)</Text>
               <TextInput style={styles.input} placeholder="e.g. No spring onion, Extra sambal, Less sweet" value={dishCustom} onChangeText={setDishCustom} />
 
+              <View style={{ height: spacing.md }} />
+            </ScrollView>
+
+            {/* Buttons stay pinned under the scrolling form so they are always reachable on a small phone. */}
+            <View style={styles.modalFooter}>
               {message ? <Text style={{ color: colors.danger, marginTop: spacing.sm }}>{message}</Text> : null}
 
-              {/* Action Buttons */}
               <View style={styles.modalBtnRow}>
                 <Pressable
                   style={[styles.modalBtn, styles.cancelBtn]}
+                  testID="dish-cancel"
                   onPress={() => !saving && setIsModalOpen(false)}
                 >
                   <Text style={styles.cancelBtnText}>Cancel</Text>
@@ -495,6 +500,7 @@ export default function MerchantMenuScreen() {
 
                 <Pressable
                   style={[styles.modalBtn, styles.saveBtn]}
+                  testID="dish-save"
                   onPress={handleSaveDish}
                 >
                   <Text style={styles.saveBtnText}>
@@ -502,7 +508,7 @@ export default function MerchantMenuScreen() {
                   </Text>
                 </Pressable>
               </View>
-            </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>

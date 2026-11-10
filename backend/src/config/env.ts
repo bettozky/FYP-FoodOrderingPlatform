@@ -13,6 +13,8 @@ export const env = {
   // ---- server ----
   port: num(process.env.PORT, 3001),
   isProduction: process.env.NODE_ENV === "production",
+  /** POST /api/dev/reset wipes all data, so it is OFF unless you set ENABLE_DEV_RESET=1 (and never works in production). */
+  enableDevReset: process.env.NODE_ENV !== "production" && /^(1|true|yes|on)$/i.test(process.env.ENABLE_DEV_RESET ?? ""),
   timeZone: process.env.APP_TIME_ZONE ?? "Asia/Kuching",
   /** Public address of this server, used to build links to locally stored uploads (only needed behind a proxy). */
   publicUrl: text(process.env.PUBLIC_URL)?.replace(/\/+$/, ""),

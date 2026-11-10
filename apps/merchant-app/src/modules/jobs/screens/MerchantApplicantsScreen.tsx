@@ -44,7 +44,7 @@ export default function MerchantApplicantsScreen({ navigation, route }: any) {
         <Ionicons name="search" size={16} color={colors.stone} />
         <TextInput style={styles.searchInput} value={q} onChangeText={setQ} placeholder="Search by name or university" placeholderTextColor={colors.textFaint} testID="applicant-search" />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.chips}>
         {FILTERS.map((f) => {
           const n = f.key ? data?.counts[f.key] ?? 0 : data?.counts.all ?? 0;
           return (
