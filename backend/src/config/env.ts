@@ -55,6 +55,16 @@ export const env = {
   // ---- AI assistant ----
   openaiApiKey: process.env.OPENAI_API_KEY,
   aiModel: process.env.AI_MODEL ?? "gpt-6-luna",
+  /** Speech-to-text model for the assistant's microphone button (POST /api/ai/transcribe). */
+  sttModel: text(process.env.STT_MODEL) ?? "gpt-transcribe",
+  /**
+   * Optional language hints for speech-to-text, comma separated (e.g. "en,zh-cn").
+   * Leave empty to detect the language automatically, which also handles mixed English / Malay / Mandarin.
+   * OpenAI rejects the whole request if a code is not supported, so only add codes you have tested.
+   */
+  sttLanguages: (process.env.STT_LANGUAGES ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
+  /** Longest voice message accepted, in MB. One minute of speech from the app is about 0.5 MB. */
+  sttMaxMb: num(process.env.STT_MAX_MB, 5),
 
   // ---- security ----
   /** How long a login lasts. */

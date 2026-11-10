@@ -7,8 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   type ScrollViewInstance,
+  type TextInputInstance,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +22,7 @@ import { confirmAsync } from "../../../shared/util/confirm";
 import DishRecommendationCard, {
   type Recommendation,
 } from "../components/DishRecommendationCard";
-
+import { MAX_RECORDING_SECONDS, useSpeechToText } from "../useSpeechToText";
 
 
 type Message = {
@@ -89,7 +91,17 @@ export default function AIAssistantScreen() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const scrollRef = useRef<ScrollViewInstance>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const { addToCart } = useCart();
+
+  // Voice input: the spoken words land in the message box so the customer can check or edit them before sending.
+  const speech = useSpeechToText((text) => {
+    setInput((previous) => (previous.trim() ? `${previous.trim()} ${text}` : text));
+    requestAnimationFrame(() => inputRef.current?.focus());
+  });
+  const listening = speech.phase === "recording";
+  const transcribing = speech.phase === "transcribing";
+  const clock = `${Math.floor(speech.seconds / 60)}:${String(speech.seconds % 60).padStart(2, "0")}`;
 
   const cartLock = useRef(false);
   const [adding, setAdding] = useState(false);
@@ -305,23 +317,77 @@ async function addRecommendation(
         )}
       </ScrollView>
 
+            {speech.error ? (
+        <View style={styles.voiceErrorRow}>
+          <Ionicons name="alert-circle-outline" size={15} color={colors.chiliText} />
+          <Text style={styles.voiceErrorText} accessibilityLiveRegion="polite">{speech.error}</Text>
+          <Pressable onPress={speech.clearError} hitSlop={8} accessibilityLabel="Dismiss" testID="ai-voice-error-close">
+            <Ionicons name="close" size={15} color={colors.stoneText} />
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.inputBar}>
-        <TextInput
-          style={styles.input}
-          placeholder="Ask the assistant…"
-          placeholderTextColor={colors.textFaint}
-          value={input}
-          onChangeText={setInput}
-          onSubmitEditing={() => send(input)}
-          returnKeyType="send"
-        />
+        {listening || transcribing ? (
+          <View style={[styles.input, styles.voicePill]} accessibilityLiveRegion="polite">
+            {listening ? (
+              <>
+                <View style={styles.recDot} />
+                <Text style={styles.voicePillText} numberOfLines={1}>
+                  Listening… {clock}
+                  <Text style={styles.voicePillHint}>
+                    {speech.seconds >= MAX_RECORDING_SECONDS - 10 ? "  (stops at 1:00)" : "  Tap ■ when done"}
+                  </Text>
+                </Text>
+                <Pressable onPress={() => void speech.cancel()} hitSlop={8} accessibilityLabel="Cancel recording" testID="ai-mic-cancel">
+                  <Ionicons name="close-circle" size={20} color={colors.stone} />
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <ActivityIndicator size="small" color={colors.turmericDeep} />
+                <Text style={styles.voicePillText}>Turning speech into text…</Text>
+              </>
+            )}
+          </View>
+        ) : (
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            placeholder="Ask or tap the mic…"
+            placeholderTextColor={colors.textFaint}
+            value={input}
+            onChangeText={(text) => {
+              setInput(text);
+              if (speech.error) speech.clearError();
+            }}
+            onSubmitEditing={() => send(input)}
+            returnKeyType="send"
+          />
+        )}
+
         <Pressable
-          style={[styles.sendBtn, !input.trim() && { opacity: 0.4 }]}
-          disabled={!input.trim()}
-          onPress={() => send(input)}
+          style={[styles.micBtn, listening && styles.micBtnActive, transcribing && { opacity: 0.4 }]}
+          disabled={transcribing}
+          onPress={() => void (listening ? speech.stop() : speech.start())}
+          accessibilityRole="button"
+          accessibilityLabel={listening ? "Stop recording and use what I said" : "Speak your message"}
+          testID="ai-mic"
         >
-          <Ionicons name="arrow-up" size={18} color={colors.white} />
+          <Ionicons name={listening ? "stop" : "mic"} size={18} color={listening ? colors.white : colors.ink} />
         </Pressable>
+
+        {!listening && !transcribing && (
+          <Pressable
+            style={[styles.sendBtn, !input.trim() && { opacity: 0.4 }]}
+            disabled={!input.trim()}
+            onPress={() => send(input)}
+            accessibilityRole="button"
+            accessibilityLabel="Send"
+          >
+            <Ionicons name="arrow-up" size={18} color={colors.white} />
+          </Pressable>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -403,4 +469,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+    micBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  micBtnActive: { backgroundColor: colors.chili, borderColor: colors.chili },
+  voicePill: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
+  recDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.chili },
+  voicePillText: { flex: 1, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.ink },
+  voicePillHint: { fontFamily: fonts.serif, fontSize: 12.5, color: colors.stoneText },
+  voiceErrorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.xs,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.chiliSoft,
+  },
+  voiceErrorText: { flex: 1, fontFamily: fonts.serif, fontSize: 12.5, color: colors.chiliText, lineHeight: 17 },
 });

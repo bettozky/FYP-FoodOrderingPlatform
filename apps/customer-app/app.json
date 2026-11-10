@@ -9,7 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "ScootMeal uses the microphone for calls between customers and restaurants.",
+        "NSMicrophoneUsageDescription": "ScootMeal uses the microphone for calls with restaurants and to let you speak your questions to the assistant.",
         "NSLocationWhenInUseUsageDescription": "ScootMeal uses your location to show nearby stalls and pin where to deliver your order."
       }
     },
@@ -45,6 +45,12 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "ScootMeal uses your location to show nearby stalls and pin where to deliver your order."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "ScootMeal uses the microphone for calls with restaurants and to let you speak your questions to the assistant."
         }
       ]
     ]
