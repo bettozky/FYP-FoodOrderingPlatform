@@ -23,6 +23,12 @@ import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal"
 import { colors, spacing, type, radius, fonts, shadow } from "../../../shared/theme/theme";
 
 const TABS = ["Sign In", "Sign Up"];
+// What makes ScootMeal different, shown before anyone has logged in (login stays required, FR-1.1).
+const PROMISES: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
+  { icon: "shield-checkmark-outline", text: "You are not charged until the stall confirms" },
+  { icon: "restaurant-outline", text: "Dine-in, takeaway and delivery in one order" },
+  { icon: "calendar-outline", text: "Book a table and pre-order your food" },
+];
 const MIN_AGE = 18; // FR-1.2 (the number is an assumption to confirm with the client; the server enforces it too)
 
 function ageFrom(y: number, m: number, d: number) {
@@ -108,6 +114,16 @@ export default function AuthScreen() {
       <ScrollView contentContainerStyle={styles.outerScroll} keyboardShouldPersistTaps="handled" bounces={false}>
         <View style={[styles.heroWrap, { paddingTop: insets.top + spacing.xl }]}>
           <Image source={require("../../../../assets/images/auth-hero.jpg")} style={styles.hero} />
+          <Text style={styles.brand}>ScootMeal</Text>
+          <Text style={styles.tagline}>Order first. Pay only when the stall says yes.</Text>
+          <View style={styles.points}>
+            {PROMISES.map((p) => (
+              <View key={p.icon} style={styles.pointRow}>
+                <Ionicons name={p.icon} size={16} color={colors.turmeric} />
+                <Text style={styles.pointText}>{p.text}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -221,10 +237,15 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   outerScroll: { flexGrow: 1, backgroundColor: colors.ink },
   heroWrap: { alignItems: "center", paddingTop: spacing.xxl, paddingBottom: 56 },
+  brand: { fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, marginTop: spacing.md },
+  tagline: { fontFamily: fonts.display, fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 4, textAlign: "center", paddingHorizontal: spacing.xl },
+  points: { marginTop: spacing.md, gap: 8, paddingHorizontal: spacing.xl },
+  pointRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  pointText: { fontFamily: fonts.display, fontSize: 13, color: "rgba(255,255,255,0.9)", flexShrink: 1 },
   hero: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     borderWidth: 4,
     borderColor: "rgba(255,255,255,0.15)",
   },

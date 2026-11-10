@@ -99,7 +99,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       <ScreenHeader title="Live tracking" subtitle={`Order #${orderId}`} />
 
       <View style={styles.mapWrap}>
-        <MapView style={StyleSheet.absoluteFill} initialRegion={INITIAL_REGION}>
+        <MapView style={StyleSheet.absoluteFill} initialRegion={{ ...INITIAL_REGION, latitude: dest.lat, longitude: dest.lng }}>
           <UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} />
 
           {tracking?.rider && (

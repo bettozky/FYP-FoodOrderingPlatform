@@ -1,5 +1,5 @@
 // End-to-end API smoke test. Start the backend first with short timers:
-//   ORDER_RESPONSE_MS=3000 PAYMENT_WINDOW_MS=3000 CALL_RING_MS=2000 RESERVATION_RESPONSE_MS=3000 DELIVERY_STAGE_MS=500 npm run dev
+//   ENABLE_DEV_RESET=1 ORDER_RESPONSE_MS=3000 PAYMENT_WINDOW_MS=3000 CALL_RING_MS=2000 RESERVATION_RESPONSE_MS=3000 DELIVERY_STAGE_MS=500 npm run dev
 // then run:  node tests/smoke.mjs
 const API = process.env.API_URL ?? "http://localhost:3001";
 let fails = 0;

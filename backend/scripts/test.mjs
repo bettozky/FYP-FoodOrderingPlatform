@@ -13,7 +13,7 @@ const only = process.argv[2];
 async function runFile(file) {
   const extra = Object.fromEntries((/^\/\/ env: (.+)$/m.exec(readFileSync(resolve(root, "tests", file), "utf8"))?.[1] ?? "").split(/\s+/).filter(Boolean).map((kv) => kv.split("=")));
   const env = {
-    ...process.env, PORT, NODE_ENV: "test", ORDER_RESPONSE_MS: "3000", PAYMENT_WINDOW_MS: "3000", CALL_RING_MS: "2000",
+    ...process.env, PORT, NODE_ENV: "test", ENABLE_DEV_RESET: "1", ORDER_RESPONSE_MS: "3000", PAYMENT_WINDOW_MS: "3000", CALL_RING_MS: "2000",
     RESERVATION_RESPONSE_MS: "3000", DELIVERY_STAGE_MS: "500", SEED_DEMO_DATA: "true", OPENAI_API_KEY: "", AUTH_RATE_PER_MIN: "1000",
     SUPABASE_URL: "", SUPABASE_SERVICE_ROLE_KEY: "", DATABASE_URL: process.env.TEST_DATABASE_URL ?? "", ...extra,
   };

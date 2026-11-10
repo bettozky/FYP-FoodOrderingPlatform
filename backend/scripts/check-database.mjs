@@ -18,7 +18,7 @@ const call = async (method, path, token, body) => {
 };
 
 function start() {
-  const server = spawn("npx", ["tsx", "src/server.ts"], { cwd: root, detached: true, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, PORT, DATABASE_URL: url, NODE_ENV: "test", PERSIST_INTERVAL_MS: "500", OPENAI_API_KEY: "", SUPABASE_URL: "", SUPABASE_SERVICE_ROLE_KEY: "" } });
+  const server = spawn("npx", ["tsx", "src/server.ts"], { cwd: root, detached: true, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, PORT, DATABASE_URL: url, NODE_ENV: "test", ENABLE_DEV_RESET: "1", PERSIST_INTERVAL_MS: "500", OPENAI_API_KEY: "", SUPABASE_URL: "", SUPABASE_SERVICE_ROLE_KEY: "" } });
   server.log = "";
   server.stdout.on("data", (d) => (server.log += d));
   server.stderr.on("data", (d) => (server.log += d));

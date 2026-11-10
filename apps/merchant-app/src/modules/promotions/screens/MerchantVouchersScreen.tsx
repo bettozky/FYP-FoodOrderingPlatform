@@ -42,6 +42,15 @@ const fromApi = (v: any): Voucher => ({
   isActive: v.active,
 });
 
+
+/** One month from today, as YYYY-MM-DD, so the form never starts with a date in the past. */
+function defaultExpiry(): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export default function MerchantVouchersScreen() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [message, setMessage] = useState("");
@@ -58,7 +67,7 @@ export default function MerchantVouchersScreen() {
   const [discountValue, setDiscountValue] = useState("");
   const [minSpend, setMinSpend] = useState("");
   const [totalLimit, setTotalLimit] = useState("");
-  const [expiryDate, setExpiryDate] = useState("2026-10-31");
+  const [expiryDate, setExpiryDate] = useState(defaultExpiry());
 
   // Summary calculation metrics
   const totalCostSpent = vouchers.reduce((acc, curr) => acc + curr.costSpent, 0);
@@ -310,7 +319,7 @@ export default function MerchantVouchersScreen() {
               <Text style={styles.inputLabel}>Expiry Date (YYYY-MM-DD)</Text>
               <TextInput
                 style={styles.input}
-                placeholder="2026-10-31"
+                placeholder="YYYY-MM-DD"
                 value={expiryDate}
                 onChangeText={setExpiryDate}
               />

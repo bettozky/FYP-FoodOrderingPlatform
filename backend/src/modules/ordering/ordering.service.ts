@@ -20,6 +20,30 @@ export interface NewOrderInput {
   voucherId?: string;
 }
 
+/** Portions of a dish already promised to other customers: orders the restaurant confirmed that are still inside their payment window. */
+function reservedQty(dishId: string, exceptOrderId?: string): number {
+  const now = Date.now();
+  let n = 0;
+  for (const o of db.orders.values()) {
+    if (o.id === exceptOrderId || o.status !== "awaiting_payment" || !o.payBy || o.payBy < now) continue;
+    for (const i of o.items) if (i.dishId === dishId && i.status !== "cancelled") n += i.qty;
+  }
+  return n;
+}
+
+/** Throws when the shelf cannot cover this order, counting what is already reserved for other confirmed orders. */
+function assertStock(o: { id?: string; items: { dishId: string; name: string; qty: number }[] }) {
+  const need = new Map<string, { name: string; qty: number }>();
+  for (const i of o.items) need.set(i.dishId, { name: i.name, qty: (need.get(i.dishId)?.qty ?? 0) + i.qty });
+  for (const [dishId, line] of need) {
+    const d = db.dishes.get(dishId);
+    if (!d || d.soldOut) throw new HttpError(409, `${line.name} just sold out. Cancel this order and pick something else.`);
+    if (d.stock === undefined) continue;
+    const left = d.stock - reservedQty(dishId, o.id);
+    if (left < line.qty) throw new HttpError(409, left > 0 ? `Only ${left} ${line.name} left. Please lower the quantity.` : `${line.name} just sold out. Cancel this order and pick something else.`);
+  }
+}
+
 export function placeOrder(inp: NewOrderInput): Order {
   const customer = db.users.get(inp.customerId)!;
   const m = db.merchants.get(inp.merchantId);
@@ -41,6 +65,8 @@ export function placeOrder(inp: NewOrderInput): Order {
     items.push({ id: uid("i"), dishId: dish.id, name: dish.name, price: dish.price, qty, mode: line.mode, options, status: "preparing" });
   }
 
+  assertStock({ items });
+
   const hasDelivery = items.some((i) => i.mode === "delivery");
   if (hasDelivery) {
     const a = inp.address;
@@ -49,7 +75,7 @@ export function placeOrder(inp: NewOrderInput): Order {
   const subtotal = money(items.reduce((s, i) => s + i.price * i.qty, 0));
   const deliveryFee = hasDelivery ? env.deliveryFee : 0; // one fee for the whole mixed order (FR-2.3)
 
-  const discount = voucherDiscount(inp.voucherId, m.id, items, subtotal);
+  const discount = voucherDiscount(inp.voucherId, m.id, items, subtotal, customer.id);
   const total = money(subtotal + deliveryFee - discount);
 
   // Nothing is charged here. The restaurant sees the request first (FR-5.5), and the
@@ -68,7 +94,7 @@ export function placeOrder(inp: NewOrderInput): Order {
 }
 
 /** Checks a voucher against a basket and returns the discount in RM. Throws when it cannot be used. */
-function voucherDiscount(voucherId: string | undefined, merchantId: string, items: OrderItem[], subtotal: number): number {
+function voucherDiscount(voucherId: string | undefined, merchantId: string, items: OrderItem[], subtotal: number, customerId: string, exceptOrderId?: string): number {
   if (!voucherId) return 0;
   const v = db.vouchers.find((x) => x.id === voucherId);
   if (!v || (v.merchantId && v.merchantId !== merchantId)) throw new HttpError(400, "That voucher is not valid here");
@@ -77,6 +103,11 @@ function voucherDiscount(voucherId: string | undefined, merchantId: string, item
     throw new HttpError(400, `Voucher needs a ${v.requireCategory} dish in your order`);
   if (!v.active || (v.expiryDate && v.expiryDate < new Date().toISOString().slice(0, 10)) || (v.totalLimit !== undefined && v.claimed >= v.totalLimit))
     throw new HttpError(400, "That voucher is no longer available");
+  // One use per customer. Requests that were declined, expired or cancelled give the voucher back.
+  const FREED = ["rejected", "expired", "cancelled"];
+  for (const other of db.orders.values())
+    if (other.customerId === customerId && other.voucherId === voucherId && other.id !== exceptOrderId && !FREED.includes(other.status))
+      throw new HttpError(409, "You already used this voucher. Each voucher can be used once per customer.");
   return money(Math.min(v.kind === "percent" ? (subtotal * v.amount) / 100 : v.amount, subtotal));
 }
 
@@ -95,7 +126,8 @@ export function merchantRespond(o: Order, accept: boolean) {
   if (o.status !== "awaiting_merchant") throw new HttpError(409, "This order was already answered");
   if (Date.now() > o.respondBy) throw new HttpError(409, "The 10-minute window has passed. The request was cancelled.");
   if (accept) {
-    // Confirmed by the restaurant. The customer now confirms by paying; stock only moves after that.
+    // Confirming holds the portions for this customer during the payment window, so two customers cannot both be promised the last one.
+    assertStock(o);
     o.status = "awaiting_payment";
     o.acceptedAt = Date.now();
     o.payBy = o.acceptedAt + env.paymentWindowMs;
@@ -116,12 +148,9 @@ export function payOrder(o: Order, input: PayInput) {
   if (method !== "card" && method !== "fpx" && method !== "cash") throw new HttpError(400, "Choose card, FPX or cash");
   if (o.status !== "awaiting_payment") throw new HttpError(409, o.status === "awaiting_merchant" ? "Wait for the restaurant to confirm first" : "This order cannot be paid");
   if (!o.payBy || Date.now() > o.payBy) throw new HttpError(409, "The payment window has passed. Please send a new order.");
-  for (const i of o.items) {
-    const d = db.dishes.get(i.dishId);
-    if (!d || d.soldOut || (d.stock !== undefined && d.stock < i.qty)) throw new HttpError(409, `${i.name} just sold out. Cancel this order and pick something else.`);
-  }
+  assertStock(o);
   const v = o.voucherId ? db.vouchers.find((x) => x.id === o.voucherId) : undefined;
-  if (v) voucherDiscount(v.id, o.merchantId, o.items, o.subtotal); // still valid? throws if not
+  if (v) voucherDiscount(v.id, o.merchantId, o.items, o.subtotal, o.customerId, o.id); // still valid? throws if not
   if (method === "cash" && o.items.some((i) => i.mode === "delivery")) throw new HttpError(400, "Cash is only for dine-in and takeaway. Pay by card or FPX for delivery.");
   if (method === "cash") {
     o.cashDue = o.total; // nothing is charged now: the customer pays at the stall when collecting

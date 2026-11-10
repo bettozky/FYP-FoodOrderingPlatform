@@ -1,6 +1,6 @@
 # ScootMeal Customer App (Expo / React Native)
 
-Dish-first food ordering app for customers, running on mock data until the backend is connected.
+Dish-first food ordering app for customers. It talks to the ScootMeal backend (orders, reservations, reviews, jobs, announcements, favourites, addresses and loyalty are all saved there).
 
 ## Run
 
@@ -11,7 +11,9 @@ npm start          # Expo Go on a phone
 npm run android
 ```
 
-The AI assistant calls the backend at `EXPO_PUBLIC_API_URL` (default `http://localhost:3001`). On a real phone set it to your PC's LAN IP.
+The app calls the backend at `EXPO_PUBLIC_API_URL` (default `http://localhost:3001`). On a real phone set it to your PC's LAN IP, for example in `.env`: `EXPO_PUBLIC_API_URL=http://192.168.x.x:3001`.
+
+Demo login: `demo@scootmeal.test` / `demo123`. A slide-out menu (the ☰ button on Home, or swipe from the left edge) opens Jobs, Announcements, notifications, favourites, reviews and your profile.
 
 ## Structure
 
@@ -36,10 +38,5 @@ Put new work in the module it belongs to. Shared pieces used by several modules 
 
 ## Next steps
 
-- Loyalty points are worked out from completed orders in `modules/loyalty/points.ts`. Switch it to the backend loyalty ledger when that endpoint exists.
-- Real auth (JWT) and Stripe payment in checkout.
-- Dine-in: reservation with pre-order, "food ready" pop-up with phone buzz (FR-2.7, FR-3.x).
-- Per-item Delivery / Dine-in mode in the cart (FR-2.3).
-
-## Backend required
-This app talks to the real backend. Start it first (`backend`, port 3001) and set `EXPO_PUBLIC_API_URL` to its address. Live updates use 2 s polling and server time for all countdowns. See `docs/RUNNING.md` for demo logins.
+- Test every screen on real phones against a live Supabase project.
+- Real payment (Stripe) and delivery tracking once the client confirms the providers.
