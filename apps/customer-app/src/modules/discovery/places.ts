@@ -1,7 +1,9 @@
 import type { Merchant } from "../../shared/api/types";
 
 /** A place to order to. Saved addresses (from the server) also have an id; shop places do not. */
-export type Address = { id?: string; label: string; line: string; lat: number; lng: number; note?: string; isDefault?: boolean };
+export type Address = { id?: string; label: string; line: string; lat: number; lng: number; note?: string; isDefault?: boolean;
+  /** Chosen on the map picker (or live location) in this session: the customer must confirm the pin before ordering. */
+  pinned?: boolean };
 
 /**
  * Groups shops by the place before the comma in their stall number ("Canteen A, Stall 3" -> "Canteen A")

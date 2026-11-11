@@ -23,6 +23,7 @@ import { notificationsRouter } from "./modules/notifications/notifications.route
 import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.routes.js";
 import { merchantReviewsRouter, reviewsRouter } from "./modules/reviews/reviews.routes.js";
 import { applicationsRouter, jobsRouter, merchantApplicationsRouter } from "./modules/jobs/jobs.routes.js";
+import { geoRouter } from "./modules/geo/geo.routes.js";
 import { filesRouter } from "./modules/jobs/files.routes.js";
 import { adminAnnouncementsRouter, announcementsRouter, merchantAnnouncementsRouter } from "./modules/announcements/announcements.routes.js";
 import { avatarRouter, uploadsRouter } from "./modules/uploads/uploads.routes.js";
@@ -63,6 +64,7 @@ app.use("/api/reservations", reservationsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/delivery", deliveryRouter);
 app.use("/api/addresses", addressesRouter);
+app.use("/api/geo", geoRouter);
 app.use("/api/favourites", favouritesRouter);
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/reviews", reviewsRouter);
