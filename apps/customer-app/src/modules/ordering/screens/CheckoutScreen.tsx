@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from "react-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "../CartContext";
-import { useCatalog } from "../../discovery/CatalogContext";
+import { useCatalog, MY_LOCATION_LABEL } from "../../discovery/CatalogContext";
+import LocationMap from "../../../shared/location/LocationMap";
 import { useLive } from "../LiveDataContext";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
@@ -20,7 +21,7 @@ export function formatCard(raw: string) {
 
 export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
-  const { addresses, address, setAddress } = useCatalog();
+  const { addresses, address, setAddress, myLocation, locating, locationError, startLiveLocation } = useCatalog();
   const { refresh } = useLive();
   const insets = useSafeAreaInsets();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -28,6 +29,12 @@ export default function CheckoutScreen({ navigation }: any) {
   const [note, setNote] = useState("");
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
+  // A live pin has to be confirmed before the order goes out. Confirming applies to exactly the spot on the map,
+  // so moving the pin or choosing another address asks again.
+  const usingPin = hasDelivery && address.label === MY_LOCATION_LABEL;
+  const [pinOk, setPinOk] = useState(false);
+  useEffect(() => { setPinOk(false); }, [address.lat, address.lng, address.label]);
+  const needsPinOk = usingPin && !pinOk;
 
   // A saved address can carry a standing note ("Room 2-14, call on arrival"); start from it.
   useEffect(() => {
@@ -68,6 +75,7 @@ export default function CheckoutScreen({ navigation }: any) {
 
   async function placeOrder() {
     if (!merchant) return;
+    if (needsPinOk) { setError("Please confirm the delivery pin on the map first."); return; }
     setPlacing(true);
     setError("");
     try {
@@ -135,6 +143,21 @@ export default function CheckoutScreen({ navigation }: any) {
                   </Pressable>
                 );
               })}
+              <Pressable style={styles.locateBtn} onPress={startLiveLocation} disabled={locating} accessibilityRole="button" testID="checkout-use-location">
+                <Ionicons name="navigate" size={16} color={colors.ink} />
+                <Text style={styles.locateText}>{locating ? "Finding you…" : usingPin ? "Update my location" : "Use my current location"}</Text>
+              </Pressable>
+              {locationError ? <Text style={[type.small, { color: colors.chili }]}>{locationError}</Text> : null}
+              {usingPin ? (
+                <View style={styles.pinCard} testID="checkout-pin-card">
+                  <LocationMap lat={address.lat} lng={address.lng} height={160} />
+                  <Text style={type.small}>The rider will bring your order to this pin. Check it is the right spot, then confirm.</Text>
+                  <Pressable style={styles.confirmRow} onPress={() => setPinOk((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: pinOk }} testID="confirm-pin">
+                    <View style={[styles.checkbox, pinOk && styles.checkboxOn]}>{pinOk ? <Ionicons name="checkmark" size={14} color={colors.ink} /> : null}</View>
+                    <Text style={[type.body, { flex: 1 }]}>Yes, deliver to this pin</Text>
+                  </Pressable>
+                </View>
+              ) : null}
               <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Room / notes for the rider (optional)" placeholderTextColor={colors.textFaint} />
             </View>
           </>
@@ -175,8 +198,8 @@ export default function CheckoutScreen({ navigation }: any) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Pressable style={[ui.buttonAccent, placing && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing }}>
-          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
+        <Pressable style={[ui.buttonAccent, (placing || needsPinOk) && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing || needsPinOk} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk }}>
+          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
         </Pressable>
       </View>
     </View>
@@ -198,6 +221,12 @@ const styles = StyleSheet.create({
   optionOn: { borderColor: colors.turmeric, backgroundColor: colors.amberTint },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
+  locateBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.lg, backgroundColor: colors.amberTint, borderWidth: 1, borderColor: colors.turmeric },
+  locateText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
+  pinCard: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, gap: spacing.sm },
+  confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 40 },
+  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  checkboxOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
   input: { backgroundColor: colors.paper, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
   errorBox: { flexDirection: "row", gap: spacing.sm, alignItems: "center", backgroundColor: colors.chiliSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
   errorText: { flex: 1, color: colors.chili, fontFamily: fonts.display, fontSize: 13 },
