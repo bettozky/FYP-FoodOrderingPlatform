@@ -71,6 +71,10 @@ export const env = {
   sessionDays: num(process.env.SESSION_DAYS, 30),
   /** Failed-login / AI-chat rate limit: requests per minute per IP. */
   authRatePerMin: num(process.env.AUTH_RATE_PER_MIN, 30),
+  // ---- address search and "address from pin" (OpenStreetMap Nominatim; free, about one request per second) ----
+  geoBaseUrl: (text(process.env.GEO_BASE_URL) ?? "https://nominatim.openstreetmap.org").replace(/\/+$/, ""),
+  geoUserAgent: text(process.env.GEO_USER_AGENT) ?? "ScootMeal-FYP/1.0 (student project)",
+  geoMinGapMs: num(process.env.GEO_MIN_GAP_MS, 1100),
   aiRatePerMin: num(process.env.AI_RATE_PER_MIN, 20),
 
   // ---- business rules (FR / NFR references in docs/requirements) ----

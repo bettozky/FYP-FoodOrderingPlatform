@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "../CartContext";
 import { useCatalog, MY_LOCATION_LABEL } from "../../discovery/CatalogContext";
 import LocationMap from "../../../shared/location/LocationMap";
+import AddressPicker from "../../discovery/components/AddressPicker";
 import { useLive } from "../LiveDataContext";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
@@ -21,7 +22,7 @@ export function formatCard(raw: string) {
 
 export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
-  const { addresses, address, setAddress, myLocation, locating, locationError, startLiveLocation } = useCatalog();
+  const { addresses, address, setAddress } = useCatalog();
   const { refresh } = useLive();
   const insets = useSafeAreaInsets();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -31,7 +32,8 @@ export default function CheckoutScreen({ navigation }: any) {
   const [error, setError] = useState("");
   // A live pin has to be confirmed before the order goes out. Confirming applies to exactly the spot on the map,
   // so moving the pin or choosing another address asks again.
-  const usingPin = hasDelivery && address.label === MY_LOCATION_LABEL;
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const usingPin = hasDelivery && (address.label === MY_LOCATION_LABEL || !!address.pinned);
   const [pinOk, setPinOk] = useState(false);
   useEffect(() => { setPinOk(false); }, [address.lat, address.lng, address.label]);
   const needsPinOk = usingPin && !pinOk;
@@ -102,6 +104,7 @@ export default function CheckoutScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <AddressPicker visible={pickerOpen} initial={address} onClose={() => setPickerOpen(false)} onConfirm={(a) => { setAddress(a); setPickerOpen(false); }} />
       <ScreenHeader title="Checkout" subtitle={merchant.name} />
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         <OrderSteps current={0} />
@@ -133,7 +136,11 @@ export default function CheckoutScreen({ navigation }: any) {
           <>
             <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Delivery address</Text>
             <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-              {addresses.map((a) => {
+              <Pressable style={styles.mapBtn} onPress={() => setPickerOpen(true)} accessibilityRole="button" testID="choose-on-map">
+                <Ionicons name="map" size={16} color={colors.paper} />
+                <Text style={styles.mapBtnText}>Add address</Text>
+              </Pressable>
+              {(address.pinned && !addresses.some((a) => a.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
                 const on = a.line === address.line;
                 return (
                   <Pressable key={a.line} onPress={() => setAddress(a)} style={[styles.option, on && styles.optionOn]}>
@@ -143,19 +150,19 @@ export default function CheckoutScreen({ navigation }: any) {
                   </Pressable>
                 );
               })}
-              <Pressable style={styles.locateBtn} onPress={startLiveLocation} disabled={locating} accessibilityRole="button" testID="checkout-use-location">
-                <Ionicons name="navigate" size={16} color={colors.ink} />
-                <Text style={styles.locateText}>{locating ? "Finding you…" : usingPin ? "Update my location" : "Use my current location"}</Text>
-              </Pressable>
-              {locationError ? <Text style={[type.small, { color: colors.chili }]}>{locationError}</Text> : null}
-              {usingPin ? (
+              {Number.isFinite(address.lat) ? (
                 <View style={styles.pinCard} testID="checkout-pin-card">
-                  <LocationMap lat={address.lat} lng={address.lng} height={160} />
-                  <Text style={type.small}>The rider will bring your order to this pin. Check it is the right spot, then confirm.</Text>
-                  <Pressable style={styles.confirmRow} onPress={() => setPinOk((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: pinOk }} testID="confirm-pin">
+                  <LocationMap lat={address.lat} lng={address.lng} height={usingPin ? 160 : 110} />
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+                    <Ionicons name="location" size={16} color={colors.turmericDeep} />
+                    <Text style={[type.body, { flex: 1 }]} numberOfLines={3} testID="checkout-address-line">{address.line}</Text>
+                    <Pressable onPress={() => setPickerOpen(true)} hitSlop={8} accessibilityRole="button" testID="change-address"><Text style={styles.changeText}>Change</Text></Pressable>
+                  </View>
+                  {usingPin ? <Text style={type.small}>The rider will bring your order to this pin. Check it is the right spot, then confirm.</Text> : null}
+                  {usingPin ? <Pressable style={styles.confirmRow} onPress={() => setPinOk((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: pinOk }} testID="confirm-pin">
                     <View style={[styles.checkbox, pinOk && styles.checkboxOn]}>{pinOk ? <Ionicons name="checkmark" size={14} color={colors.ink} /> : null}</View>
                     <Text style={[type.body, { flex: 1 }]}>Yes, deliver to this pin</Text>
-                  </Pressable>
+                  </Pressable> : null}
                 </View>
               ) : null}
               <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Room / notes for the rider (optional)" placeholderTextColor={colors.textFaint} />
@@ -221,8 +228,9 @@ const styles = StyleSheet.create({
   optionOn: { borderColor: colors.turmeric, backgroundColor: colors.amberTint },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
-  locateBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.lg, backgroundColor: colors.amberTint, borderWidth: 1, borderColor: colors.turmeric },
-  locateText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
+  mapBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 46, borderRadius: radius.pill, backgroundColor: colors.ink },
+  mapBtnText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.paper },
+  changeText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
   pinCard: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, gap: spacing.sm },
   confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 40 },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.border, alignItems: "center", justifyContent: "center" },

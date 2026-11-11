@@ -14,7 +14,7 @@ import StallCard from "../components/StallCard";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
-import LocationMap from "../../../shared/location/LocationMap";
+import AddressPicker from "../components/AddressPicker";
 import PromoBanner from "../components/PromoBanner";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
@@ -37,7 +37,7 @@ type Row = { kind: "stall"; merchant: Merchant } | { kind: "dish"; dish: Dish };
 export default function HomeScreen({ navigation }: any) {
   const { name } = useAuth();
   const { addToCart, itemCount } = useCart();
-  const { merchants, merchantById, addresses, address, setAddress, loadError, myLocation, locating, locationError, startLiveLocation, stopLiveLocation } = useCatalog();
+  const { merchants, merchantById, addresses, address, setAddress, loadError } = useCatalog();
   const liveOn = address.label === "My location";
   const insets = useSafeAreaInsets();
   const list = useRef<FlatList<Row>>(null);
@@ -51,6 +51,7 @@ export default function HomeScreen({ navigation }: any) {
   const [allDishes, setAllDishes] = useState<Dish[]>([]);
   const [error, setError] = useState("");
   const [pickAddress, setPickAddress] = useState(false);
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const unread = useLive().notifications.length;
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -358,29 +359,19 @@ export default function HomeScreen({ navigation }: any) {
         </Pressable>
       </Modal>
 
+      <AddressPicker visible={mapPickerOpen} initial={address} onClose={() => setMapPickerOpen(false)} onConfirm={(a) => { setAddress(a); setMapPickerOpen(false); }} />
+
       <Modal visible={pickAddress} transparent animationType="fade" onRequestClose={() => setPickAddress(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setPickAddress(false)}>
           <View style={styles.modalCard}>
             <Text style={type.h2}>Deliver to</Text>
             <Text style={[type.bodyMuted, { marginBottom: spacing.sm }]}>Distances to stalls are measured from here.</Text>
-            {myLocation ? (
-              <View style={{ marginBottom: spacing.sm }}>
-                <LocationMap lat={myLocation.lat} lng={myLocation.lng} height={150} />
-                <View style={styles.liveRow}>
-                  <View style={styles.liveDotSm} />
-                  <Text style={[type.bodyMuted, { flex: 1 }]}>Sharing your live location with ScootMeal. The pin moves as you do.</Text>
-                  <Pressable onPress={stopLiveLocation} hitSlop={8} accessibilityRole="button" testID="location-stop"><Text style={styles.linkText}>Turn off</Text></Pressable>
-                </View>
-              </View>
-            ) : (
-              <Pressable style={styles.locateBtn} onPress={startLiveLocation} disabled={locating} accessibilityRole="button" testID="use-my-location">
-                <Ionicons name="navigate" size={16} color={colors.ink} />
-                <Text style={styles.locateText}>{locating ? "Finding you…" : "Use my current location"}</Text>
-              </Pressable>
-            )}
-            {locationError ? <Text style={[type.bodyMuted, { color: colors.danger ?? "#B3261E", marginBottom: spacing.sm }]}>{locationError}</Text> : null}
+            <Pressable style={styles.mapPickBtn} onPress={() => { setPickAddress(false); setMapPickerOpen(true); }} accessibilityRole="button" testID="home-choose-on-map">
+              <Ionicons name="map" size={16} color={colors.paper} />
+              <Text style={styles.mapPickText}>Add address</Text>
+            </Pressable>
             {addresses.length === 0 ? <Text style={type.bodyMuted}>Loading places…</Text> : null}
-            {addresses.map((a) => {
+            {(address.pinned && !addresses.some((x) => x.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
               const on = a.line === address.line;
               return (
                 <Pressable key={a.line} style={[styles.addrOption, on && styles.addrOptionOn]} onPress={() => { setAddress(a); setPickAddress(false); }} testID={`address-${a.label}`}>
@@ -407,10 +398,8 @@ const styles = StyleSheet.create({
   liveChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#E4F4EA", borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1 },
   liveChipText: { fontFamily: fonts.displayBold, fontSize: 10, color: "#1E6B43" },
   liveDotSm: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#22A55A" },
-  liveRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: spacing.sm },
-  linkText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
-  locateBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.md, backgroundColor: colors.amberTint, marginBottom: spacing.sm },
-  locateText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
+  mapPickBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.pill, backgroundColor: colors.ink, marginBottom: spacing.sm },
+  mapPickText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.paper },
   addrText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
   cartBadge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.paper },
   cartBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
