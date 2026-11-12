@@ -17,11 +17,13 @@ async function runFile(file) {
     RESERVATION_RESPONSE_MS: "3000", DELIVERY_STAGE_MS: "500", SEED_DEMO_DATA: "true", OPENAI_API_KEY: "", AUTH_RATE_PER_MIN: "1000",
     SUPABASE_URL: "", SUPABASE_SERVICE_ROLE_KEY: "", DATABASE_URL: process.env.TEST_DATABASE_URL ?? "", ...extra,
   };
-  const server = spawn("npx", ["tsx", "src/server.ts"], { cwd: root, env, stdio: ["ignore", "pipe", "pipe"], detached: true });
+  // Runs node with tsx directly (not "npx tsx"): npx is npx.cmd on Windows, which spawn cannot start, and it would add a second process to stop.
+  const win = process.platform === "win32";
+  const server = spawn(process.execPath, ["--import", "tsx", "src/server.ts"], { cwd: root, env, stdio: ["ignore", "pipe", "pipe"], detached: !win });
   let log = "";
   server.stdout.on("data", (d) => (log += d));
   server.stderr.on("data", (d) => (log += d));
-  const stop = () => new Promise((res) => { server.on("exit", res); try { process.kill(-server.pid, "SIGTERM"); } catch { res(); } setTimeout(res, 3000); });
+  const stop = () => new Promise((res) => { server.on("exit", res); try { win ? server.kill() : process.kill(-server.pid, "SIGTERM"); } catch { res(); } setTimeout(res, 3000); });
   let up = false;
   for (let i = 0; i < 60 && !up; i++) {
     await new Promise((r) => setTimeout(r, 500));
