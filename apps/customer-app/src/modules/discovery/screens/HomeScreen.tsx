@@ -18,6 +18,9 @@ import AddressPicker from "../components/AddressPicker";
 import PromoBanner from "../components/PromoBanner";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
+import PressableScale from "../../../shared/motion/PressableScale";
+import FadeInView from "../../../shared/motion/FadeInView";
+import { DishRowSkeleton, DishTileSkeleton } from "../../../shared/motion/Skeleton";
 
 // Home, from Badrul's mock-up (Oct 2026):
 // "Deliver to" + cart → "Hi <name>, what are you craving?" → search + filter button
@@ -56,8 +59,12 @@ export default function HomeScreen({ navigation }: any) {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // The full menu: categories, stall pictures and "Popular near you" come from it.
+  const [menuLoaded, setMenuLoaded] = useState(false);
   useEffect(() => {
-    api<{ dishes: Dish[] }>("GET", "/dishes").then((r) => setAllDishes(r.dishes)).catch(() => {});
+    api<{ dishes: Dish[] }>("GET", "/dishes")
+      .then((r) => setAllDishes(r.dishes))
+      .catch(() => {})
+      .finally(() => setMenuLoaded(true));
   }, []);
   const categories = useMemo(() => categoriesFromDishes(allDishes), [allDishes]);
   useEffect(() => {
@@ -252,10 +259,14 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={ui.link}>See all</Text>
             </Pressable>
           </View>
-          {popular.length ? (
+          {!menuLoaded ? (
+            <DishTileSkeleton />
+          ) : popular.length ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularRow}>
-              {popular.map((d) => (
-                <DishCard key={d.id} variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+              {popular.map((d, i) => (
+                <FadeInView key={d.id} index={i} from="right">
+                  <DishCard variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+                </FadeInView>
               ))}
             </ScrollView>
           ) : (
@@ -286,19 +297,27 @@ export default function HomeScreen({ navigation }: any) {
         ListEmptyComponent={
           gridMode ? (
             <EmptyState icon="search-outline" title="No dishes match your search" hint="Try a different search or remove a filter." />
+          ) : merchants.length === 0 && !loadError ? (
+            <View style={{ paddingHorizontal: spacing.lg }}>
+              <DishRowSkeleton count={3} />
+            </View>
           ) : (
             <EmptyState icon="storefront-outline" title="No stalls here yet" hint={venue ? "Try another category." : "Stalls appear here once they are approved."} />
           )
         }
         renderItem={({ item, index }) => {
           if (item.kind === "stall") {
-            return <StallCard merchant={item.merchant} image={stallImage[item.merchant.id]} onPress={() => navigation.navigate("Stall", { merchantId: item.merchant.id })} />;
+            return (
+              <FadeInView index={index}>
+                <StallCard merchant={item.merchant} image={stallImage[item.merchant.id]} onPress={() => navigation.navigate("Stall", { merchantId: item.merchant.id })} />
+              </FadeInView>
+            );
           }
           const lastAlone = index === rows.length - 1 && rows.length % 2 === 1;
           return (
-            <View style={lastAlone ? styles.gridCellAlone : styles.gridCell}>
+            <FadeInView index={index} style={lastAlone ? styles.gridCellAlone : styles.gridCell}>
               <DishCard variant="grid" dish={item.dish} merchant={merchantById[item.dish.merchantId]} onPress={() => openDish(item.dish)} onAdd={() => addDish(item.dish)} />
-            </View>
+            </FadeInView>
           );
         }}
       />

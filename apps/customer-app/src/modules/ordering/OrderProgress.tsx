@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Order } from "../../shared/api/types";
 import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
+import PulseRing, { PopOnChange } from "../../shared/motion/PulseRing";
+import FadeInView from "../../shared/motion/FadeInView";
 
 // A vertical "where is my order?" timeline (inspired by the wireframes' Order Progress screen).
 // Every step is DERIVED from fields the order already has, so nothing here is invented.
@@ -52,16 +54,25 @@ export default function OrderProgress({ order }: { order: Order }) {
       {steps.map((s, i) => (
         <View key={s.label} style={styles.row} accessible accessibilityLabel={`${s.label}, ${STATE_TEXT[s.state]}`}>
           <View style={styles.rail}>
-            <View style={[styles.dot, s.state === "done" && styles.dotDone, s.state === "current" && styles.dotCurrent]}>
-              {s.state === "done" && <Ionicons name="checkmark" size={13} color={colors.white} />}
-            </View>
+            {/* Animated: the current step pulses; a step pops when it turns done. */}
+            <PopOnChange trigger={s.state}>
+              {s.state === "current" ? (
+                <PulseRing size={22} color={colors.turmeric}>
+                  <View style={[styles.dot, styles.dotCurrent]} />
+                </PulseRing>
+              ) : (
+                <View style={[styles.dot, s.state === "done" && styles.dotDone]}>
+                  {s.state === "done" && <Ionicons name="checkmark" size={13} color={colors.white} />}
+                </View>
+              )}
+            </PopOnChange>
             {i < steps.length - 1 && <View style={[styles.line, s.state === "done" && styles.lineDone]} />}
           </View>
-          <View style={styles.body}>
+          <FadeInView index={i} style={styles.body}>
             <Text style={[styles.label, s.state === "todo" && { color: colors.stoneText, fontFamily: fonts.serifMedium }]}>{s.label}</Text>
             {s.state === "current" && <Text style={type.small}>In progress</Text>}
             {s.time ? <Text style={type.small}>{clock(s.time)}</Text> : null}
-          </View>
+          </FadeInView>
         </View>
       ))}
     </View>

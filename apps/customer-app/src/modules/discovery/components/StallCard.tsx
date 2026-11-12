@@ -1,16 +1,18 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Merchant } from "../../../shared/api/types";
 import { colors, fonts, spacing, ui } from "../../../shared/theme/theme";
+import PressableScale from "../../../shared/motion/PressableScale";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
 
 // Stall row for the "Stalls near you" list on Home ("Browse stalls" scrolls here). Opens the stall menu.
 export default function StallCard({ merchant, image, onPress }: { merchant: Merchant; image?: string; onPress: () => void }) {
   return (
-    <Pressable
+    <PressableScale
+      scaleTo={0.98}
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}
+      style={styles.card}
       accessibilityRole="button"
       accessibilityLabel={`${merchant.name}, ${merchant.stallNo}, rated ${merchant.rating}, ${merchant.openNow ? "open" : "closed"}`}
       testID={`stall-${merchant.id}`}
@@ -30,7 +32,7 @@ export default function StallCard({ merchant, image, onPress }: { merchant: Merc
         </View>
       </View>
       <Ionicons name="chevron-forward" size={16} color={colors.stone} />
-    </Pressable>
+    </PressableScale>
   );
 }
 

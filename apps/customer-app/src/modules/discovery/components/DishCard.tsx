@@ -5,6 +5,7 @@ import { Dish, Merchant } from "../../../shared/api/types";
 import { colors, shadow, spacing, type, fonts, ui } from "../../../shared/theme/theme";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
 import { useFavourites } from "../../favourites/FavouritesContext";
+import PressableScale from "../../../shared/motion/PressableScale";
 
 // One dish, in the two layouts from Badrul's mock-up (Oct 2026):
 //  - "grid": tile for "Popular near you" on Home: picture with the stall's rating on top,
@@ -85,7 +86,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
 
   if (variant === "grid") {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.gridCard, width ? { width } : { flex: 1 }, pressed && { opacity: 0.9 }]} accessibilityRole="button" accessibilityLabel={label} testID={`dish-${dish.id}`}>
+      <PressableScale scaleTo={0.97} onPress={onPress} style={[styles.gridCard, width ? { width } : { flex: 1 }]} accessibilityRole="button" accessibilityLabel={label} testID={`dish-${dish.id}`}>
         <View style={styles.gridImageWrap}>
           <DishImage image={dish.image} size={104} tint={tint} overlay={overlay} style={styles.gridImage} />
           {merchant ? (
@@ -105,12 +106,12 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
             {addButton}
           </View>
         </View>
-      </Pressable>
+      </PressableScale>
     );
   }
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.rowCard, pressed && { opacity: 0.9 }]} accessibilityRole="button" accessibilityLabel={label} testID={`dish-${dish.id}`}>
+    <PressableScale scaleTo={0.98} onPress={onPress} style={styles.rowCard} accessibilityRole="button" accessibilityLabel={label} testID={`dish-${dish.id}`}>
       <DishImage image={dish.image} size={68} tint={tint} overlay={overlay} />
       <View style={styles.rowInfo}>
         <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
@@ -126,7 +127,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
         {heart}
         {addButton}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
