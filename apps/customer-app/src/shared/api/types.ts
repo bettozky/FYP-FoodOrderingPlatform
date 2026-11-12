@@ -31,6 +31,8 @@ export type Order = {
   payBy?: number; paidAt?: number; paymentMethod?: "card" | "fpx" | "cash"; cashDue?: number; cashReceivedAt?: number; cancelReason?: "no_reply" | "not_paid" | "customer";
   decision?: "pending" | "accepted_partial" | "cancelled";
   respondBy: number; createdAt: number; reviewedDishIds: string[]; canReview: boolean;
+  /** Feature 2: minutes until the food should be ready (null when nothing is left to cook), "I'm on my way" time and whether it applies. */
+  readyInMinutes?: number | null; arrivingAt?: number; canSayArriving?: boolean;
 };
 
 export type PreorderItem = { id: string; dishId: string; name: string; price: number; qty: number; status: "pending" | "approved" | "declined" };

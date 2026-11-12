@@ -5,6 +5,7 @@ import { Merchant } from "../../../shared/api/types";
 import { colors, fonts, spacing, ui } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
+import ReadyChip from "./ReadyChip";
 
 // Stall row for the "Stalls near you" list on Home ("Browse stalls" scrolls here). Opens the stall menu.
 export default function StallCard({ merchant, image, onPress }: { merchant: Merchant; image?: string; onPress: () => void }) {
@@ -27,8 +28,8 @@ export default function StallCard({ merchant, image, onPress }: { merchant: Merc
         </View>
         <Text style={styles.sub} numberOfLines={1}>{merchant.stallNo}{merchant.tags.length ? ` · ${merchant.tags.join(" · ")}` : ""}</Text>
         <View style={styles.metaRow}>
-          <Text style={styles.meta}>{merchant.rating.toFixed(1)}★</Text>
-          <Text style={styles.meta}>· {merchant.prepMinutes} min prep · {merchant.distanceKm} km</Text>
+          <ReadyChip merchant={merchant} variant="text" />
+          <Text style={styles.meta}>· {merchant.rating.toFixed(1)}★ · {merchant.distanceKm} km</Text>
         </View>
       </View>
       <Ionicons name="chevron-forward" size={16} color={colors.stone} />

@@ -15,6 +15,7 @@ import { itemBadge, orderBadge } from "../orderStatus";
 import { useReorder } from "../useReorder";
 import OrderProgress from "../OrderProgress";
 import { OrderSteps } from "../components/OrderSteps";
+import OnMyWayCard from "../../arrival/OnMyWayCard";
 
 function Waiting({ order }: { order: Order }) {
   const s = useCountdown(order.respondBy);
@@ -104,6 +105,9 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
         </View>
         {/* Before payment one compact step bar is enough; the full timeline appears once the order is paid. */}
         {stepCurrent !== null && stepCurrent < 3 ? <OrderSteps current={stepCurrent} /> : <OrderProgress order={order} />}
+
+        {/* Feature 2 (Nathan): "I'm 5 min away" for dine-in / takeaway food. Hides itself when it does not apply. */}
+        <OnMyWayCard order={order} onChange={refresh} />
 
         {order.status === "awaiting_merchant" && <Waiting order={order} />}
         {order.status === "awaiting_payment" && <PayCard order={order} onPay={() => navigation.navigate("Pay", { orderId: order.id })} />}

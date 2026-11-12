@@ -36,3 +36,23 @@ export function estimateWait(prepMinutes: number, orders: Iterable<Pick<Order, "
   const waitMinutes = Math.min(MAX_WAIT, prep + queue * Math.ceil(prep / 2));
   return { queue, waitMinutes, busy: busyLevel(waitMinutes, open) };
 }
+
+type QueueOrder = Pick<Order, "id" | "merchantId" | "status" | "items" | "createdAt" | "acceptedAt" | "paidAt">;
+
+/**
+ * Feature 2: minutes until one order should be ready.
+ * Its place in the stall's queue (orders accepted before it) sets the total, and time already spent
+ * cooking (since it was paid) is taken off. Never less than 1 while food is still being made.
+ * null when nothing in the order is left to cook.
+ */
+export function orderReadyMinutes(order: QueueOrder, orders: Iterable<QueueOrder>, prepMinutes: number, now = Date.now()): number | null {
+  if (!isInQueue(order)) return null;
+  const start = (o: QueueOrder) => o.acceptedAt ?? o.createdAt;
+  let ahead = 0;
+  for (const o of orders) if (o.id !== order.id && o.merchantId === order.merchantId && isInQueue(o) && start(o) < start(order)) ahead++;
+  const prep = Math.max(1, Math.round(prepMinutes));
+  const total = Math.min(MAX_WAIT, prep + ahead * Math.ceil(prep / 2));
+  const cookingSince = order.status === "preparing" ? order.paidAt ?? order.acceptedAt : undefined;
+  const elapsed = cookingSince !== undefined ? (now - cookingSince) / 60000 : 0;
+  return Math.max(1, Math.ceil(total - elapsed));
+}

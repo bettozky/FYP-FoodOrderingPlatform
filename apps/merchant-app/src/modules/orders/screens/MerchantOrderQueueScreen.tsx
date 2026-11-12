@@ -12,6 +12,7 @@ import { mmss, useCountdown } from "../../../shared/util/format";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
+import ArrivingBadge from "../../arrival/ArrivingBadge";
 
 type Tone = "primary" | "warning" | "success" | "neutral";
 const ORDER_BADGE: Record<Order["status"], { label: string; tone: Tone }> = {
@@ -74,6 +75,8 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
         <Badge label={b.label} tone={b.tone} />
       </View>
       <Text style={type.bodyMuted}>{order.customerName} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+      {/* Feature 2 (Nathan): customer tapped "I'm 5 min away" */}
+      <ArrivingBadge arrivingAt={order.arrivingAt} active={order.status === "awaiting_payment" || order.status === "preparing"} />
       {order.status === "awaiting_merchant" && <Timer deadline={order.respondBy} />}
       {order.status === "awaiting_payment" && order.payBy && <PayTimer deadline={order.payBy} />}
       {order.decision === "pending" && <Text style={styles.warn}>Waiting for the customer to decide about the out-of-stock item…</Text>}
