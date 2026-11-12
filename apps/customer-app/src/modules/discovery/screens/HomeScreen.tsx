@@ -17,6 +17,7 @@ import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
 import AddressPicker from "../components/AddressPicker";
 import PromoBanner from "../components/PromoBanner";
+import CanteenMapCard from "../components/CanteenMapCard";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
@@ -221,6 +222,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {!gridMode ? <AnnouncementStrip onOpen={() => navigation.navigate("Announcements")} /> : null}
       {!gridMode ? <PromoBanner onBrowse={browseStalls} /> : null}
+      {!gridMode ? <CanteenMapCard merchants={merchants} onPress={() => navigation.navigate("CanteenMap")} /> : null}
 
       {/* Task 2: colourful Meituan-style icon grid (venue types + live map, then food types + shortcuts). */}
       {!gridMode ? (

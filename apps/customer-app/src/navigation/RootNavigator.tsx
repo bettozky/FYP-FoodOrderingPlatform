@@ -6,6 +6,7 @@ import AuthScreen from "../modules/auth/screens/AuthScreen";
 import MainTabs from "./MainTabs";
 import DishDetailScreen from "../modules/discovery/screens/DishDetailScreen";
 import StallScreen from "../modules/discovery/screens/StallScreen";
+import CanteenMapScreen from "../modules/discovery/screens/CanteenMapScreen";
 import CartScreen from "../modules/ordering/screens/CartScreen";
 import CheckoutScreen from "../modules/ordering/screens/CheckoutScreen";
 import OrderTrackingScreen from "../modules/ordering/screens/OrderTrackingScreen";
@@ -58,6 +59,8 @@ export default function RootNavigator() {
           <Stack.Screen name="DishDetail" component={DishDetailScreen} options={{ animation: "slide_from_bottom" }} />
           {/* Stall menu: navigation.navigate("Stall", { merchantId }) */}
           <Stack.Screen name="Stall" component={StallScreen} />
+          {/* Live canteen map: navigation.navigate("CanteenMap") */}
+          <Stack.Screen name="CanteenMap" component={CanteenMapScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
