@@ -24,6 +24,7 @@ import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.
 import { merchantReviewsRouter, reviewsRouter } from "./modules/reviews/reviews.routes.js";
 import { applicationsRouter, jobsRouter, merchantApplicationsRouter } from "./modules/jobs/jobs.routes.js";
 import { geoRouter } from "./modules/geo/geo.routes.js";
+import { adminFeedbackRouter, feedbackRouter } from "./modules/feedback/feedback.routes.js";
 import { filesRouter } from "./modules/jobs/files.routes.js";
 import { adminAnnouncementsRouter, announcementsRouter, merchantAnnouncementsRouter } from "./modules/announcements/announcements.routes.js";
 import { avatarRouter, uploadsRouter } from "./modules/uploads/uploads.routes.js";
@@ -68,6 +69,7 @@ app.use("/api/geo", geoRouter);
 app.use("/api/favourites", favouritesRouter);
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/reviews", reviewsRouter);
+app.use("/api/feedback", feedbackRouter); // "Rate the app" after an order
 app.use("/api/merchant/orders", merchantOrdersRouter);
 app.use("/api/merchant/reservations", merchantReservationsRouter);
 app.use("/api/announcements", announcementsRouter);
@@ -78,6 +80,7 @@ app.use("/api/merchant", uploadsRouter);
 app.use("/api/merchant", analyticsRouter);
 app.use("/api/merchant", portalRouter);
 app.use("/api/admin/announcements", adminAnnouncementsRouter);
+app.use("/api/admin/app-ratings", adminFeedbackRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/ai", rateLimit(env.aiRatePerMin, "ai"), aiAssistantRouter);
 

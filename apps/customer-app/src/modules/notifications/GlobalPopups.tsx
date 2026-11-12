@@ -6,13 +6,15 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
 import { navRef } from "../../navigation/navRef";
 import { useLive } from "../ordering/LiveDataContext";
+import OrderFeedbackFlow from "../feedback/OrderFeedbackFlow";
 
 // App-wide pop-ups, shown on top of whatever screen the customer is on:
 //  1. "Your food is ready - please collect" (FR-2.7): phone vibrates and the pop-up stays until collection is confirmed.
 //  2. Out-of-stock decision (FR-2.5): continue with a partial order, or cancel for a full refund.
 //  3. Everything else (order accepted / rejected / expired, reservation results, reminders ...).
 // "order_accepted" has no pop-up any more: the top banner and the Pay bar show it (they read the order itself).
-const SILENT_TYPES = ["out_of_stock", "order_accepted"];
+// "order_completed" opens "Review your order" and then "Rate the app" instead (../feedback/OrderFeedbackFlow).
+const SILENT_TYPES = ["out_of_stock", "order_accepted", "order_completed"];
 
 export default function GlobalPopups() {
   const { notifications, orders, ack, refresh, setBookingsView } = useLive();
@@ -80,6 +82,7 @@ export default function GlobalPopups() {
 
   return (
     <>
+      <OrderFeedbackFlow blocked={!!foodReady || !!decisionOrder} />
       <Modal visible={!!foodReady} transparent animationType="fade" onRequestClose={() => {}}>
         <View style={styles.backdrop}>
           <View style={styles.card} testID="food-ready-popup">
