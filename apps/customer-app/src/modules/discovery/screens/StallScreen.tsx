@@ -12,6 +12,10 @@ import ReviewsList from "../../reviews/ReviewsList";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 import { isPhoto, mediaUrl } from "../../../shared/media";
+import PressableScale from "../../../shared/motion/PressableScale";
+import FadeInView from "../../../shared/motion/FadeInView";
+import { PopOnChange } from "../../../shared/motion/PulseRing";
+import { DishRowSkeleton } from "../../../shared/motion/Skeleton";
 
 // Stall menu (new screen, Badrul's mock-up Oct 2026). Route: navigation.navigate("Stall", { merchantId }).
 // Stall-colour band with a big dish picture → floating info card (name, Open pill, stall no. and tags,
@@ -81,7 +85,9 @@ export default function StallScreen({ navigation, route }: any) {
             <Ionicons name="chevron-back" size={20} color={colors.ink} />
           </Pressable>
           <Pressable style={[ui.iconButton, { position: "absolute", right: spacing.lg, top: insets.top + spacing.sm }]} onPress={() => toggleShop(merchant.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={isFavShop(merchant.id) ? "Remove from saved stalls" : "Save this stall"} testID="fav-stall">
-            <Ionicons name={isFavShop(merchant.id) ? "heart" : "heart-outline"} size={19} color={isFavShop(merchant.id) ? colors.chili : colors.ink} />
+            <PopOnChange trigger={isFavShop(merchant.id)}>
+              <Ionicons name={isFavShop(merchant.id) ? "heart" : "heart-outline"} size={19} color={isFavShop(merchant.id) ? colors.chili : colors.ink} />
+            </PopOnChange>
           </Pressable>
         </View>
 
@@ -136,12 +142,14 @@ export default function StallScreen({ navigation, route }: any) {
             ) : null}
             <View style={styles.body}>
               {dishes === null && !error ? (
-                <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} />
+                <DishRowSkeleton />
               ) : shown.length === 0 ? (
                 <EmptyState icon="restaurant-outline" title={dishes?.length ? "No dishes match" : "No dishes yet"} hint={dishes?.length ? "Try another filter." : "This stall hasn't added its menu yet."} />
               ) : (
-                shown.map((d) => (
-                  <DishCard key={d.id} dish={d} merchant={merchant} showMerchant={false} onPress={() => navigation.navigate("DishDetail", { dishId: d.id })} onAdd={() => addToCart(d, merchant)} />
+                shown.map((d, i) => (
+                  <FadeInView key={d.id} index={i}>
+                    <DishCard dish={d} merchant={merchant} showMerchant={false} onPress={() => navigation.navigate("DishDetail", { dishId: d.id })} onAdd={() => addToCart(d, merchant)} />
+                  </FadeInView>
                 ))
               )}
             </View>
@@ -171,16 +179,19 @@ export default function StallScreen({ navigation, route }: any) {
       </ScrollView>
 
       {cartHere ? (
-        <View style={[styles.barWrap, { paddingBottom: insets.bottom + spacing.md }]}>
-          <Pressable style={ui.bottomBar} onPress={() => navigation.navigate("Cart")} accessibilityRole="button" accessibilityLabel={`View cart, ${itemCount} items, RM ${subtotal.toFixed(2)}`} testID="stall-view-cart">
-            <Text style={ui.bottomBarText}>
-              {itemCount} {itemCount === 1 ? "item" : "items"} · RM {subtotal.toFixed(2)}
-            </Text>
+        // Slides up the first time something is added; the count pops each time it goes up.
+        <FadeInView distance={40} style={[styles.barWrap, { paddingBottom: insets.bottom + spacing.md }]}>
+          <PressableScale style={ui.bottomBar} onPress={() => navigation.navigate("Cart")} accessibilityRole="button" accessibilityLabel={`View cart, ${itemCount} items, RM ${subtotal.toFixed(2)}`} testID="stall-view-cart">
+            <PopOnChange trigger={itemCount}>
+              <Text style={ui.bottomBarText}>
+                {itemCount} {itemCount === 1 ? "item" : "items"} · RM {subtotal.toFixed(2)}
+              </Text>
+            </PopOnChange>
             <View style={styles.barButton}>
               <Text style={styles.barButtonText}>View cart</Text>
             </View>
-          </Pressable>
-        </View>
+          </PressableScale>
+        </FadeInView>
       ) : null}
     </View>
   );

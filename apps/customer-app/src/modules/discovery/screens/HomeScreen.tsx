@@ -11,6 +11,7 @@ import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import StallCard from "../components/StallCard";
+import CategoryGrid, { lookFor, type GridItem } from "../components/CategoryGrid";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
@@ -18,19 +19,16 @@ import AddressPicker from "../components/AddressPicker";
 import PromoBanner from "../components/PromoBanner";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
+import PressableScale from "../../../shared/motion/PressableScale";
+import FadeInView from "../../../shared/motion/FadeInView";
+import { DishRowSkeleton, DishTileSkeleton } from "../../../shared/motion/Skeleton";
 
 // Home, from Badrul's mock-up (Oct 2026):
 // "Deliver to" + cart → "Hi <name>, what are you craving?" → search + filter button
-// → amber "How it works" card → venue tiles (Trending, Buffet, …) → "Popular near you" row → stalls near you.
+// → amber "How it works" card → colourful icon grid (venues, live map, food types, shortcuts) → "Popular near you" row → stalls near you.
 // Typing a search, using the filter sheet or "See all" switches the list to a 2-column grid of dishes.
 // Search and filters are answered by the server (FR-1.3, FR-1.4).
 const VENUE_ORDER = ["Trending", "Buffet", "Luxury", "Aesthetic Cafe"];
-const VENUE_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Trending: "trending-up",
-  Buffet: "restaurant-outline",
-  Luxury: "diamond-outline",
-  "Aesthetic Cafe": "cafe-outline",
-};
 
 type Row = { kind: "stall"; merchant: Merchant } | { kind: "dish"; dish: Dish };
 
@@ -56,8 +54,12 @@ export default function HomeScreen({ navigation }: any) {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // The full menu: categories, stall pictures and "Popular near you" come from it.
+  const [menuLoaded, setMenuLoaded] = useState(false);
   useEffect(() => {
-    api<{ dishes: Dish[] }>("GET", "/dishes").then((r) => setAllDishes(r.dishes)).catch(() => {});
+    api<{ dishes: Dish[] }>("GET", "/dishes")
+      .then((r) => setAllDishes(r.dishes))
+      .catch(() => {})
+      .finally(() => setMenuLoaded(true));
   }, []);
   const categories = useMemo(() => categoriesFromDishes(allDishes), [allDishes]);
   useEffect(() => {
@@ -138,6 +140,7 @@ export default function HomeScreen({ navigation }: any) {
   const toggleDiet = (k: string) => setDiet((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const clearFilters = () => { setCategory("All"); setDiet([]); setStyle(""); };
   const firstName = (name || "there").split(" ")[0];
+  const hasMap = !!navigation.getState?.()?.routeNames?.includes("CanteenMap");
 
   function browseStalls() {
     setShowAll(false);
@@ -219,18 +222,22 @@ export default function HomeScreen({ navigation }: any) {
       {!gridMode ? <AnnouncementStrip onOpen={() => navigation.navigate("Announcements")} /> : null}
       {!gridMode ? <PromoBanner onBrowse={browseStalls} /> : null}
 
-      {venues.length ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.venueRow}>
-          {venues.map((v) => {
-            const on = venue === v;
-            return (
-              <Pressable key={v} onPress={() => setVenue(on ? "" : v)} style={[styles.venueTile, on && styles.venueTileOn]} accessibilityRole="button" accessibilityState={{ selected: on }} testID={`venue-${v}`}>
-                <Ionicons name={VENUE_ICON[v] ?? "storefront-outline"} size={18} color={on ? colors.turmeric : colors.ink} />
-                <Text style={[styles.venueText, on && { color: colors.white }]} numberOfLines={1}>{v}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+      {/* Task 2: colourful Meituan-style icon grid (venue types + live map, then food types + shortcuts). */}
+      {!gridMode ? (
+        <CategoryGrid
+          big={[
+            ...venues.slice(0, 4).map((v): GridItem => ({ key: `venue-${v}`, label: v === "Aesthetic Cafe" ? "Cafe" : v, ...lookFor(v), selected: venue === v, onPress: () => setVenue(venue === v ? "" : v) })),
+            // "Live map" appears once the Live Canteen Map branch is merged (route "CanteenMap"); until then "Jobs".
+            hasMap
+              ? { key: "map", label: "Live map", icon: "map", color: colors.iconTeal, top: colors.iconTealTop, onPress: () => navigation.navigate("CanteenMap") }
+              : { key: "jobs", label: "Jobs", icon: "briefcase", color: colors.iconTeal, top: colors.iconTealTop, onPress: () => navigation.navigate("Jobs") },
+          ]}
+          small={[
+            ...categories.filter((c) => c !== "All").slice(0, 3).map((c): GridItem => ({ key: `cat-${c}`, label: c, ...lookFor(c), onPress: () => setCategory(c) })),
+            { key: "book", label: "Book table", icon: "calendar", color: colors.iconPink, top: colors.iconPinkTop, onPress: () => navigation.navigate("MainTabs", { tab: "book", nonce: Date.now() }) },
+            { key: "saved", label: "Saved", icon: "heart", color: colors.iconRed, top: colors.iconRedTop, onPress: () => navigation.navigate("Favourites") },
+          ].slice(0, 5)}
+        />
       ) : null}
 
       {error || loadError ? <Text style={styles.errorText}>{error || loadError}</Text> : null}
@@ -252,10 +259,14 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={ui.link}>See all</Text>
             </Pressable>
           </View>
-          {popular.length ? (
+          {!menuLoaded ? (
+            <DishTileSkeleton />
+          ) : popular.length ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularRow}>
-              {popular.map((d) => (
-                <DishCard key={d.id} variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+              {popular.map((d, i) => (
+                <FadeInView key={d.id} index={i} from="right">
+                  <DishCard variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+                </FadeInView>
               ))}
             </ScrollView>
           ) : (
@@ -286,19 +297,27 @@ export default function HomeScreen({ navigation }: any) {
         ListEmptyComponent={
           gridMode ? (
             <EmptyState icon="search-outline" title="No dishes match your search" hint="Try a different search or remove a filter." />
+          ) : merchants.length === 0 && !loadError ? (
+            <View style={{ paddingHorizontal: spacing.lg }}>
+              <DishRowSkeleton count={3} />
+            </View>
           ) : (
             <EmptyState icon="storefront-outline" title="No stalls here yet" hint={venue ? "Try another category." : "Stalls appear here once they are approved."} />
           )
         }
         renderItem={({ item, index }) => {
           if (item.kind === "stall") {
-            return <StallCard merchant={item.merchant} image={stallImage[item.merchant.id]} onPress={() => navigation.navigate("Stall", { merchantId: item.merchant.id })} />;
+            return (
+              <FadeInView index={index}>
+                <StallCard merchant={item.merchant} image={stallImage[item.merchant.id]} onPress={() => navigation.navigate("Stall", { merchantId: item.merchant.id })} />
+              </FadeInView>
+            );
           }
           const lastAlone = index === rows.length - 1 && rows.length % 2 === 1;
           return (
-            <View style={lastAlone ? styles.gridCellAlone : styles.gridCell}>
+            <FadeInView index={index} style={lastAlone ? styles.gridCellAlone : styles.gridCell}>
               <DishCard variant="grid" dish={item.dish} merchant={merchantById[item.dish.merchantId]} onPress={() => openDish(item.dish)} onAdd={() => addDish(item.dish)} />
-            </View>
+            </FadeInView>
           );
         }}
       />
@@ -411,10 +430,6 @@ const styles = StyleSheet.create({
   filterBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
   filterBadge: { position: "absolute", top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   filterBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
-  venueRow: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.lg },
-  venueTile: { width: 100, minHeight: 64, borderRadius: radius.md, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: spacing.xs },
-  venueTileOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  venueText: { fontFamily: fonts.displayBold, fontSize: 11.5, color: colors.ink },
   sectionRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: spacing.md, paddingHorizontal: spacing.lg, marginTop: spacing.xl, marginBottom: spacing.md },
   popularRow: { paddingHorizontal: spacing.lg, gap: GAP, paddingBottom: spacing.xs },
   gridRow: { paddingHorizontal: spacing.lg, gap: GAP, marginBottom: GAP },

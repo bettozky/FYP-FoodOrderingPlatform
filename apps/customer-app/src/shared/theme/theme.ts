@@ -47,6 +47,17 @@ export const colors = {
   stoneSoft: "#C9C4B6",
   turmericLight: "#FFC24D",
 
+  // Bright icon colours for the Home category grid (task 2, Meituan-style round icons). Icons and big shapes only;
+  // labels next to them stay ink. Each has a lighter top for the glossy look.
+  iconOrange: "#FF8A3D", iconOrangeTop: "#FFB070",
+  iconRed: "#F2545B", iconRedTop: "#FF8A8F",
+  iconGreen: "#2DB57A", iconGreenTop: "#63D6A2",
+  iconPurple: "#8B6CF0", iconPurpleTop: "#B39DFF",
+  iconBlue: "#3B9BF5", iconBlueTop: "#7CC0FF",
+  iconPink: "#F06AA8", iconPinkTop: "#FF9CCB",
+  iconTeal: "#1FB5B0", iconTealTop: "#5FD8D3",
+  iconBrown: "#A9713F", iconBrownTop: "#CF9965",
+
   // semantic aliases so existing screens keep working unchanged
   surface: "#FFFFFF",
   surfaceAlt: "#F4F1EA",
