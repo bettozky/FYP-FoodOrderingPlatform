@@ -13,6 +13,8 @@ export interface User {
   passwordHash: string;
   merchantId?: string;
   avatar?: string; // emoji or image link
+  googleSub?: string; // Google account id, set when the customer signs in with Google
+  noPassword?: boolean; // created through Google: no password until they use "Forgot password" to choose one
   suspended?: boolean; // set by an admin: the user can no longer log in or use the API
 }
 

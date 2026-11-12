@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import {
+  Modal,
   View,
   Text,
   TextInput,
@@ -19,10 +20,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../AuthContext";
 import { errorText } from "../../../shared/api/client";
+import GoogleSignInButton, { googleSignInAvailable } from "../components/GoogleSignInButton";
 import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
 import { colors, spacing, type, radius, fonts, shadow } from "../../../shared/theme/theme";
 
 const TABS = ["Sign In", "Sign Up"];
+
+/** "or" line above the Google button; shown only when Google sign-in is set up for this build. */
+function GoogleOr() {
+  if (!googleSignInAvailable) return null;
+  return (
+    <View style={styles.orRow}>
+      <View style={styles.dividerLine} />
+      <Text style={styles.dividerText}>or</Text>
+      <View style={styles.dividerLine} />
+    </View>
+  );
+}
 // What makes ScootMeal different, shown before anyone has logged in (login stays required, FR-1.1).
 const PROMISES: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
   { icon: "shield-checkmark-outline", text: "You are not charged until the stall confirms" },
@@ -39,7 +53,7 @@ function ageFrom(y: number, m: number, d: number) {
 }
 
 export default function AuthScreen() {
-  const { login, register } = useAuth();
+  const { login, loginWithGoogle, register } = useAuth();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(width, 520); // matches the centered card on wide/web viewports
@@ -65,6 +79,13 @@ export default function AuthScreen() {
   const [yyyy, setYyyy] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
 
+  // Google: a brand-new person must give their date of birth (age rule) before the account is created.
+  const [googleNew, setGoogleNew] = useState<{ idToken: string; name: string; email: string } | null>(null);
+  const [gdd, setGdd] = useState("");
+  const [gmm, setGmm] = useState("");
+  const [gyyyy, setGyyyy] = useState("");
+  const [googleError, setGoogleError] = useState("");
+
   function goToTab(i: number) {
     setActiveTab(i);
     setError("");
@@ -89,6 +110,28 @@ export default function AuthScreen() {
   }
 
   const doLogin = () => run(() => login(email.trim(), password));
+
+  const onGoogleToken = (idToken: string) =>
+    run(async () => {
+      const r = await loginWithGoogle(idToken);
+      if (r) { setGoogleError(""); setGoogleNew({ idToken, name: r.name, email: r.email }); }
+    });
+  const finishGoogle = async () => {
+    if (!googleNew) return;
+    const y = Number(gyyyy), m = Number(gmm), d = Number(gdd);
+    if (!Number.isInteger(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31 || gyyyy.length !== 4) return setGoogleError("Enter your date of birth as day, month and 4-digit year");
+    if (ageFrom(y, m, d) < MIN_AGE) return setGoogleError(`You must be at least ${MIN_AGE} years old to use ScootMeal.`);
+    setBusy(true);
+    setGoogleError("");
+    try {
+      await loginWithGoogle(googleNew.idToken, `${gyyyy}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+      setGoogleNew(null);
+    } catch (e) {
+      setGoogleError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const doRegister = () =>
     run(async () => {
@@ -190,6 +233,8 @@ export default function AuthScreen() {
               <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={doLogin} disabled={busy} testID="login-button">
                 <Text style={styles.ctaText}>{busy && activeTab === 0 ? "Signing in…" : "Login"}</Text>
               </Pressable>
+              <GoogleOr />
+              <GoogleSignInButton onToken={onGoogleToken} onError={(m) => setError(m)} disabled={busy} />
               <Text style={styles.hint}>An account is required to order. Demo account: demo@scootmeal.test / demo123</Text>
             </View>
 
@@ -224,11 +269,34 @@ export default function AuthScreen() {
               <Pressable style={[styles.cta, { marginTop: spacing.lg }, busy && { opacity: 0.6 }]} onPress={doRegister} disabled={busy} testID="signup-button">
                 <Text style={styles.ctaText}>{busy && activeTab === 1 ? "Creating…" : "Create account"}</Text>
               </Pressable>
+              <GoogleOr />
+              <GoogleSignInButton onToken={onGoogleToken} onError={(m) => setError(m)} disabled={busy} label="Sign up with Google" />
             </View>
           </ScrollView>
           <View style={{ height: spacing.xxl }} />
         </View>
       </ScrollView>
+          <Modal visible={!!googleNew} transparent animationType="fade" onRequestClose={() => setGoogleNew(null)}>
+            <View style={styles.gBackdrop}>
+              <View style={styles.gCard} testID="google-dob-card">
+                <Text style={styles.gTitle}>One more step</Text>
+                <Text style={type.small}>Welcome, {googleNew?.name}. We will use {googleNew?.email}. ScootMeal needs your date of birth to check the age rule ({MIN_AGE}+).</Text>
+                <Text style={[styles.label, { marginTop: spacing.lg }]}>Date of birth</Text>
+                <View style={styles.dobRow}>
+                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gdd} onChangeText={(t) => setGdd(t.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="DD" placeholderTextColor={colors.textFaint} testID="google-dd" />
+                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gmm} onChangeText={(t) => setGmm(t.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="MM" placeholderTextColor={colors.textFaint} testID="google-mm" />
+                  <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={gyyyy} onChangeText={(t) => setGyyyy(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="YYYY" placeholderTextColor={colors.textFaint} testID="google-yyyy" />
+                </View>
+                {googleError ? <Text style={styles.error} testID="google-error">{googleError}</Text> : null}
+                <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={finishGoogle} disabled={busy} testID="google-continue">
+                  <Text style={styles.ctaText}>{busy ? "Creating…" : "Continue"}</Text>
+                </Pressable>
+                <Pressable onPress={() => setGoogleNew(null)} style={{ alignItems: "center", marginTop: spacing.md }} accessibilityRole="button" testID="google-cancel">
+                  <Text style={styles.link}>Cancel</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
           <ForgotPasswordModal visible={forgot} onClose={() => setForgot(false)} defaultEmail={email} onDone={(e) => { setEmail(e); setPassword(""); }} />
     </KeyboardAvoidingView>
   );
@@ -323,6 +391,10 @@ const styles = StyleSheet.create({
   },
   // ink on amber is 9.2:1; white on amber was 2.0:1 (fails WCAG AA)
   ctaText: { color: colors.ink, fontFamily: fonts.displayBold, fontSize: 15 },
+  orRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginVertical: spacing.lg },
+  gBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", padding: spacing.xl },
+  gCard: { width: "100%", maxWidth: 420, backgroundColor: colors.bg, borderRadius: radius.xl, padding: spacing.xl },
+  gTitle: { fontFamily: fonts.displayBold, fontSize: 20, color: colors.ink, marginBottom: spacing.sm },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.xl, marginTop: spacing.sm },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: { ...type.small },

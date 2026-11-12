@@ -39,7 +39,7 @@ export type Reservation = {
   allocatedTable?: string; respondBy: number; createdAt: number; cutoffMs: number;
 };
 
-export type Voucher = { id: string; title: string; description: string; amount: number; minSpend: number; requireCategory?: string; merchantId?: string };
+export type Voucher = { id: string; title: string; description: string; amount: number; kind?: "fixed" | "percent"; minSpend: number; requireCategory?: string; merchantId?: string; used?: boolean };
 
 export type AppNotification = { id: string; type: string; title: string; body: string; data?: Record<string, any>; createdAt: number };
 
