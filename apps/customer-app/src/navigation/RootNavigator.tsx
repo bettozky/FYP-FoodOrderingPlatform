@@ -26,13 +26,28 @@ import ProfileScreen from "../modules/account/screens/ProfileScreen";
 import HelpScreen from "../modules/account/screens/HelpScreen";
 import LoyaltyScreen from "../modules/loyalty/screens/LoyaltyScreen";
 
+import ScreenTransition from "../shared/motion/ScreenTransition";
+
+// Screen transitions (task 1). Phones animate natively: most screens slide in from the right, these ones differ.
+// The web build has no native transitions, so ScreenTransition fades and slides each screen in instead.
+const SCREEN_ANIMATION: Record<string, "slide_from_bottom" | "fade" | "fade_from_bottom"> = {
+  DishDetail: "slide_from_bottom",
+  Cart: "slide_from_bottom",
+  Pay: "slide_from_bottom",
+  OrderTracking: "fade",
+  CanteenMap: "fade_from_bottom",
+};
+
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+    <Stack.Navigator
+      screenOptions={({ route }) => ({ headerShown: false, animation: SCREEN_ANIMATION[route.name] ?? "slide_from_right", animationDuration: 280, gestureEnabled: true })}
+      screenLayout={({ children }) => <ScreenTransition>{children}</ScreenTransition>}
+    >
       {!isLoggedIn ? (
         <Stack.Group>
           <Stack.Screen name="Login" component={AuthScreen} />

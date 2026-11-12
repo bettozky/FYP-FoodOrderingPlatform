@@ -1,5 +1,6 @@
 import React from "react";
-import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle } from "react-native";
+import { Text, StyleSheet, ActivityIndicator, ViewStyle } from "react-native";
+import PressableScale from "../motion/PressableScale";
 import { colors, radius, spacing, type } from "../theme/theme";
 
 type Props = {
@@ -24,20 +25,19 @@ export default function PrimaryButton({
   const isOutline = variant === "outline";
   const isSecondary = variant === "secondary";
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
       disabled={disabled || loading}
-      style={({ pressed }) => [
+      style={[
         styles.base,
         isOutline && styles.outline,
         isSecondary && styles.secondary,
         !isOutline && !isSecondary && styles.primary,
         (disabled || loading) && styles.disabled,
-        pressed && !disabled && { opacity: 0.85 },
         style,
       ]}
     >
@@ -53,7 +53,7 @@ export default function PrimaryButton({
           {label}
         </Text>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
