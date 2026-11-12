@@ -9,6 +9,8 @@ type AuthContextValue = {
   name: string;
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  /** "Continue with Google". Returns { needsDob } for a brand-new person: ask their date of birth, then call again with `dob`. */
+  loginWithGoogle: (idToken: string, dob?: string) => Promise<{ needsDob: true; name: string; email: string } | null>;
   register: (input: { name: string; email: string; phone: string; dob: string; password: string }) => Promise<void>;
   logout: () => void;
   /** Edit my name / phone (PATCH /auth/me). */
@@ -51,6 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api("POST", "/auth/login", { email, password, role: "customer" });
     start(res);
   };
+  const loginWithGoogle: AuthContextValue["loginWithGoogle"] = async (idToken, dob) => {
+    const res = await api<any>("POST", "/auth/google", { idToken, dob });
+    if (res.needsDob) return { needsDob: true, name: res.name, email: res.email };
+    start(res);
+    return null;
+  };
   const register: AuthContextValue["register"] = async (input) => {
     start(await api("POST", "/auth/register", input));
   };
@@ -80,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn: !!user, name: user?.name ?? "", user, login, register, logout, updateProfile, changePassword, deleteAccount, setAvatar }}>
+    <AuthContext.Provider value={{ isLoggedIn: !!user, name: user?.name ?? "", user, login, loginWithGoogle, register, logout, updateProfile, changePassword, deleteAccount, setAvatar }}>
       {children}
     </AuthContext.Provider>
   );

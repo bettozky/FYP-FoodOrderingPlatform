@@ -10,9 +10,10 @@ import { db } from "../../store/db.js";
 import type { Dish, Merchant, User } from "../../store/types.js";
 import { emailConfigured, sendMail } from "../../lib/mailer.js";
 import { notify } from "../notifications/notifications.service.js";
+import { verifyGoogleIdToken } from "../../lib/googleToken.js";
 
 export const authRouter = Router();
-authRouter.use(["/login", "/register", "/register-merchant", "/password", "/forgot", "/reset"], rateLimit(env.authRatePerMin, "auth"));
+authRouter.use(["/login", "/google", "/register", "/register-merchant", "/password", "/forgot", "/reset"], rateLimit(env.authRatePerMin, "auth"));
 
 function session(u: User) {
   const token = randomBytes(24).toString("hex");
@@ -53,6 +54,34 @@ authRouter.post("/register", (req, res) => {
   const u: User = {
     id: uid("u"), role: "customer", email, name, dob, phone: str(b.phone, "Phone", { optional: true, max: 30 }) || undefined,
     passwordHash: hashPassword(checkPw(b.password)),
+  };
+  db.users.set(u.id, u);
+  res.status(201).json(session(u));
+});
+
+// "Continue with Google" (customer app). The app sends the Google ID token; the server checks it, then either signs the person in
+// (matching their Google id, or the same verified email) or creates a customer account. A new account needs a date of birth for the
+// age rule, so the first call answers { needsDob: true } and the app asks for it and calls again with `dob`.
+authRouter.post("/google", async (req, res) => {
+  const g = await verifyGoogleIdToken(req.body?.idToken);
+  const users = [...db.users.values()];
+  let u = users.find((x) => x.googleSub === g.sub) ?? users.find((x) => x.email === g.email);
+  if (u) {
+    if (u.role !== "customer") throw new HttpError(403, `This email belongs to a ${u.role} account. Use the ${u.role} app.`);
+    if (u.suspended) throw new HttpError(403, "Your account has been suspended. Please contact the ScootMeal admin.");
+    if (!u.googleSub) u.googleSub = g.sub; // first Google sign-in on an existing account with the same verified email
+    return res.json(session(u));
+  }
+  const dob = typeof req.body?.dob === "string" ? req.body.dob.trim() : "";
+  if (!dob) return res.json({ needsDob: true, name: g.name, email: g.email });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob))) throw new HttpError(400, "Date of birth must be YYYY-MM-DD");
+  if (ageOn(dob) < 0) throw new HttpError(400, "Date of birth cannot be in the future");
+  if (ageOn(dob) < env.minAge) throw new HttpError(403, `You must be at least ${env.minAge} years old to use ScootMeal.`);
+  u = {
+    id: uid("u"), role: "customer", email: g.email, name: g.name, dob, googleSub: g.sub, noPassword: true,
+    phone: str(req.body?.phone, "Phone", { optional: true, max: 30 }) || undefined,
+    passwordHash: hashPassword(randomBytes(24).toString("hex")),
+    ...(g.picture ? { avatar: g.picture } : {}),
   };
   db.users.set(u.id, u);
   res.status(201).json(session(u));

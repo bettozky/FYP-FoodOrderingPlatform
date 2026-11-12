@@ -47,22 +47,25 @@ export default function CheckoutScreen({ navigation }: any) {
     api<{ vouchers: Voucher[] }>("GET", "/vouchers").then((r) => setVouchers(r.vouchers)).catch(() => {});
   }, []);
 
-  const eligible = useMemo(
-    () =>
-      vouchers.filter(
-        (v) =>
-          (!v.merchantId || v.merchantId === merchant?.id) &&
-          subtotal >= v.minSpend &&
-          (!v.requireCategory || lines.some((l) => l.dish.category === v.requireCategory))
-      ),
-    [vouchers, subtotal, lines, merchant]
-  );
+  // Every voucher that belongs to this shop (or to all shops), with why it cannot be picked yet: already used by this
+  // customer (shown faded as "Used"), or the basket is not big enough / missing a category.
+  const offers = useMemo(() => {
+    const list = vouchers
+      .filter((v) => !v.merchantId || v.merchantId === merchant?.id)
+      .map((v) => {
+        const missingCat = v.requireCategory && !lines.some((l) => l.dish.category === v.requireCategory) ? v.requireCategory : "";
+        const reason = v.used ? "Used" : subtotal < v.minSpend ? `Spend RM ${(v.minSpend - subtotal).toFixed(2)} more to use this offer` : missingCat ? `Add a ${missingCat} dish to use this offer` : "";
+        return { v, reason };
+      });
+    return [...list.filter((o) => !o.reason), ...list.filter((o) => o.reason && o.v.used !== true), ...list.filter((o) => o.v.used)];
+  }, [vouchers, subtotal, lines, merchant]);
+  const eligible = useMemo(() => offers.filter((o) => !o.reason).map((o) => o.v), [offers]);
   useEffect(() => {
     if (voucherId && !eligible.some((v) => v.id === voucherId)) setVoucherId("");
   }, [eligible, voucherId]);
 
   const voucher = eligible.find((v) => v.id === voucherId);
-  const discount = voucher ? Math.min(voucher.amount, subtotal) : 0;
+  const discount = voucher ? Math.min(voucher.kind === "percent" ? Math.round(subtotal * voucher.amount) / 100 : voucher.amount, subtotal) : 0;
   const deliveryFee = hasDelivery ? DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee - discount;
 
@@ -176,17 +179,18 @@ export default function CheckoutScreen({ navigation }: any) {
             <Text style={[type.body, { flex: 1 }]}>No voucher</Text>
             <View style={[styles.radio, !voucherId && styles.radioOn]} />
           </Pressable>
-          {eligible.map((v) => (
-            <Pressable key={v.id} onPress={() => setVoucherId(v.id)} style={[styles.option, voucherId === v.id && styles.optionOn]} testID={`voucher-${v.id}`}>
-              <Ionicons name="pricetag" size={16} color={colors.turmericDeep} />
+          {offers.map(({ v, reason }) => (
+            <Pressable key={v.id} onPress={() => { if (!reason) setVoucherId(v.id); }} disabled={!!reason} accessibilityState={{ disabled: !!reason }}
+              style={[styles.option, voucherId === v.id && styles.optionOn, !!reason && styles.optionOff]} testID={`voucher-${v.id}`}>
+              <Ionicons name="pricetag" size={16} color={reason ? colors.stone : colors.turmericDeep} />
               <View style={{ flex: 1 }}>
                 <Text style={type.body}>{v.title}</Text>
-                <Text style={type.small}>{v.description}</Text>
+                <Text style={type.small}>{reason && !v.used ? reason : v.description}</Text>
               </View>
-              <View style={[styles.radio, voucherId === v.id && styles.radioOn]} />
+              {v.used ? <View style={styles.usedPill} testID={`voucher-used-${v.id}`}><Text style={styles.usedText}>Used</Text></View> : reason ? <Ionicons name="alert-circle-outline" size={18} color={colors.stone} /> : <View style={[styles.radio, voucherId === v.id && styles.radioOn]} />}
             </Pressable>
           ))}
-          {eligible.length === 0 && <Text style={type.small}>No voucher applies to this order yet.</Text>}
+          {eligible.length === 0 && <Text style={type.small}>{offers.length ? "No voucher can be used on this order yet." : "No voucher applies to this order yet."}</Text>}
         </View>
 
         <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>How it works</Text>
@@ -225,6 +229,9 @@ const styles = StyleSheet.create({
   summaryValue: { flexShrink: 0, textAlign: "right" },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
   option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  optionOff: { opacity: 0.45 },
+  usedPill: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: colors.border },
+  usedText: { fontFamily: fonts.displayBold, fontSize: 11.5, color: colors.ink },
   optionOn: { borderColor: colors.turmeric, backgroundColor: colors.amberTint },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },

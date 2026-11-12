@@ -93,6 +93,15 @@ export function placeOrder(inp: NewOrderInput): Order {
   return order;
 }
 
+/** The vouchers this customer has already used (a declined, expired or cancelled request gives its voucher back). */
+export function usedVoucherIds(customerId: string, exceptOrderId?: string): Set<string> {
+  const FREED = ["rejected", "expired", "cancelled"];
+  const used = new Set<string>();
+  for (const o of db.orders.values())
+    if (o.customerId === customerId && o.voucherId && o.id !== exceptOrderId && !FREED.includes(o.status)) used.add(o.voucherId);
+  return used;
+}
+
 /** Checks a voucher against a basket and returns the discount in RM. Throws when it cannot be used. */
 function voucherDiscount(voucherId: string | undefined, merchantId: string, items: OrderItem[], subtotal: number, customerId: string, exceptOrderId?: string): number {
   if (!voucherId) return 0;
@@ -104,10 +113,8 @@ function voucherDiscount(voucherId: string | undefined, merchantId: string, item
   if (!v.active || (v.expiryDate && v.expiryDate < new Date().toISOString().slice(0, 10)) || (v.totalLimit !== undefined && v.claimed >= v.totalLimit))
     throw new HttpError(400, "That voucher is no longer available");
   // One use per customer. Requests that were declined, expired or cancelled give the voucher back.
-  const FREED = ["rejected", "expired", "cancelled"];
-  for (const other of db.orders.values())
-    if (other.customerId === customerId && other.voucherId === voucherId && other.id !== exceptOrderId && !FREED.includes(other.status))
-      throw new HttpError(409, "You already used this voucher. Each voucher can be used once per customer.");
+  if (usedVoucherIds(customerId, exceptOrderId).has(voucherId))
+    throw new HttpError(409, "You already used this voucher. Each voucher can be used once per customer.");
   return money(Math.min(v.kind === "percent" ? (subtotal * v.amount) / 100 : v.amount, subtotal));
 }
 

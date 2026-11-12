@@ -9,7 +9,10 @@ import { colors, radius, spacing, type, fonts } from "../../../shared/theme/them
 export default function LoyaltyScreen() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   useEffect(() => {
-    api<{ vouchers: Voucher[] }>("GET", "/vouchers").then((r) => setVouchers(r.vouchers)).catch(() => {});
+    // Vouchers this customer has already used go to the bottom, faded and marked "Used".
+    api<{ vouchers: Voucher[] }>("GET", "/vouchers")
+      .then((r) => setVouchers([...r.vouchers.filter((v) => !v.used), ...r.vouchers.filter((v) => v.used)]))
+      .catch(() => {});
   }, []);
   const loyalty = useLoyalty();
   const progress = Math.min(1, loyalty.progress);
@@ -35,14 +38,14 @@ export default function LoyaltyScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <View style={styles.voucherCard}>
+          <View style={[styles.voucherCard, item.used && { opacity: 0.45 }]} testID={`loyalty-voucher-${item.id}`}>
             <View style={{ flex: 1 }}>
               <Text style={type.h3}>{item.title}</Text>
               <Text style={type.bodyMuted}>{item.description}</Text>
               <Text style={type.small}>{item.minSpend ? `Min spend RM ${item.minSpend}` : "No minimum spend"}</Text>
             </View>
-            <View style={styles.redeemBtn}>
-              <Text style={styles.redeemBtnText}>Apply at checkout</Text>
+            <View style={[styles.redeemBtn, item.used && styles.redeemBtnDisabled]}>
+              <Text style={styles.redeemBtnText}>{item.used ? "Used" : "Apply at checkout"}</Text>
             </View>
           </View>
         )}

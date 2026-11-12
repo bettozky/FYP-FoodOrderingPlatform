@@ -6,6 +6,7 @@ import { averageOf, isVisible } from "../../lib/ratings.js";
 import { breakdownOf, publicReview } from "../../lib/reviewView.js";
 import { optionalUser } from "../../middleware/auth.js";
 import { merchantView, origin } from "./merchants.view.js";
+import { usedVoucherIds } from "../ordering/ordering.service.js";
 
 /** Public catalog used by the customer app (browse, search, filter - FR-1.3 to FR-1.6). */
 export const catalogRouter = Router();
@@ -155,10 +156,14 @@ catalogRouter.get("/venues", (req, res) => {
   res.json({ venues: list, categories: ["Trending", "Buffet", "Luxury", "Aesthetic Cafe"] });
 });
 
-catalogRouter.get("/vouchers", (_req, res) => {
+// Signed-in customers also get `used: true` on a voucher they have already used (each voucher is once per customer),
+// so the app can show it faded as "Used" instead of letting them pick it and fail at checkout.
+catalogRouter.get("/vouchers", optionalUser, (_req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const usable = db.vouchers.filter((v) => v.active && (!v.expiryDate || v.expiryDate >= today) && (v.totalLimit === undefined || v.claimed < v.totalLimit));
-  res.json({ vouchers: usable });
+  const user = res.locals.user;
+  const used = user?.role === "customer" ? usedVoucherIds(user.id) : new Set<string>();
+  res.json({ vouchers: usable.map((v) => ({ ...v, used: used.has(v.id) })) });
 });
 
 // ?q= (title, role or shop)  ?type=Part-time|Full-time|...  ; signed-in customers also get `applied` on each vacancy.

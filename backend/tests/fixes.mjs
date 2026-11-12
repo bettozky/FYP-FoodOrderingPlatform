@@ -21,9 +21,13 @@ const basket = [{ dishId: "d1", mode: "takeaway", qty: 1 }, { dishId: "d2", mode
 let r = await call("POST", "/api/orders", a, { merchantId: "m1", items: basket, voucherId: "v1" });
 ok(r.status === 201 && r.body.order.discount === 3, "first use of the voucher works (RM3 off)");
 const v1 = r.body.order;
+const flag = async (tok) => (await call("GET", "/api/vouchers", tok)).body.vouchers.find((x) => x.id === "v1")?.used;
+ok(await flag(a) === true, "the voucher list marks a voucher this customer used as used");
+ok((await call("GET", "/api/vouchers")).body.vouchers.every((x) => x.used === false), "someone not signed in sees no voucher as used");
 r = await call("POST", "/api/orders", a, { merchantId: "m1", items: basket, voucherId: "v1" });
 ok(r.status === 409 && /once per customer/.test(r.body.error ?? ""), "same voucher again while the first request is open is refused");
 await respond(v1.id, false);
+ok(await flag(a) === false, "a declined request frees the voucher in the list too");
 r = await call("POST", "/api/orders", a, { merchantId: "m1", items: basket, voucherId: "v1" });
 ok(r.status === 201, "a declined request gives the voucher back");
 const v2 = r.body.order;
@@ -33,6 +37,7 @@ ok(r.status === 200 && r.body.order.status === "preparing", "second request is c
 r = await call("POST", "/api/orders", a, { merchantId: "m1", items: basket, voucherId: "v1" });
 ok(r.status === 409, "after a paid order the voucher is used up for this customer");
 const b = await newCustomer("b");
+ok(await flag(b) === false, "another customer still sees the voucher as available");
 r = await call("POST", "/api/orders", b, { merchantId: "m1", items: basket, voucherId: "v1" });
 ok(r.status === 201, "another customer can still use the same voucher");
 
