@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<rect width="1024" height="1024" fill="#F5A623"/><g transform="translate(61.19999999999999 61.19999999999999) scale(0.9)">
+<g stroke-linejoin="round" stroke-linecap="round">
+  <!-- speed lines -->
+  <g stroke="#15130F" stroke-width="18" fill="none">
+    <line x1="70" y1="600" x2="200" y2="600"/><line x1="40" y1="665" x2="185" y2="665"/><line x1="95" y1="730" x2="205" y2="730"/>
+  </g>
+  <!-- steam from the parcel -->
+  <g stroke="#15130F" stroke-width="16" fill="none">
+    <path d="M405 235 C 380 205, 430 185, 405 150"/><path d="M465 225 C 440 195, 490 175, 465 135"/>
+  </g>
+  <!-- rear wheel -->
+  <circle cx="330" cy="770" r="84" fill="#15130F" stroke="#15130F" stroke-width="14"/>
+  <circle cx="330" cy="770" r="32" fill="#FFC24D" stroke="#15130F" stroke-width="10"/>
+  <!-- front wheel -->
+  <circle cx="745" cy="770" r="84" fill="#15130F" stroke="#15130F" stroke-width="14"/>
+  <circle cx="745" cy="770" r="32" fill="#FFC24D" stroke="#15130F" stroke-width="10"/>
+  <!-- front fork and fender -->
+  <path d="M655 700 L 735 470" stroke="#15130F" stroke-width="60" fill="none"/>
+  <path d="M655 700 L 735 470" stroke="#E8483A" stroke-width="46" fill="none"/>
+  <path d="M655 705 C 670 640, 820 640, 840 705 Z" fill="#E8483A" stroke="#15130F" stroke-width="14"/>
+  <!-- floorboard -->
+  <path d="M470 690 H 690 Q 705 690 700 712 L 694 736 Q 690 748 676 748 H 470 Z" fill="#E8483A" stroke="#15130F" stroke-width="14"/>
+  <!-- rear body (the Vespa curve) -->
+  <path d="M215 735 C 200 640, 270 560, 400 560 L 520 562 C 560 600, 560 700, 520 748 L 240 748 Q 218 748 215 735 Z" fill="#E8483A" stroke="#15130F" stroke-width="14"/>
+  <path d="M275 690 C 300 640, 350 610, 410 605" stroke="#FFFFFF" stroke-width="16" fill="none" opacity="0.55"/>
+  <!-- seat -->
+  <rect x="280" y="528" width="230" height="46" rx="23" fill="#15130F" stroke="#15130F" stroke-width="14"/>
+  <!-- handlebar + headlight -->
+  <path d="M690 455 L 800 440" stroke="#15130F" stroke-width="38" fill="none"/>
+  <path d="M690 455 L 800 440" stroke="#15130F" stroke-width="24" fill="none"/>
+  <circle cx="760" cy="505" r="30" fill="#FFC24D" stroke="#15130F" stroke-width="12"/>
+  <!-- the nasi lemak parcel (banana-leaf pyramid) -->
+  <path d="M300 535 Q 290 548 310 548 L 580 548 Q 600 548 590 532 L 470 265 Q 445 225 420 265 Z" fill="#2F6F4E" stroke="#15130F" stroke-width="14"/>
+  <path d="M445 250 L 395 548" stroke="#24573D" stroke-width="12" fill="none"/>
+  <path d="M330 470 Q 450 430 570 470" stroke="#24573D" stroke-width="10" fill="none"/>
+  <!-- face (looking forward, to the right) -->
+  <ellipse cx="482" cy="395" rx="13" ry="19" fill="#15130F"/>
+  <ellipse cx="530" cy="400" rx="13" ry="19" fill="#15130F"/>
+  <circle cx="486" cy="388" r="5" fill="#FFFFFF"/><circle cx="534" cy="393" r="5" fill="#FFFFFF"/>
+  <ellipse cx="465" cy="440" rx="18" ry="11" fill="#F1DAD6"/>
+  <ellipse cx="552" cy="445" rx="16" ry="10" fill="#F1DAD6"/>
+  <path d="M492 438 Q 508 456 524 440" stroke="#15130F" stroke-width="9" fill="none"/>
+  <!-- arm to the handlebar -->
+  <path d="M540 470 C 600 470, 650 470, 700 456" stroke="#15130F" stroke-width="16" fill="none"/>
+  <circle cx="700" cy="456" r="15" fill="#2F6F4E" stroke="#15130F" stroke-width="10"/>
+</g></g></svg>
