@@ -12,6 +12,8 @@ import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import StallCard from "../components/StallCard";
 import CategoryGrid, { lookFor, type GridItem } from "../components/CategoryGrid";
+import HazeBackground from "../components/HazeBackground";
+import WavyGreeting from "../components/WavyGreeting";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
@@ -45,6 +47,7 @@ export default function HomeScreen({ navigation }: any) {
   const [diet, setDiet] = useState<string[]>([]);
   const [style, setStyle] = useState<"" | "dry" | "wet">("");
   const [venue, setVenue] = useState("");
+  const [halalOnly, setHalalOnly] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [allDishes, setAllDishes] = useState<Dish[]>([]);
@@ -98,7 +101,9 @@ export default function HomeScreen({ navigation }: any) {
     return () => clearTimeout(t);
   }, [query, diet, style]);
 
-  const inVenue = (merchantId: string) => !venue || merchantById[merchantId]?.venueCategory === venue;
+  // "Halal" tile: stalls that put the Halal-friendly tag on themselves (we never decide halal status ourselves).
+  const isHalal = (m?: Merchant) => !!m?.tags?.includes("Halal-friendly");
+  const inVenue = (merchantId: string) => (!venue || merchantById[merchantId]?.venueCategory === venue) && (!halalOnly || isHalal(merchantById[merchantId]));
   const byOpenThenNear = (a?: Merchant, b?: Merchant) =>
     Number(!!b?.openNow) - Number(!!a?.openNow) || (a?.distanceKm ?? 99) - (b?.distanceKm ?? 99);
 
@@ -108,8 +113,8 @@ export default function HomeScreen({ navigation }: any) {
   }, [merchants]);
 
   const stalls = useMemo(
-    () => merchants.filter((m) => !venue || m.venueCategory === venue).sort(byOpenThenNear),
-    [merchants, venue] // eslint-disable-line react-hooks/exhaustive-deps
+    () => merchants.filter((m) => (!venue || m.venueCategory === venue) && (!halalOnly || isHalal(m))).sort(byOpenThenNear),
+    [merchants, venue, halalOnly] // eslint-disable-line react-hooks/exhaustive-deps
   );
   const stallImage = useMemo(() => {
     const out: Record<string, string> = {};
@@ -127,7 +132,7 @@ export default function HomeScreen({ navigation }: any) {
           return (mb?.rating ?? 0) - (ma?.rating ?? 0) || (ma?.distanceKm ?? 99) - (mb?.distanceKm ?? 99);
         })
         .slice(0, 10),
-    [allDishes, merchantById, venue] // eslint-disable-line react-hooks/exhaustive-deps
+    [allDishes, merchantById, venue, halalOnly] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Grid results: open stalls first, then nearest; sold-out dishes last.
@@ -159,8 +164,27 @@ export default function HomeScreen({ navigation }: any) {
     return m ? addToCart(d, m) : false;
   };
 
+  const venueItems = venues.slice(0, 4).map((v): GridItem => ({
+    key: `venue-${v}`, label: v === "Aesthetic Cafe" ? "Cafe" : v, ...lookFor(v), hot: v === "Trending", selected: venue === v, onPress: () => setVenue(venue === v ? "" : v),
+  }));
+  const halalItem: GridItem | null = merchants.some(isHalal)
+    ? { key: "halal", label: "Halal", kind: "halal", badge: "NEW", hint: "Halal-friendly stalls", selected: halalOnly, onPress: () => setHalalOnly((on) => !on) }
+    : null;
+  const gridItems: GridItem[] = [
+    ...venueItems.slice(0, 1),
+    ...(halalItem ? [halalItem] : []),
+    ...venueItems.slice(1),
+    // "Live map" appears once the Live Canteen Map branch is merged (route "CanteenMap"); "Jobs" is always there.
+    ...(hasMap ? [{ key: "map", label: "Live map", kind: "map", onPress: () => navigation.navigate("CanteenMap") } as GridItem] : []),
+    ...categories.filter((c) => c !== "All").slice(0, 8).map((c): GridItem => ({ key: `cat-${c}`, label: c, ...lookFor(c), onPress: () => setCategory(c) })),
+    { key: "book", label: "Book table", kind: "book", onPress: () => navigation.navigate("MainTabs", { tab: "book", nonce: Date.now() }) },
+    { key: "jobs", label: "Jobs", kind: "jobs", onPress: () => navigation.navigate("Jobs") },
+    { key: "saved", label: "Saved", kind: "saved", onPress: () => navigation.navigate("Favourites") },
+  ];
+
   const header = (
     <View>
+      <HazeBackground />
       <View style={[styles.topRow, { paddingTop: insets.top + spacing.md }]}>
         <MenuButton badge={unread} />
         <Pressable style={styles.addr} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
@@ -187,9 +211,7 @@ export default function HomeScreen({ navigation }: any) {
         </Animated.View>
       </View>
 
-      <Text style={[type.h1, styles.greeting]} accessibilityRole="header">
-        Hi {firstName},{"\n"}what are you craving?
-      </Text>
+      <WavyGreeting name={firstName} />
 
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
@@ -224,23 +246,8 @@ export default function HomeScreen({ navigation }: any) {
       {!gridMode ? <PromoBanner onBrowse={browseStalls} /> : null}
       {!gridMode ? <CanteenMapCard merchants={merchants} onPress={() => navigation.navigate("CanteenMap")} /> : null}
 
-      {/* Task 2: colourful Meituan-style icon grid (venue types + live map, then food types + shortcuts). */}
-      {!gridMode ? (
-        <CategoryGrid
-          big={[
-            ...venues.slice(0, 4).map((v): GridItem => ({ key: `venue-${v}`, label: v === "Aesthetic Cafe" ? "Cafe" : v, ...lookFor(v), selected: venue === v, onPress: () => setVenue(venue === v ? "" : v) })),
-            // "Live map" appears once the Live Canteen Map branch is merged (route "CanteenMap"); until then "Jobs".
-            hasMap
-              ? { key: "map", label: "Live map", icon: "map", color: colors.iconTeal, top: colors.iconTealTop, onPress: () => navigation.navigate("CanteenMap") }
-              : { key: "jobs", label: "Jobs", icon: "briefcase", color: colors.iconTeal, top: colors.iconTealTop, onPress: () => navigation.navigate("Jobs") },
-          ]}
-          small={[
-            ...categories.filter((c) => c !== "All").slice(0, 3).map((c): GridItem => ({ key: `cat-${c}`, label: c, ...lookFor(c), onPress: () => setCategory(c) })),
-            { key: "book", label: "Book table", icon: "calendar", color: colors.iconPink, top: colors.iconPinkTop, onPress: () => navigation.navigate("MainTabs", { tab: "book", nonce: Date.now() }) },
-            { key: "saved", label: "Saved", icon: "heart", color: colors.iconRed, top: colors.iconRedTop, onPress: () => navigation.navigate("Favourites") },
-          ].slice(0, 5)}
-        />
-      ) : null}
+      {/* Category panel: cute icons in two rows you swipe sideways (venue types, Halal, live map, food types, shortcuts). */}
+      {!gridMode ? <CategoryGrid items={gridItems} /> : null}
 
       {error || loadError ? <Text style={styles.errorText}>{error || loadError}</Text> : null}
 
@@ -424,7 +431,6 @@ const styles = StyleSheet.create({
   addrText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
   cartBadge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.paper },
   cartBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
-  greeting: { paddingHorizontal: spacing.lg, marginTop: spacing.lg, lineHeight: 32 },
   searchRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginHorizontal: spacing.lg, marginTop: spacing.lg },
   searchBar: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.stoneLine, paddingHorizontal: spacing.lg, minHeight: 46 },
   // On web the browser draws its own focus box inside the pill; the pill itself is the visible field.
