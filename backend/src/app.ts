@@ -10,6 +10,7 @@ import { adminRouter } from "./modules/admin/admin.routes.js";
 import { addressesRouter } from "./modules/account/addresses.routes.js";
 import { favouritesRouter } from "./modules/account/favourites.routes.js";
 import { loyaltyRouter } from "./modules/account/loyalty.routes.js";
+import { budgetRouter } from "./modules/account/budget.routes.js";
 import { aiAssistantRouter } from "./modules/ai-assistant/ai-assistant.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { callsRouter } from "./modules/calls/calls.routes.js";
@@ -68,6 +69,7 @@ app.use("/api/addresses", addressesRouter);
 app.use("/api/geo", geoRouter);
 app.use("/api/favourites", favouritesRouter);
 app.use("/api/loyalty", loyaltyRouter);
+app.use("/api/budget", budgetRouter); // Sprint 3: weekly spending budget
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/feedback", feedbackRouter); // "Rate the app" after an order
 app.use("/api/merchant/orders", merchantOrdersRouter);

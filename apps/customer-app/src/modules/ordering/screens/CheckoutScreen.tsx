@@ -13,6 +13,7 @@ import { OrderSteps } from "../components/OrderSteps";
 import { api, errorText } from "../../../shared/api/client";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import BudgetWarning from "../../spending/BudgetWarning";
 
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real total
 
@@ -134,6 +135,8 @@ export default function CheckoutScreen({ navigation }: any) {
           {discount > 0 && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Voucher</Text><Text style={[type.body, styles.summaryValue, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
           <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel]}>Total</Text><Text style={[type.h3, styles.summaryValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
         </View>
+        {/* Sprint 3 weekly budget: warns before this order takes the customer over their limit */}
+        <BudgetWarning adding={total} />
 
         {hasDelivery && (
           <>
