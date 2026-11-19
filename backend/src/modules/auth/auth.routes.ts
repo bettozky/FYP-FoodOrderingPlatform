@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import { env } from "../../config/env.js";
+import { cleanAllergens } from "../../lib/allergens.js";
 import { HttpError, money, str } from "../../lib/http.js";
 import { checkPassword, hashPassword, uid } from "../../lib/ids.js";
 import { ageOn } from "../../lib/time.js";
@@ -112,15 +113,24 @@ authRouter.post("/register-merchant", (req, res) => {
     .filter((h: any) => h && !h.closed && h.day in DAY_NUMBER && isTime(h.open) && isTime(h.close) && h.open !== h.close)
     .map((h: any) => ({ day: DAY_NUMBER[h.day]!, open: h.open as string, close: h.close as string }));
 
+  // Allergens: "none of these" gives [], a ticked list gives that list, and no answer (older app versions) stays undefined.
+  const hygiene = application?.hygiene ?? {};
+  const ticked = cleanAllergens(hygiene.allergens) ?? [];
+  const shopAllergens = hygiene.noneUsed === true ? [] : ticked.length ? ticked : undefined;
+
   const id = uid("m");
   const menu: Dish[] = (Array.isArray(application?.menuItems) ? application!.menuItems : [])
     .filter((x: any) => typeof x?.name === "string" && x.name.trim() && finite(x.price) && x.price > 0 && x.price <= 500)
     .slice(0, 30)
-    .map((x: any): Dish => ({
-      id: uid("d"), merchantId: id, name: x.name.trim().slice(0, 80), price: money(x.price), image: "",
-      description: typeof x.description === "string" ? x.description.trim().slice(0, 300) : "",
-      category: "Mains", calories: 0, soldOut: false, spicy: false, dietary: [], customisations: [],
-    }));
+    .map((x: any): Dish => {
+      const allergens = cleanAllergens(x.allergens) ?? [];
+      return {
+        id: uid("d"), merchantId: id, name: x.name.trim().slice(0, 80), price: money(x.price), image: "",
+        description: typeof x.description === "string" ? x.description.trim().slice(0, 300) : "",
+        category: "Mains", calories: 0, soldOut: false, spicy: false, dietary: [], customisations: [],
+        ...(allergens.length ? { allergens } : {}),
+      };
+    });
 
   const prep = Number(service.prepMinutes);
   const u: User = {
@@ -137,6 +147,7 @@ authRouter.post("/register-merchant", (req, res) => {
     color: "#C97F03", hours: weeklyHours[0] ? { open: weeklyHours[0].open, close: weeklyHours[0].close } : hours,
     ...(weeklyHours.length ? { weeklyHours } : {}),
     approval: "pending", storeMode: "online", phone: u.phone!, ownerUserId: u.id,
+    ...(shopAllergens ? { allergens: shopAllergens } : {}),
     ...(application ? { application } : {}),
   };
   db.users.set(u.id, u);

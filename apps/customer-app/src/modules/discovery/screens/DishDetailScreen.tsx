@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../../shared/api/client";
-import { Dish } from "../../../shared/api/types";
+import { Dish, Merchant } from "../../../shared/api/types";
 import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import { useFavourites } from "../../favourites/FavouritesContext";
@@ -22,6 +22,17 @@ import { Skeleton } from "../../../shared/motion/Skeleton";
 // → "Per dish · delivery fee added at checkout" → chips (wet/dry, prep time, rating) → allergen note
 // → Customise chips → bottom bar with the qty stepper and "Add to cart · RM".
 // Dine-in / takeaway / delivery is chosen per dish in the cart, so it is not asked here.
+/**
+ * The allergen line under the dish. It only repeats what the stall told us and never calls a dish "safe":
+ * a dish with no allergens listed may still have them, so the customer is always told to check if it is serious.
+ */
+function allergenNote(dish: Dish, merchant: Merchant): string {
+  if (dish.allergens?.length) return "Listed by the stall. If your allergy is serious, check with them before ordering.";
+  if (merchant.allergens?.length) return `No allergens listed for this dish, but this kitchen uses ${merchant.allergens.join(", ")}. If your allergy is serious, check with the stall.`;
+  if (merchant.allergens) return "The stall says none of the 9 common allergens are used in its kitchen. If your allergy is serious, check with them.";
+  return "This stall has not listed its allergens. Check with the stall.";
+}
+
 export default function DishDetailScreen({ route }: any) {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -147,11 +158,14 @@ export default function DishDetailScreen({ route }: any) {
             <Text style={[styles.noteText, { color: colors.chiliText }]}>{merchant.name} is closed right now (opens {merchant.hours.open}), so you can't order yet.</Text>
           </View>
         ) : null}
-        <View style={styles.note}>
-          <Ionicons name="alert-circle-outline" size={15} color={colors.stoneText} />
-          <Text style={styles.noteText}>
-            Allergen information is unverified. Check with the stall.{merchant.dineInOnly ? " This stall is dine-in only right now." : ""}
-          </Text>
+        <View style={[styles.note, dish.allergens?.length ? styles.noteAllergen : null]} testID="allergen-note">
+          <Ionicons name="alert-circle-outline" size={15} color={dish.allergens?.length ? colors.amberText : colors.stoneText} />
+          <View style={{ flex: 1, gap: 2 }}>
+            {dish.allergens?.length ? <Text style={styles.noteTitle}>Contains: {dish.allergens.join(", ")}</Text> : null}
+            <Text style={styles.noteText}>
+              {allergenNote(dish, merchant)}{merchant.dineInOnly ? " This stall is dine-in only right now." : ""}
+            </Text>
+          </View>
         </View>
 
         {!unavailable && dish.customisations.length > 0 ? (
@@ -222,6 +236,8 @@ const styles = StyleSheet.create({
   note: { ...ui.card, flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", padding: spacing.md, marginTop: spacing.lg },
   noteClosed: { backgroundColor: colors.chiliSoft, borderColor: colors.chiliBorder },
   noteText: { flex: 1, fontFamily: fonts.display, fontSize: 12, lineHeight: 17, color: colors.stoneText },
+  noteAllergen: { backgroundColor: colors.amberTint },
+  noteTitle: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
   section: { marginTop: spacing.xl, marginBottom: spacing.sm },
   optionWrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   footer: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.stoneLine, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },

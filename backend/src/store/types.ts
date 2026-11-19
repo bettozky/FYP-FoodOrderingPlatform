@@ -42,6 +42,7 @@ export interface Merchant {
   application?: Record<string, any>; // the sign-up answers (FR-5.1), shown to the admin
   logo?: string; // shop profile photo (public link), set from the merchant app
   cover?: string; // shop banner photo (public link)
+  allergens?: string[]; // allergens used in the kitchen, from sign-up (undefined = never answered, [] = none of the 9)
 }
 
 export interface Dish {
@@ -56,6 +57,7 @@ export interface Dish {
   soldOut: boolean;
   spicy?: boolean;
   dietary: string[]; // spicy | vegetarian | plant_based | allergy_free
+  allergens?: string[]; // allergens the shop says this dish contains (names from lib/allergens.ts)
   style?: "dry" | "wet";
   customisations: string[];
   cost?: number; // ingredient cost, for the merchant's profit report (FR-5.12)

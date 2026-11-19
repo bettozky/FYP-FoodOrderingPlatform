@@ -9,6 +9,8 @@ export type Merchant = {
   openNow: boolean; dineInOnly: boolean; distanceKm: number; logo?: string; cover?: string;
   /** Live wait (backend merchants/waitTime.ts): orders ahead, minutes until food is ready, and the map colour. */
   queue?: number; waitMinutes?: number; busy?: BusyLevel;
+  /** Allergens the shop says its kitchen uses. undefined = the shop never said; [] = none of the 9 common ones. */
+  allergens?: string[];
 };
 
 export type BusyLevel = "quiet" | "busy" | "very_busy" | "closed";
@@ -16,6 +18,8 @@ export type BusyLevel = "quiet" | "busy" | "very_busy" | "closed";
 export type Dish = {
   id: string; merchantId: string; name: string; price: number; image: string; description: string; category: string;
   calories: number; soldOut: boolean; spicy?: boolean; dietary: string[]; style?: "dry" | "wet"; customisations: string[];
+  /** Allergens the shop says this dish contains (e.g. "Peanuts", "Soy"). */
+  allergens?: string[];
 };
 
 export type OrderItem = {

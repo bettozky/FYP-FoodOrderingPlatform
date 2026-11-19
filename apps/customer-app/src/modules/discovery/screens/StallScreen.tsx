@@ -168,6 +168,17 @@ export default function StallScreen({ navigation, route }: any) {
             {merchant.venueCategory ? <InfoRow icon="pricetag-outline" label="Type" value={merchant.venueCategory} /> : null}
             <InfoRow icon="bicycle-outline" label="Ways to order" value={merchant.dineInOnly ? "Dine-in only" : "Dine-in, takeaway or delivery"} />
             <InfoRow icon="navigate-outline" label="Distance" value={`${merchant.distanceKm} km from your address`} />
+            <InfoRow
+              icon="alert-circle-outline"
+              label="Allergens used in this kitchen"
+              value={
+                merchant.allergens?.length
+                  ? merchant.allergens.join(", ")
+                  : merchant.allergens
+                    ? "None of the 9 common allergens (the stall's own answer)"
+                    : "Not listed yet. Ask the stall if you have an allergy."
+              }
+            />
             {merchant.phone ? (
               <Pressable onPress={() => Linking.openURL(`tel:${merchant.phone.replace(/\s/g, "")}`)} accessibilityRole="button" accessibilityLabel={`Call ${merchant.name}`}>
                 <InfoRow icon="call-outline" label="Phone" value={merchant.phone} />
