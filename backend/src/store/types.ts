@@ -20,6 +20,7 @@ export interface User {
   appRating?: { rating: number; comment?: string; at: number; orderId?: string };
   appRatingAskedAt?: number;
   appRatingNever?: boolean;
+  weeklyBudget?: number; // Sprint 3 spending tracker: the customer's weekly limit in RM (none when unset)
 }
 
 export interface Merchant {

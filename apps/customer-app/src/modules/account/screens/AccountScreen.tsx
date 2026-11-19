@@ -11,6 +11,7 @@ const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; go: stri
   { icon: "person-outline", label: "Edit profile & photo", go: "Profile" },
   { icon: "document-text-outline", label: "My job applications", go: "MyApplications" },
   { icon: "megaphone-outline", label: "Announcements", go: "Announcements" },
+  { icon: "wallet-outline", label: "Spending & budget", go: "Spending" },
   { icon: "gift-outline", label: "Loyalty & vouchers", go: "Loyalty" },
   { icon: "star-outline", label: "My reviews", go: "MyReviews" },
   { icon: "heart-outline", label: "Saved dishes", go: "Favourites" },

@@ -26,6 +26,7 @@ import MyReviewsScreen from "../modules/reviews/MyReviewsScreen";
 import ProfileScreen from "../modules/account/screens/ProfileScreen";
 import HelpScreen from "../modules/account/screens/HelpScreen";
 import LoyaltyScreen from "../modules/loyalty/screens/LoyaltyScreen";
+import SpendingScreen from "../modules/spending/SpendingScreen";
 
 import ScreenTransition from "../shared/motion/ScreenTransition";
 
@@ -82,6 +83,8 @@ export default function RootNavigator() {
           <Stack.Screen name="Help" component={HelpScreen} />
           {/* Loyalty left the bottom bar in the new layout; opened from Account. */}
           <Stack.Screen name="Loyalty" component={LoyaltyScreen} />
+          {/* Sprint 3: spending tracker and weekly budget (Account → Spending & budget) */}
+          <Stack.Screen name="Spending" component={SpendingScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>
