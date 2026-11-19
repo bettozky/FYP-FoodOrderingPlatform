@@ -30,6 +30,7 @@ export default function AppDrawer() {
     { key: "vouchers", label: "Promotions & vouchers", icon: "pricetags-outline", onPress: go("MerchantVouchers") },
     { key: "reviews", label: "Customer reviews", icon: "star-outline", onPress: go("MerchantReviews") },
     { key: "analytics", label: "Sales reports", icon: "stats-chart-outline", onPress: go("MerchantAnalytics") },
+    { key: "forecast", label: "Prep forecast", icon: "analytics-outline", onPress: go("MerchantForecast") },
     { key: "s3", section: "Shop" },
     { key: "shop", label: "Shop profile & photos", icon: "storefront-outline", onPress: go("ShopProfile") },
     { key: "notifications", label: "Notifications", icon: "notifications-outline", onPress: go("MerchantNotifications"), badge: badges.unread },
