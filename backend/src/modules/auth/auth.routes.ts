@@ -160,6 +160,17 @@ authRouter.post("/login", (req, res) => {
 
 authRouter.get("/me", auth(), (_req, res) => res.json({ user: publicUser(currentUser(res)) }));
 
+/** Avatar: a short emoji (up to 8 characters) or an https:// link. javascript:, data: and http:// are refused. */
+function avatarText(v: unknown): string | undefined {
+  const t = str(v, "Avatar", { optional: true, max: 400 });
+  if (!t) return undefined;
+  if ([...t].length <= 8 && !/[:/<>"'`\\]/.test(t)) return t;
+  let link: URL | undefined;
+  try { link = new URL(t); } catch { /* not a link */ }
+  if (link?.protocol !== "https:") throw new HttpError(400, "Avatar must be a short emoji or an https:// image link");
+  return link.toString();
+}
+
 // Edit my profile: name, phone, avatar (a short text such as an emoji or an image link).
 authRouter.patch("/me", auth(), (req, res) => {
   const u = currentUser(res);

@@ -10,6 +10,13 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   if (err instanceof HttpError) {
     return res.status(err.status).json({ error: err.message });
   }
+    // Broken JSON or a body over 1 MB is the sender's mistake (4xx), not a server crash; nothing is logged.
+  const type = (err as { type?: unknown })?.type;
+  if (type === "entity.parse.failed") return res.status(400).json({ error: "The request body is not valid JSON" });
+  if (type === "entity.too.large") return res.status(413).json({ error: "The request is too large" });
+  if (typeof type === "string" && type.startsWith("entity.") || type === "encoding.unsupported" || type === "charset.unsupported") {
+    return res.status(400).json({ error: "The request could not be read" });
+  }
   console.error(err);
   res.status(500).json({ error: "Something went wrong" });
 }

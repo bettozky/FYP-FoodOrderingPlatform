@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import { env } from "./config/env.js";
 import { MEDIA_DIR } from "./jobs/fetchDishPhotos.js";
 import { LOCAL_PUBLIC_DIR } from "./lib/storage.js";

@@ -11,7 +11,6 @@ export const uploadsRouter = Router();
 uploadsRouter.use(auth("merchant"));
 
 const PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
-const DOCUMENT_TYPES: Record<string, string> = { ...PHOTO_TYPES, "application/pdf": "pdf" };
 const FILE_KEYS: Record<string, string> = { ssm_certificate: "ssmCertificate", halal_certificate: "halalCertificate", logo: "logo", cover: "cover" };
 
 /** The file extension if this really is a JPG / PNG / WebP picture (the first bytes are checked, not just the label). */
@@ -43,7 +42,11 @@ uploadsRouter.post("/uploads", readFile, async (req, res) => {
   if (!file) throw new HttpError(400, "Choose a file to upload");
   const kind = String(req.body?.kind ?? "");
   const isDocument = kind === "ssm_certificate" || kind === "halal_certificate";
-  const ext = (isDocument ? DOCUMENT_TYPES : PHOTO_TYPES)[file.mimetype];
+    // Check the first bytes of the file, not only the label the sender chose.
+  const allowed = isDocument ? ["image/jpeg", "image/png", "application/pdf"] : ["image/jpeg", "image/png", "image/webp"];
+  const real = realType(file.buffer);
+  const ext = allowed.includes(file.mimetype) && real && allowed.includes(real) ? TYPE_EXT[real] : undefined;
+  if (ext) file.mimetype = real!;
   if (!ext) throw new HttpError(400, isDocument ? "Certificate must be a JPG, PNG or PDF" : "Photo must be a JPG, PNG or WebP image");
   const meta = { name: file.originalname.slice(0, 120), size: file.size, mimeType: file.mimetype };
   const application: Record<string, any> = structuredClone(m.application ?? {});
@@ -65,6 +68,16 @@ uploadsRouter.post("/uploads", readFile, async (req, res) => {
   }
 
   const key = FILE_KEYS[kind];
+  
+const TYPE_EXT: Record<string, string> = { ...PHOTO_TYPES, "application/pdf": "pdf" };
+/** What the first bytes of a file say it is (JPG, PNG, WebP or PDF), whatever label it was sent with. */
+function realType(b: Buffer): string | undefined {
+  if (b[0] === 0xff && b[1] === 0xd8) return "image/jpeg";
+  if (b.subarray(1, 4).toString() === "PNG") return "image/png";
+  if (b.subarray(0, 4).toString() === "RIFF" && b.subarray(8, 12).toString() === "WEBP") return "image/webp";
+  if (b.subarray(0, 5).toString() === "%PDF-") return "application/pdf";
+  return undefined;
+}
   if (!key) throw new HttpError(400, "kind must be ssm_certificate, halal_certificate, logo, cover or menu_photo");
   application.files ??= {};
   const old = application.files[key];

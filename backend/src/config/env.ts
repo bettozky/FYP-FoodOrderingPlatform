@@ -73,6 +73,7 @@ export const env = {
   sttMaxMb: num(process.env.STT_MAX_MB, 5),
 
   // ---- security ----
+  corsOrigins: (process.env.CORS_ORIGINS ?? "").split(",").map((s) => s.trim().replace(/\/+$/, "")).filter(Boolean),
   /** How long a login lasts. */
   sessionDays: num(process.env.SESSION_DAYS, 30),
   /** Failed-login / AI-chat rate limit: requests per minute per IP. */
