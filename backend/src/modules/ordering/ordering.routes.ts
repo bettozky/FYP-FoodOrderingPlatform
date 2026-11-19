@@ -7,7 +7,7 @@ import { FPX_BANKS } from "../payment/payment.service.js";
 import { canSayArriving, setArriving } from "../arrival/arrival.service.js";
 import { orderReadyMinutes } from "../merchants/waitTime.js";
 import {
-  cancelRequest, confirmCollected, customerDecision, handOver, markCashReceived, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
+  buzzAgain, cancelRequest, confirmCollected, customerDecision, handOver, markCashReceived, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
 } from "./ordering.service.js";
 
 function view(o: Order) {
@@ -150,6 +150,14 @@ merchantOrdersRouter.post("/:id/ready", (req, res) => {
   if (mode !== "dine_in" && mode !== "takeaway") throw new HttpError(400, "mode must be dine_in or takeaway");
   markReady(o, mode);
   res.json({ order: view(o) });
+});
+
+// Sprint 3 pickup buzzer: buzz the customer's phone again if they have not collected yet.
+merchantOrdersRouter.post("/:id/buzz", (req, res) => {
+  const o = own(res, req.params.id as string);
+  const mode = req.body?.mode;
+  if (mode !== "dine_in" && mode !== "takeaway") throw new HttpError(400, "mode must be dine_in or takeaway");
+  res.json(buzzAgain(o, mode));
 });
 
 merchantOrdersRouter.post("/:id/handover", (req, res) => {

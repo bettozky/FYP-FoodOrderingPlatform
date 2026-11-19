@@ -15,13 +15,22 @@ import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/
 // Tap a stall to see its wait and open its menu.
 const REFRESH_MS = 10000;
 
-export default function CanteenMapScreen({ navigation }: any) {
+export default function CanteenMapScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { merchants, refreshMerchants, loadError } = useCatalog();
   const canteens = useMemo(() => buildCanteens(merchants), [merchants]);
   const [area, setArea] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(route?.params?.merchantId ?? null);
+
+  // Opened from the pickup buzzer's "Show me where": pick that stall and switch to its canteen.
+  const focusId: string | undefined = route?.params?.merchantId;
+  useEffect(() => {
+    if (!focusId) return;
+    setSelectedId(focusId);
+    const c = canteens.find((x) => x.slots.some((s) => s.merchant?.id === focusId));
+    if (c) setArea(c.name);
+  }, [focusId, canteens.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [updatedAt, setUpdatedAt] = useState(Date.now());
 
   // Live: refresh the stalls every 10 seconds while the map is open.
