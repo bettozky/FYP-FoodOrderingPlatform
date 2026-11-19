@@ -43,6 +43,7 @@ export interface Merchant {
   logo?: string; // shop profile photo (public link), set from the merchant app
   cover?: string; // shop banner photo (public link)
   allergens?: string[]; // allergens used in the kitchen, from sign-up (undefined = never answered, [] = none of the 9)
+  busyMode?: { on: boolean; limitMinutes: number; action: "warn" | "pause" }; // Sprint 3: warn or pause when the wait passes a limit
 }
 
 export interface Dish {
