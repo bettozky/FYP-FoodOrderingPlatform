@@ -16,6 +16,8 @@ import PressableScale from "../../../shared/motion/PressableScale";
 import FadeInView from "../../../shared/motion/FadeInView";
 import { PopOnChange } from "../../../shared/motion/PulseRing";
 import { Skeleton } from "../../../shared/motion/Skeleton";
+import { dietFit } from "../../diet/diet";
+import { useDiet } from "../../diet/useDiet";
 
 // Dish detail, from Badrul's mock-up (Oct 2026):
 // back · stall name (opens the stall menu) · cart → big round picture → name, description, price
@@ -48,6 +50,7 @@ export default function DishDetailScreen({ route }: any) {
   const fav = isFav(dishId);
   const [justAdded, setJustAdded] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
+  const { diet } = useDiet(); // Sprint 3 diet profile
 
   useEffect(() => {
     api<{ dishes: Dish[] }>("GET", "/dishes")
@@ -152,6 +155,7 @@ export default function DishDetailScreen({ route }: any) {
           ))}
         </View>
 
+        <DietBanner fit={dietFit(dish, merchant, diet)} onEdit={() => navigation.navigate("Diet")} />
         {!merchant.openNow ? (
           <View style={[styles.note, styles.noteClosed]}>
             <Ionicons name="moon-outline" size={15} color={colors.chiliText} />
@@ -217,6 +221,26 @@ export default function DishDetailScreen({ route }: any) {
           </PressableScale>
         </Animated.View>
       </View>
+    </View>
+  );
+}
+
+/** Sprint 3 diet profile: red "Not for you" or amber "Ask the stall" at the top of the dish, from the saved profile. */
+function DietBanner({ fit, onEdit }: { fit: ReturnType<typeof dietFit>; onEdit: () => void }) {
+  if (fit.level === "ok") return null;
+  const avoid = fit.level === "avoid";
+  return (
+    <View style={[styles.note, { backgroundColor: avoid ? colors.chiliSoft : colors.amberTint }]} testID="diet-banner" accessibilityRole="alert">
+      <Ionicons name={avoid ? "warning" : "help-circle"} size={16} color={avoid ? colors.chiliText : colors.amberText} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[styles.noteTitle, { color: avoid ? colors.chiliText : colors.amberText }]}>
+          {avoid ? "Doesn't fit your diet profile" : "Check with the stall first"}
+        </Text>
+        <Text style={styles.noteText}>{fit.reasons.join(" · ")}</Text>
+      </View>
+      <Pressable onPress={onEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edit my diet profile">
+        <Text style={[styles.noteTitle, { fontSize: 12, textDecorationLine: "underline" }]}>Edit</Text>
+      </Pressable>
     </View>
   );
 }

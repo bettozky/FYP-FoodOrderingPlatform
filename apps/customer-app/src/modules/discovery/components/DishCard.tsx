@@ -7,6 +7,8 @@ import DishImage, { softTint } from "../../../shared/components/DishImage";
 import { readyText } from "./ReadyChip";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import PressableScale from "../../../shared/motion/PressableScale";
+import { dietFit } from "../../diet/diet";
+import { useDiet } from "../../diet/useDiet";
 
 // One dish, in the two layouts from Badrul's mock-up (Oct 2026):
 //  - "grid": tile for "Popular near you" on Home: picture with the stall's rating on top,
@@ -37,6 +39,18 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
   const overlay = dish.soldOut ? "Sold out" : closed ? "Closed" : undefined;
   const btnScale = useRef(new Animated.Value(1)).current;
   const tint = softTint(merchant?.color);
+  // Sprint 3 diet profile: red "Contains Peanuts", or amber "Kitchen uses ..." (ask the stall first).
+  const { diet } = useDiet();
+  const fit = dietFit(dish, merchant, diet);
+  const dietFlag =
+    fit.level !== "ok" ? (
+      <View style={[styles.flag, fit.level === "avoid" ? styles.flagAvoid : styles.flagCheck]} testID={`diet-flag-${dish.id}`}>
+        <Ionicons name={fit.level === "avoid" ? "warning" : "help-circle"} size={12} color={fit.level === "avoid" ? colors.chiliText : colors.amberText} />
+        <Text style={[styles.flagText, { color: fit.level === "avoid" ? colors.chiliText : colors.amberText }]} numberOfLines={1}>
+          {fit.reasons.join(" · ")}
+        </Text>
+      </View>
+    ) : null;
 
   async function handleAdd() {
     const ok = await onAdd?.();
@@ -83,7 +97,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
     </Pressable>
   ) : null;
 
-  const label = `${dish.name}, RM ${dish.price.toFixed(2)}${merchant && showMerchant ? `, from ${merchant.name}` : ""}${overlay ? `, ${overlay}` : ""}`;
+  const label = `${dish.name}, RM ${dish.price.toFixed(2)}${merchant && showMerchant ? `, from ${merchant.name}` : ""}${overlay ? `, ${overlay}` : ""}${fit.reasons.length ? `. Diet warning: ${fit.reasons.join(", ")}` : ""}`;
 
   if (variant === "grid") {
     return (
@@ -99,6 +113,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
         </View>
         <View style={styles.gridInfo}>
           <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
+          {dietFlag}
           {merchant && showMerchant ? (
             <Text style={styles.meta} numberOfLines={2}>{merchant.name} · {readyText(merchant).toLowerCase()}</Text>
           ) : null}
@@ -117,6 +132,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
       <View style={styles.rowInfo}>
         <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
         {dish.description ? <Text style={styles.desc} numberOfLines={2}>{dish.description}</Text> : null}
+        {dietFlag}
         {merchant && showMerchant ? (
           <Text style={styles.meta} numberOfLines={1}>
             {merchant.name} · {merchant.openNow ? `${merchant.distanceKm} km` : `opens ${merchant.hours.open}`}
@@ -150,4 +166,8 @@ const styles = StyleSheet.create({
   name: { ...type.h3, fontFamily: fonts.displayBold, fontSize: 14 },
   desc: { fontFamily: fonts.serif, fontSize: 12, lineHeight: 16, color: colors.stoneText },
   meta: { fontFamily: fonts.display, fontSize: 11.5, color: colors.stoneText },
+  flag: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", maxWidth: "100%", borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2, marginTop: 2 },
+  flagAvoid: { backgroundColor: colors.chiliSoft },
+  flagCheck: { backgroundColor: colors.amberTint },
+  flagText: { fontFamily: fonts.displayBold, fontSize: 10.5, flexShrink: 1 },
 });

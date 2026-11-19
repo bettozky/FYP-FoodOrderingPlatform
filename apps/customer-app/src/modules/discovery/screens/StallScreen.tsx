@@ -17,6 +17,8 @@ import PressableScale from "../../../shared/motion/PressableScale";
 import FadeInView from "../../../shared/motion/FadeInView";
 import { PopOnChange } from "../../../shared/motion/PulseRing";
 import { DishRowSkeleton } from "../../../shared/motion/Skeleton";
+import { dietFit } from "../../diet/diet";
+import { useDiet } from "../../diet/useDiet";
 
 // Stall menu (new screen, Badrul's mock-up Oct 2026). Route: navigation.navigate("Stall", { merchantId }).
 // Stall-colour band with a big dish picture → floating info card (name, Open pill, stall no. and tags,
@@ -54,9 +56,15 @@ export default function StallScreen({ navigation, route }: any) {
     return (Object.keys(has) as MenuFilter[]).filter((k) => has[k]);
   }, [dishes]);
 
-  const shown = (dishes ?? [])
+  // Sprint 3 diet profile: "Hide dishes that don't fit" takes them off the menu, with a way to show them again.
+  const { diet } = useDiet();
+  const [showHidden, setShowHidden] = useState(false);
+  const matching = (dishes ?? [])
     .filter((d) => filter === "all" || (filter === "vegetarian" ? d.dietary.includes("vegetarian") : d.style === filter))
     .sort((a, b) => Number(a.soldOut) - Number(b.soldOut));
+  const hiding = !!diet?.hideUnsuitable && !showHidden;
+  const hiddenCount = diet?.hideUnsuitable ? matching.filter((d) => dietFit(d, merchant, diet).level === "avoid").length : 0;
+  const shown = hiding ? matching.filter((d) => dietFit(d, merchant, diet).level !== "avoid") : matching;
 
   if (!merchant) {
     return (
@@ -140,6 +148,15 @@ export default function StallScreen({ navigation, route }: any) {
               </ScrollView>
             ) : null}
             <View style={styles.body}>
+              {hiddenCount > 0 ? (
+                <Pressable style={styles.dietNote} onPress={() => setShowHidden((v) => !v)} accessibilityRole="button" testID="diet-hidden-note">
+                  <Ionicons name={showHidden ? "eye-off-outline" : "shield-checkmark"} size={16} color={colors.herb} />
+                  <Text style={styles.dietNoteText}>
+                    {showHidden ? "Showing every dish" : `${hiddenCount} ${hiddenCount === 1 ? "dish" : "dishes"} hidden by your diet profile`}
+                  </Text>
+                  <Text style={styles.dietNoteLink}>{showHidden ? "Hide again" : "Show"}</Text>
+                </Pressable>
+              ) : null}
               {dishes === null && !error ? (
                 <DishRowSkeleton />
               ) : shown.length === 0 ? (
@@ -220,6 +237,9 @@ function InfoRow({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap;
 }
 
 const styles = StyleSheet.create({
+  dietNote: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.herbLight, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.md },
+  dietNoteText: { flex: 1, fontFamily: fonts.display, fontSize: 12.5, color: colors.herb },
+  dietNoteLink: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
   center: { flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
   hero: { height: 230, paddingHorizontal: spacing.lg },
   heroIcon: { alignSelf: "center", marginTop: spacing.xl, opacity: 0.6 },

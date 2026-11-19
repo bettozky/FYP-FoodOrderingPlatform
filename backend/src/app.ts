@@ -8,6 +8,7 @@ import { rateLimit } from "./middleware/rateLimit.js";
 import { saveAfterWrites } from "./middleware/persist.js";
 import { adminRouter } from "./modules/admin/admin.routes.js";
 import { addressesRouter } from "./modules/account/addresses.routes.js";
+import { dietRouter } from "./modules/account/diet.routes.js";
 import { favouritesRouter } from "./modules/account/favourites.routes.js";
 import { loyaltyRouter } from "./modules/account/loyalty.routes.js";
 import { budgetRouter } from "./modules/account/budget.routes.js";
@@ -68,6 +69,7 @@ app.use("/api/delivery", deliveryRouter);
 app.use("/api/addresses", addressesRouter);
 app.use("/api/geo", geoRouter);
 app.use("/api/favourites", favouritesRouter);
+app.use("/api/diet", dietRouter); // Sprint 3: diet and allergy profile
 app.use("/api/loyalty", loyaltyRouter);
 app.use("/api/budget", budgetRouter); // Sprint 3: weekly spending budget
 app.use("/api/reviews", reviewsRouter);

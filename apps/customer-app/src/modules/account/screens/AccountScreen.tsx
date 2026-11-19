@@ -15,6 +15,7 @@ const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; go: stri
   { icon: "gift-outline", label: "Loyalty & vouchers", go: "Loyalty" },
   { icon: "star-outline", label: "My reviews", go: "MyReviews" },
   { icon: "heart-outline", label: "Saved dishes", go: "Favourites" },
+  { icon: "shield-checkmark-outline", label: "Diet & allergies", go: "Diet" },
   { icon: "location-outline", label: "Addresses", go: "Addresses" },
   { icon: "briefcase-outline", label: "Jobs", go: "Jobs" },
   { icon: "card-outline", label: "Payment methods", go: "PaymentMethods" },
