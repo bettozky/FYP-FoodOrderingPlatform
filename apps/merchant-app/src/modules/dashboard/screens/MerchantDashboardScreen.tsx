@@ -187,6 +187,7 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         <NavRow icon="restaurant-outline" tint={colors.chili} title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
         <NavRow icon="pricetags-outline" tint={colors.ink} title="Promotions & Vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
         <NavRow icon="stats-chart-outline" tint={colors.stoneText} title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
+        <NavRow icon="analytics-outline" tint={colors.herb} title="Prep forecast" subtitle="How much of each dish to prep tomorrow" onPress={() => navigation.navigate("MerchantForecast")} />
         <NavRow icon="star-outline" tint={colors.turmericDeep} title="Customer reviews" subtitle="Read feedback and reply" onPress={() => navigation.navigate("MerchantReviews")} />
         <NavRow icon="briefcase-outline" tint={colors.amberText} title="Restaurant Job Board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
         <NavRow icon="people-outline" tint={colors.herb} title="Applicants" subtitle="CVs and applications from students" badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
