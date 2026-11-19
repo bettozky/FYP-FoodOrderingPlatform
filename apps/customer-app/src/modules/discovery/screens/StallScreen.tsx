@@ -10,6 +10,7 @@ import DishCard from "../components/DishCard";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import ReviewsList from "../../reviews/ReviewsList";
 import ReadyChip from "../components/ReadyChip";
+import BusyNotice from "../../ordering/components/BusyNotice";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 import { isPhoto, mediaUrl } from "../../../shared/media";
@@ -118,6 +119,7 @@ export default function StallScreen({ navigation, route }: any) {
             </View>
           </View>
           {!merchant.openNow ? <Text style={styles.closed}>Closed now · opens {merchant.hours.open}</Text> : null}
+          <BusyNotice merchant={merchant} />
         </View>
 
         <View style={styles.tabs} accessibilityRole="tablist">

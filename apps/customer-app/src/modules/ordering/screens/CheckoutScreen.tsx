@@ -11,6 +11,7 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { OrderSteps } from "../components/OrderSteps";
 import { api, errorText } from "../../../shared/api/client";
+import BusyNotice from "../components/BusyNotice";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
 import BudgetWarning from "../../spending/BudgetWarning";
@@ -23,7 +24,7 @@ export function formatCard(raw: string) {
 
 export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
-  const { addresses, address, setAddress } = useCatalog();
+  const { addresses, address, setAddress, merchantById, refreshMerchants } = useCatalog();
   const { refresh } = useLive();
   const insets = useSafeAreaInsets();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -38,6 +39,16 @@ export default function CheckoutScreen({ navigation }: any) {
   const [pinOk, setPinOk] = useState(false);
   useEffect(() => { setPinOk(false); }, [address.lat, address.lng, address.label]);
   const needsPinOk = usingPin && !pinOk;
+
+  // Sprint 3 busy mode: use the stall's live state (refreshed every 10 s here), not the copy saved in the cart.
+  const [acceptWait, setAcceptWait] = useState(false);
+  const live = merchant ? merchantById[merchant.id] ?? merchant : undefined;
+  const busyBlocked = !!(live && live.openNow && (live.ordersPaused || (live.longWaitWarning && !acceptWait)));
+  useEffect(() => {
+    refreshMerchants();
+    const t = setInterval(refreshMerchants, 10000);
+    return () => clearInterval(t);
+  }, [refreshMerchants]);
 
   // A saved address can carry a standing note ("Room 2-14, call on arrival"); start from it.
   useEffect(() => {
@@ -95,12 +106,14 @@ export default function CheckoutScreen({ navigation }: any) {
         items,
         address: hasDelivery ? { label: address.label, line: note.trim() ? `${address.line} (${note.trim()})` : address.line, lat: address.lat, lng: address.lng } : undefined,
         voucherId: voucherId || undefined,
+        acceptLongWait: acceptWait,
       });
       clearCart();
       await refresh();
       navigation.reset({ index: 1, routes: [{ name: "MainTabs" }, { name: "OrderTracking", params: { orderId: r.order.id } }] });
     } catch (e) {
       setError(errorText(e)); // the cart is kept so the customer can retry
+      refreshMerchants(); // e.g. the stall paused orders a moment ago: show it straight away
     } finally {
       setPlacing(false);
     }
@@ -203,6 +216,8 @@ export default function CheckoutScreen({ navigation }: any) {
           <Text style={type.small}>You can chat or call the restaurant from the order screen while you wait. If they decline or don't reply, nothing is charged.</Text>
         </View>
 
+        {live ? <BusyNotice merchant={live} accepted={acceptWait} onAccept={setAcceptWait} /> : null}
+
         {error ? (
           <View style={styles.errorBox} testID="checkout-error">
             <Ionicons name="alert-circle" size={16} color={colors.chili} />
@@ -212,8 +227,8 @@ export default function CheckoutScreen({ navigation }: any) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Pressable style={[ui.buttonAccent, (placing || needsPinOk) && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing || needsPinOk} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk }}>
-          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
+        <Pressable style={[ui.buttonAccent, (placing || needsPinOk || busyBlocked) && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing || needsPinOk || busyBlocked} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk || busyBlocked }}>
+          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : live?.ordersPaused ? "Orders paused · try again in a few minutes" : busyBlocked ? "Tick \"I'm OK waiting\" to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
         </Pressable>
       </View>
     </View>
