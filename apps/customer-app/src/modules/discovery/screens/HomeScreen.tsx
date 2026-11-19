@@ -12,6 +12,8 @@ import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import StallCard from "../components/StallCard";
 import CategoryGrid, { lookFor, type GridItem } from "../components/CategoryGrid";
+import HazeBackground from "../components/HazeBackground";
+import WavyGreeting from "../components/WavyGreeting";
 import SearchField from "../../../shared/components/SearchField";
 import SectionHeader from "../../../shared/components/SectionHeader";
 import { MenuButton } from "../../../shared/components/SideDrawer";
@@ -184,6 +186,8 @@ export default function HomeScreen({ navigation }: any) {
 
   const header = (
     <View>
+      {/* Warm turmeric glow behind the top of Home; it fades into the page and scrolls away with the header. */}
+      <HazeBackground />
       <View style={[styles.topRow, { paddingTop: insets.top + spacing.sm }]}>
         <MenuButton badge={unread} />
         <Pressable style={({ pressed }) => [styles.addr, pressed && { opacity: 0.6 }]} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
@@ -208,14 +212,11 @@ export default function HomeScreen({ navigation }: any) {
         </Animated.View>
       </View>
 
-      <View style={styles.greeting}>
-        <Text style={styles.hello} numberOfLines={1}>Hi {firstName}</Text>
-        <Text style={type.h1} accessibilityRole="header">What are you craving?</Text>
-      </View>
+      <WavyGreeting name={firstName} />
 
       <View style={styles.searchRow}>
         <SearchField
-          style={{ flex: 1 }}
+          style={styles.searchOnGlow}
           value={query}
           onChangeText={setQuery}
           placeholder="Search dishes or stalls"
@@ -413,10 +414,9 @@ const styles = StyleSheet.create({
   addrText: { ...font.displayBold, fontSize: 15, color: colors.ink, flexShrink: 1 },
   cartBadge: { position: "absolute", top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   cartBadgeText: { ...font.displayBold, fontSize: 11, color: colors.ink, fontVariant: ["tabular-nums"] },
-  greeting: { paddingHorizontal: layout.gutter, marginTop: spacing.xl, gap: 2 },
-  hello: { ...font.displayBold, fontSize: 17, color: colors.stoneText },
   searchRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginHorizontal: layout.gutter, marginTop: spacing.lg },
-  filterBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
+  searchOnGlow: { flex: 1, backgroundColor: colors.paper, ...shadow.soft },
+  filterBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", ...shadow.soft },
   filterBtnOn: { backgroundColor: colors.ink },
   filterBadge: { position: "absolute", top: -5, right: -5, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   filterBadgeText: { ...font.displayBold, fontSize: 11, color: colors.ink },

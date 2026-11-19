@@ -1,37 +1,17 @@
-import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { colors, font, layout, radius, spacing } from "../../../shared/theme/theme";
+import { useReducedMotion } from "../../../shared/motion/useReducedMotion";
+import CuteIcon, { type IconKind } from "./CuteIcons";
+import Flame from "./Flame";
 
-// Category row on Home: one swipeable row of quiet icon tiles (venue types, Halal, live map, food types,
-// shortcuts). Venues come from the stalls, food types from the dishes. A selected tile turns ink.
-// (Premium pass, Nov 2026: replaces the two-row grid of multicolour cartoon icons.)
-export type IconKind =
-  | "trending" | "halal" | "buffet" | "luxury" | "cafe" | "rice" | "noodles" | "drinks" | "dessert"
-  | "snacks" | "western" | "chicken" | "healthy" | "plate" | "map" | "book" | "jobs" | "saved";
-
+// Category row on Home: the cute multicolour food icons in one swipeable row of white tiles (venue types, Halal,
+// live map, food types, shortcuts). Venues come from the stalls, food types from the dishes, plus shortcuts.
+// "hot" puts the flickering flame on an icon (Trending), "badge" adds a small orange tag (NEW on Halal).
+// The icons bob gently; reduced-motion users get them standing still. A selected tile turns amber with an ink ring.
+export type { IconKind };
 export type GridItem = { key: string; label: string; kind: IconKind; hot?: boolean; badge?: string; selected?: boolean; onPress: () => void; hint?: string };
-
-const ICONS: Record<IconKind, keyof typeof Ionicons.glyphMap> = {
-  trending: "flame-outline",
-  halal: "moon-outline",
-  buffet: "restaurant-outline",
-  luxury: "diamond-outline",
-  cafe: "cafe-outline",
-  rice: "nutrition-outline",
-  noodles: "restaurant-outline",
-  drinks: "water-outline",
-  dessert: "ice-cream-outline",
-  snacks: "fast-food-outline",
-  western: "pizza-outline",
-  chicken: "flame-outline",
-  healthy: "leaf-outline",
-  plate: "restaurant-outline",
-  map: "map-outline",
-  book: "calendar-outline",
-  jobs: "briefcase-outline",
-  saved: "heart-outline",
-};
 
 /** Picks an icon for a venue type or food type by name, with a plate-and-cutlery fallback for new ones. */
 export function lookFor(label: string): { kind: IconKind } {
@@ -60,45 +40,104 @@ export default function CategoryGrid({ items }: { items: GridItem[] }) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
       style={styles.scroll}
+      decelerationRate="fast"
+      snapToInterval={CELL + spacing.md}
+      snapToAlignment="start"
       accessibilityLabel="Categories. Swipe sideways for more."
       testID="category-scroll"
     >
-      {items.map((it) => (
-        <Tile key={it.key} item={it} />
+      {items.map((it, i) => (
+        <Tile key={it.key} item={it} index={i} />
       ))}
     </ScrollView>
   );
 }
 
-function Tile({ item }: { item: GridItem }) {
+/** The small four-point sparkle that twinkles on the Luxury icon. */
+function Twinkle() {
+  const reduced = useReducedMotion();
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduced) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(v, { toValue: 1, duration: 1100, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(v, { toValue: 0, duration: 1100, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [reduced, v]);
+  const opacity = reduced ? 1 : v.interpolate({ inputRange: [0, 1], outputRange: [0.25, 1] });
+  const scale = reduced ? 1 : v.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.15] });
+  return (
+    <Animated.View pointerEvents="none" style={[styles.twinkle, { opacity, transform: [{ scale }] }]}>
+      <Svg width={16} height={16} viewBox="0 0 24 24">
+        <Path d="M12 1l2.600 8.400L23 12l-8.400 2.600L12 23l-2.600-8.400L1 12l8.400-2.600z" fill="#FFC93C" />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+function Tile({ item, index }: { item: GridItem; index: number }) {
+  const reduced = useReducedMotion();
   const on = !!item.selected;
+  // Each icon bobs a little, out of step with its neighbours.
+  const bob = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduced) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay((index * 300) % 4500),
+        Animated.timing(bob, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(bob, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [reduced, index, bob]);
+  const translateY = bob.interpolate({ inputRange: [0, 1], outputRange: [0, -2.5] });
+  const rotate = bob.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-2deg"] });
+
   return (
     <Pressable
       onPress={item.onPress}
-      style={({ pressed }) => [styles.cell, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [styles.cell, pressed && { transform: [{ scale: 0.94 }] }]}
       accessibilityRole="button"
       accessibilityLabel={item.hint ?? item.label}
       accessibilityState={{ selected: on }}
       testID={`grid-${item.key}`}
     >
       <View style={[styles.tile, on && styles.tileOn]}>
-        <Ionicons name={ICONS[item.kind]} size={24} color={on ? colors.white : colors.ink} />
-        {item.badge ? <View style={styles.dot} accessibilityElementsHidden /> : null}
+        {item.hot ? <Flame /> : null}
+        {item.kind === "luxury" ? <Twinkle /> : null}
+        <Animated.View style={{ transform: [{ translateY }, { rotate }] }}>
+          <CuteIcon kind={item.kind} size={46} />
+        </Animated.View>
+        {item.badge ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.badge}</Text>
+          </View>
+        ) : null}
       </View>
       <Text style={[styles.label, on && styles.labelOn]} numberOfLines={1}>{item.label}</Text>
     </Pressable>
   );
 }
 
-const TILE = 60;
+const CELL = 72;
+const TILE = 64;
 
 const styles = StyleSheet.create({
-  scroll: { marginTop: spacing.xl, flexGrow: 0 },
-  row: { paddingHorizontal: layout.gutter, gap: spacing.md },
-  cell: { width: TILE + 8, alignItems: "center", gap: 6 },
+  scroll: { marginTop: spacing.md, flexGrow: 0 },
+  // Top padding leaves room for the Trending flame, which rises above its tile.
+  row: { paddingHorizontal: layout.gutter, paddingTop: 28, paddingBottom: spacing.xs, gap: spacing.md },
+  cell: { width: CELL, alignItems: "center", gap: 6 },
   tile: { width: TILE, height: TILE, borderRadius: radius.lg, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, alignItems: "center", justifyContent: "center" },
-  tileOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  dot: { position: "absolute", top: 8, right: 8, width: 7, height: 7, borderRadius: 4, backgroundColor: colors.turmeric },
+  tileOn: { backgroundColor: colors.amberTint, borderColor: colors.ink, borderWidth: 2 },
   label: { ...font.display, fontSize: 13, color: colors.ink, textAlign: "center" },
   labelOn: { ...font.displayBold },
+  badge: { position: "absolute", top: -7, right: -6, zIndex: 4, backgroundColor: "#FF6A33", paddingHorizontal: 6, paddingVertical: 2, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomRightRadius: 8, borderBottomLeftRadius: 2 },
+  badgeText: { ...font.displayExtraBold, fontSize: 11, letterSpacing: 0.3, color: colors.white },
+  twinkle: { position: "absolute", right: 4, top: 2, zIndex: 3 },
 });

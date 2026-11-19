@@ -209,6 +209,7 @@ The customer app wears turmeric (its icon and splash are turmeric); the merchant
 - Pills for actions and chips; 16px corners for cards; 12px for search fields and segmented controls.
 - The system typeface (SF Pro on iPhone, Roboto on Android) in four weights, 400 to 700.
 - Quiet, ink-tinted shadows (6% opacity at rest, 16% for floating bars), never grey or black.
+- Home keeps its playful moments: a warm turmeric glow behind the header, the customer's name in multicolour letters, and hand-drawn multicolour food icons in the category row.
 
 ## Colors
 
@@ -246,7 +247,9 @@ A food-market palette: one warm amber voice, a herb green and a chili red for me
 
 **The Dark-Tone Text Rule.** Turmeric, turmeric-deep, chili, stone and herb-light are for icons, fills and large shapes. Text uses the text tones: `amber-text`, `chili-text`, `stone-text`, `herb`, `ink`.
 
-**The Green-Means-Done Rule.** Herb green marks success and reassurance only. It is never a brand accent, an avatar or a decorative card.
+**The Green-Means-Done Rule.** Herb green marks success and reassurance only. It is never a brand accent, an avatar or a decorative card. (The green Halal illustration in the category row is artwork, not UI colour.)
+
+**The Home-Only Play Rule.** The multicolour greeting letters, the turmeric glow and the cartoon category icons live on Home only. Every other screen stays on the core palette.
 
 ## Typography
 
@@ -350,7 +353,10 @@ Small status pills with a text label (colour is never the only cue). Success = `
 The signature component. An ink pill 56px tall pinned above the tab bar or the screen bottom with the Floating shadow, showing "2 items · RM 17.50" in white on the left and a turmeric "View cart" pill on the right.
 
 ### Category row
-One horizontally scrolling row of 60px paper tiles with a hairline border and a 24px ink outline icon, a 13px label under each. The selected tile turns ink with a white icon. A small turmeric dot marks something new (Halal).
+One horizontally scrolling row of 64px white tiles with a hairline border, each holding a 46px hand-drawn multicolour food icon (`CuteIcons.tsx`) that bobs gently, with a 13px label underneath. Trending carries a flickering flame above its tile, Luxury a twinkling sparkle, and Halal an orange NEW tag. The selected tile turns `amber-tint` with a 2px ink ring. All motion stops under reduced motion.
+
+### Home header
+A soft turmeric haze (`HazeBackground`) fades from amber into cream behind the top of Home and scrolls away with it. The greeting (`WavyGreeting`) reads "Hi {name}," with the name in rippling multicolour letters, then "what are you craving?" as the large title. On the glow, the search field and filter button switch to white with the Soft shadow.
 
 ### Points tile
 Loyalty points on an ink card: the tier in `stone-soft`, the number at 28 to 40px in white with a turmeric "pts", and a turmeric progress bar on a faint white track.
@@ -370,7 +376,7 @@ Loyalty points on an ink card: the tier in `stone-soft`, the number at 28 to 40p
 ### Don't:
 - **Don't** put white text on turmeric, or use turmeric or turmeric-deep for text.
 - **Don't** add a second typeface or load a custom font.
-- **Don't** bring back multicolour illustration icons, emoji or text glyphs as icons.
+- **Don't** use emoji or text glyphs as icons, or spread Home's multicolour illustrations to other screens.
 - **Don't** use green for anything but success.
 - **Don't** put an uppercase eyebrow label above a heading.
 - **Don't** make something look like a button unless it does something.
