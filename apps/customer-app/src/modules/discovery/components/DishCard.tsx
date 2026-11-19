@@ -96,6 +96,11 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
             </View>
           ) : null}
           {heart}
+          {dish.dealPercent ? (
+            <View style={styles.dealBadge} testID={`deal-badge-${dish.id}`}>
+              <Text style={styles.dealBadgeText}>-{dish.dealPercent}%</Text>
+            </View>
+          ) : null}
         </View>
         <View style={styles.gridInfo}>
           <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
@@ -103,7 +108,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
             <Text style={styles.meta} numberOfLines={2}>{merchant.name} · {readyText(merchant).toLowerCase()}</Text>
           ) : null}
           <View style={styles.bottom}>
-            <Text style={ui.price}>RM {dish.price.toFixed(2)}</Text>
+            <Price dish={dish} />
             {addButton}
           </View>
         </View>
@@ -122,13 +127,25 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
             {merchant.name} · {merchant.openNow ? `${merchant.distanceKm} km` : `opens ${merchant.hours.open}`}
           </Text>
         ) : null}
-        <Text style={[ui.price, { marginTop: 2 }]}>RM {dish.price.toFixed(2)}</Text>
+        <View style={{ marginTop: 2 }}><Price dish={dish} /></View>
       </View>
       <View style={styles.rowSide}>
         {heart}
         {addButton}
       </View>
     </PressableScale>
+  );
+}
+
+/** The price, or during a last-hour deal the deal price in red with the normal price crossed out (Sprint 3). */
+export function Price({ dish, large }: { dish: Dish; large?: boolean }) {
+  const base = large ? ui.priceLarge : ui.price;
+  if (!dish.originalPrice) return <Text style={base}>RM {dish.price.toFixed(2)}</Text>;
+  return (
+    <View style={[styles.priceRow, large && { justifyContent: "center" }]} accessibilityLabel={`RM ${dish.price.toFixed(2)}, was RM ${dish.originalPrice.toFixed(2)}`}>
+      <Text style={[base, { color: colors.chiliText }]}>RM {dish.price.toFixed(2)}</Text>
+      <Text style={[styles.was, large && { fontSize: 15 }]}>RM {dish.originalPrice.toFixed(2)}</Text>
+    </View>
   );
 }
 
@@ -146,6 +163,11 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1, minWidth: 0, gap: 2 },
   rowSide: { alignItems: "center", justifyContent: "center", gap: spacing.sm },
   heartRow: { width: 28, height: 28, alignItems: "center", justifyContent: "center" },
+  // Sprint 3 last-hour deals
+  dealBadge: { position: "absolute", left: 6, bottom: 6, backgroundColor: colors.chili, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2 },
+  dealBadgeText: { fontFamily: fonts.displayExtraBold, fontSize: 11, color: colors.white },
+  priceRow: { flexDirection: "row", alignItems: "baseline", gap: 5, flexWrap: "wrap" },
+  was: { fontFamily: fonts.display, fontSize: 11.5, color: colors.stoneText, textDecorationLine: "line-through" },
 
   name: { ...type.h3, fontFamily: fonts.displayBold, fontSize: 14 },
   desc: { fontFamily: fonts.serif, fontSize: 12, lineHeight: 16, color: colors.stoneText },

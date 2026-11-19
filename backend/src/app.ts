@@ -18,6 +18,7 @@ import { deliveryRouter } from "./modules/delivery/delivery.routes.js";
 import { merchantReservationsRouter, reservationsRouter } from "./modules/dine-in/reservations.routes.js";
 import { analyticsRouter } from "./modules/merchants/analytics.routes.js";
 import { catalogRouter } from "./modules/merchants/catalog.routes.js";
+import { dealsRouter, merchantDealsRouter } from "./modules/merchants/deals.routes.js";
 import { portalRouter } from "./modules/merchants/portal.routes.js";
 import { notificationsRouter } from "./modules/notifications/notifications.routes.js";
 import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.routes.js";
@@ -75,6 +76,8 @@ app.use("/api/merchant/reservations", merchantReservationsRouter);
 app.use("/api/announcements", announcementsRouter);
 app.use("/api/merchant/announcements", merchantAnnouncementsRouter);
 app.use("/api/merchant/reviews", merchantReviewsRouter);
+app.use("/api/merchant/deals", merchantDealsRouter); // Sprint 3: last-hour deals
+app.use("/api/deals", dealsRouter);
 app.use("/api/merchant/applications", merchantApplicationsRouter);
 app.use("/api/merchant", uploadsRouter);
 app.use("/api/merchant", analyticsRouter);
