@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { api, errorText } from "../../../shared/api/client";
 import OpeningHoursCard from "../components/OpeningHoursCard";
+import BusyModeCard from "../components/BusyModeCard";
 import { useLive } from "../../orders/LiveDataContext";
 import { useAuth } from "../../auth/AuthContext";
 import NavRow from "../../../shared/components/NavRow";
@@ -179,6 +180,9 @@ export default function MerchantDashboardScreen({ navigation }: any) {
 
         {/* ---------- opening hours (per day, folded by default) ---------- */}
         <OpeningHoursCard profile={profile} onSaved={refresh} />
+
+        {/* ---------- Sprint 3: busy mode / auto-pause ---------- */}
+        <BusyModeCard />
 
         {/* ---------- manage ---------- */}
         <Text style={styles.section}>Manage</Text>

@@ -17,6 +17,7 @@ import { callsRouter } from "./modules/calls/calls.routes.js";
 import { chatRouter } from "./modules/chat/chat.routes.js";
 import { deliveryRouter } from "./modules/delivery/delivery.routes.js";
 import { merchantReservationsRouter, reservationsRouter } from "./modules/dine-in/reservations.routes.js";
+import { busyModeRouter } from "./modules/merchants/busyMode.routes.js";
 import { analyticsRouter } from "./modules/merchants/analytics.routes.js";
 import { catalogRouter } from "./modules/merchants/catalog.routes.js";
 import { dealsRouter, merchantDealsRouter } from "./modules/merchants/deals.routes.js";
@@ -75,6 +76,7 @@ app.use("/api/budget", budgetRouter); // Sprint 3: weekly spending budget
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/feedback", feedbackRouter); // "Rate the app" after an order
 app.use("/api/merchant/orders", merchantOrdersRouter);
+app.use("/api/merchant/busy-mode", busyModeRouter); // Sprint 3: busy mode / auto-pause
 app.use("/api/merchant/reservations", merchantReservationsRouter);
 app.use("/api/announcements", announcementsRouter);
 app.use("/api/merchant/announcements", merchantAnnouncementsRouter);

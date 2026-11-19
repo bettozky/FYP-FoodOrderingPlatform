@@ -38,6 +38,7 @@ ordersRouter.post("/", (req, res) => {
   const order = placeOrder({
     customerId: u.id, merchantId: String(b.merchantId ?? ""), items: b.items, address,
     voucherId: b.voucherId || undefined,
+    acceptLongWait: b.acceptLongWait === true,
   });
   res.status(201).json({ serverNow: Date.now(), order: view(order) });
 });

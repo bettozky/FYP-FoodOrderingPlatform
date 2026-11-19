@@ -5,6 +5,8 @@ import { isOpenNow } from "../../lib/time.js";
 import { db } from "../../store/db.js";
 import type { FulfilmentMode, Order, OrderItem } from "../../store/types.js";
 import { startDelivery } from "../delivery/delivery.service.js";
+import { busyRefusal } from "../merchants/busyMode.js";
+import { estimateWait } from "../merchants/waitTime.js";
 import { screenReview } from "../admin/moderation.js";
 import { notify, notifyMerchant } from "../notifications/notifications.service.js";
 import { priceNow } from "../merchants/deals.js";
@@ -19,6 +21,7 @@ export interface NewOrderInput {
   items: { dishId: string; mode: FulfilmentMode; qty: number; options?: string[] }[];
   address?: { label: string; line: string; lat: number; lng: number };
   voucherId?: string;
+  acceptLongWait?: boolean; // Sprint 3 busy mode: the customer ticked "I'm OK waiting"
 }
 
 /** Portions of a dish already promised to other customers: orders the restaurant confirmed that are still inside their payment window. */
@@ -50,6 +53,9 @@ export function placeOrder(inp: NewOrderInput): Order {
   const m = db.merchants.get(inp.merchantId);
   if (!m || m.approval !== "approved") throw new HttpError(404, "Restaurant not found");
   if (m.storeMode === "offline" || !isOpenNow(m)) throw new HttpError(409, `${m.name} is closed right now`);
+  // Sprint 3 busy mode: refuse (paused) or ask the customer to accept the long wait first.
+  const busyReason = busyRefusal(m.name, m.busyMode, estimateWait(m.prepMinutes, db.orders.values(), m.id, true).waitMinutes, inp.acceptLongWait === true);
+  if (busyReason) throw new HttpError(409, busyReason);
   if (!Array.isArray(inp.items) || !inp.items.length) throw new HttpError(400, "Your cart is empty");
   if (inp.items.length > 40) throw new HttpError(400, "Too many items");
 

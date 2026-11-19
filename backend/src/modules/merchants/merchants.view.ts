@@ -5,9 +5,11 @@ import { isOpenNow } from "../../lib/time.js";
 import { CAMPUS, db } from "../../store/db.js";
 import type { Merchant } from "../../store/types.js";
 import { estimateWait } from "./waitTime.js";
+import { busyState } from "./busyMode.js";
 
 export function merchantView(m: Merchant, from = CAMPUS) {
   const open = m.approval === "approved" && m.storeMode !== "offline" && isOpenNow(m);
+  const wait = estimateWait(m.prepMinutes, db.orders.values(), m.id, open);
   return {
     id: m.id, name: m.name, stallNo: m.stallNo, rating: liveRating(m), prepMinutes: m.prepMinutes, tags: m.tags,
     color: m.color, hours: m.hours,
@@ -19,7 +21,9 @@ export function merchantView(m: Merchant, from = CAMPUS) {
     dineInOnly: m.storeMode === "dine_in",
     distanceKm: Math.round(distanceKm(from, m) * 100) / 100, // FR-1.5
     // Live wait (Live Canteen Map + "Ready in X min"): queue, waitMinutes and busy (quiet / busy / very_busy / closed).
-    ...estimateWait(m.prepMinutes, db.orders.values(), m.id, open),
+    ...wait,
+    // Sprint 3 busy mode: waitLimit, overLimit, ordersPaused ("pause") and longWaitWarning ("warn").
+    ...busyState(m.busyMode, wait.waitMinutes, open),
   };
 }
 

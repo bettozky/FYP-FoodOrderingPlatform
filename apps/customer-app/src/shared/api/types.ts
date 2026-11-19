@@ -9,6 +9,8 @@ export type Merchant = {
   openNow: boolean; dineInOnly: boolean; distanceKm: number; logo?: string; cover?: string;
   /** Live wait (backend merchants/waitTime.ts): orders ahead, minutes until food is ready, and the map colour. */
   queue?: number; waitMinutes?: number; busy?: BusyLevel;
+  /** Sprint 3 busy mode: the stall's wait limit, and whether it is over it ("pause" stops orders, "warn" asks first). */
+  waitLimit?: number | null; ordersPaused?: boolean; longWaitWarning?: boolean;
   /** Allergens the shop says its kitchen uses. undefined = the shop never said; [] = none of the 9 common ones. */
   allergens?: string[];
 };
