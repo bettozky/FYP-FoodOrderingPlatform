@@ -2,7 +2,7 @@ import { Router } from "express";
 import { HttpError, int, money, str } from "../../lib/http.js";
 import { uid } from "../../lib/ids.js";
 import { liveRating, merchantIdOfReview } from "../../lib/ratings.js";
-import { signedUrl } from "../../lib/storage.js";
+import { fileLink } from "../../lib/fileLinks.js";
 import { auth, currentUser } from "../../middleware/auth.js";
 import { db } from "../../store/db.js";
 import { postAdminNotice } from "../announcements/announcements.routes.js";
@@ -34,15 +34,17 @@ adminRouter.get("/merchants", (req, res) => {
 });
 
 // FR-6.2: everything the merchant sent in the sign-up wizard, so the admin can review it before approving.
-// Uploaded photos keep their public URL; private certificates get a link that works for one hour.
-adminRouter.get("/merchants/:id", async (req, res) => {
+// Uploaded photos keep their public URL; private certificates get a link that works for one hour
+// (GET /api/files/<token>: a Supabase signed URL, or the local file when running without Supabase).
+adminRouter.get("/merchants/:id", (req, res) => {
   const m = db.merchants.get(req.params.id as string);
   if (!m) throw new HttpError(404, "Merchant not found");
   const owner = m.ownerUserId ? db.users.get(m.ownerUserId) : undefined;
-  const dishes = [...db.dishes.values()].filter((d) => d.merchantId === m.id).map((d) => ({ id: d.id, name: d.name, price: d.price, description: d.description, image: d.image }));
+  const dishes = [...db.dishes.values()].filter((d) => d.merchantId === m.id)
+    .map((d) => ({ id: d.id, name: d.name, price: d.price, description: d.description, image: d.image, allergens: d.allergens ?? [] }));
   const application = m.application ? structuredClone(m.application) : null;
   for (const f of Object.values<any>(application?.files ?? {})) {
-    if (f?.bucket && f?.path && !f.url) f.url = await signedUrl(f.bucket, f.path);
+    if (f?.bucket && f?.path && !f.url) f.url = fileLink(req, { bucket: f.bucket, path: f.path, name: String(f.name ?? "file"), mimeType: String(f.mimeType ?? "application/octet-stream") });
   }
   res.json({
     merchant: {
@@ -58,9 +60,11 @@ adminRouter.patch("/merchants/:id", (req, res) => {
   if (!m) throw new HttpError(404, "Merchant not found");
   const approval = req.body?.approval;
   if (!["approved", "rejected", "suspended", "pending"].includes(approval)) throw new HttpError(400, "approval must be approved, rejected, suspended or pending");
+  // Optional reason (rejecting or suspending), passed on to the merchant so they know what to fix.
+  const reason = typeof req.body?.reason === "string" ? req.body.reason.trim().slice(0, 300) : "";
   m.approval = approval;
-  logAudit(currentUser(res), `merchant_${approval}`, m.name);
-  notifyMerchant(m.id, "approval", `Business ${approval}`, approval === "approved" ? "Your business is live on ScootMeal." : `Your business was ${approval} by the admin.`);
+  logAudit(currentUser(res), `merchant_${approval}`, m.name, reason || undefined);
+  notifyMerchant(m.id, "approval", `Business ${approval}`, approval === "approved" ? "Your business is live on ScootMeal." : `Your business was ${approval} by the admin.${reason ? ` Reason: ${reason}` : ""}`);
   res.json({ merchant: { id: m.id, approval: m.approval } });
 });
 

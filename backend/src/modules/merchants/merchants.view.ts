@@ -1,3 +1,4 @@
+import { kitchenAllergens } from "../../lib/allergens.js";
 import { distanceKm } from "../../lib/geo.js";
 import { liveRating } from "../../lib/ratings.js";
 import { isOpenNow } from "../../lib/time.js";
@@ -11,6 +12,7 @@ export function merchantView(m: Merchant, from = CAMPUS) {
     id: m.id, name: m.name, stallNo: m.stallNo, rating: liveRating(m), prepMinutes: m.prepMinutes, tags: m.tags,
     color: m.color, hours: m.hours, venueCategory: m.venueCategory, phone: m.phone, lat: m.lat, lng: m.lng,
     storeMode: m.storeMode, logo: m.logo, cover: m.cover,
+    allergens: kitchenAllergens(m, db.dishes.values()), // undefined = the shop never said
     openNow: open, // FR-1.6
     dineInOnly: m.storeMode === "dine_in",
     distanceKm: Math.round(distanceKm(from, m) * 100) / 100, // FR-1.5

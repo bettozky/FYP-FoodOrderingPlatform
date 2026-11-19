@@ -187,3 +187,28 @@ textarea { width: 100%; resize: vertical; }
   .sidebar a { padding: 8px 12px; }
 }
 .review .badge, .flags .badge { text-transform: none; }
+
+/* merchant application review (MerchantsPage -> ApplicationReview) */
+.modal { overflow-y: auto; }
+.btn.approve { background: var(--ok); }
+.review-app { display: flex; flex-direction: column; gap: 4px; }
+.checks { margin-top: 10px; border-radius: 10px; padding: 10px 14px; background: var(--warn-bg); color: var(--warn); border-left: 5px solid var(--accent); font-size: 14px; }
+.checks ul { margin: 4px 0 0; padding-left: 18px; }
+.app-facts { display: grid; grid-template-columns: 150px 1fr; gap: 6px 12px; margin: 0; font-size: 14px; }
+.app-facts dt { color: var(--muted); }
+.app-facts dd { margin: 0; overflow-wrap: anywhere; }
+.hours { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 2px 12px; }
+.hours span:first-child { display: inline-block; width: 34px; font-weight: 600; }
+.thumbs { display: flex; gap: 12px; flex-wrap: wrap; }
+.thumbs figure { margin: 0; }
+.thumbs img, .thumbs .no-pic { width: 160px; height: 100px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.thumbs img { display: block; }
+.thumbs figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.no-pic { display: flex; align-items: center; justify-content: center; background: #f4f1ea; color: var(--muted); font-size: 12px; text-align: center; }
+.app-dishes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.app-dishes li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; }
+.app-dishes img, .app-dishes .no-pic { width: 64px; height: 64px; flex: 0 0 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+.app-dishes p { margin: 2px 0 0; }
+.decide { position: sticky; bottom: 0; background: #fff; border-top: 1px solid var(--line); margin: 16px -20px -20px; padding: 12px 20px 16px; }
+.confirm textarea { margin-bottom: 8px; }
+@media (max-width: 600px) { .app-facts { grid-template-columns: 1fr; gap: 0 0; } .app-facts dd { margin-bottom: 8px; } }

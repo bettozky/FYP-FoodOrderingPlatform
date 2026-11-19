@@ -160,12 +160,28 @@ export function ServiceStep({ a, set, errors }: StepProps) {
 }
 
 // 6. Allergens and hygiene
+// One row per allergen with a real checkbox and local examples, plus "None of these" so an empty answer is never a guess.
+// Ticking an allergen clears "None of these", and ticking "None of these" clears the allergens.
 export function HygieneStep({ a, set, errors }: StepProps) {
-  const toggle = (k: string) => set({ allergens: a.allergens.includes(k) ? a.allergens.filter((x) => x !== k) : [...a.allergens, k] });
+  const toggle = (k: string) =>
+    set({ noAllergens: false, allergens: a.allergens.includes(k) ? a.allergens.filter((x) => x !== k) : ALLERGENS.map((x) => x.name).filter((n) => n === k || a.allergens.includes(n)) });
+  const toggleNone = () => set(a.noAllergens ? { noAllergens: false } : { noAllergens: true, allergens: [] });
   return (
     <>
-      <Chips label="Common allergens you use (tick all that apply)" options={ALLERGENS.map((k) => ({ key: k, label: k }))} selected={a.allergens} onPick={toggle} testID="reg-allergen" />
-      {a.allergens.length === 0 ? <Text style={type.small}>Leave empty only if none of these are used in your kitchen.</Text> : null}
+      <View style={f.block}>
+        <Label>Which of these are used in your kitchen?</Label>
+        <Text style={type.small}>Tick every one, even if only a little goes into a sauce.</Text>
+        <View style={[s.checkList, !!errors.allergens && f.inputError]}>
+          {ALLERGENS.map((x, i) => (
+            <CheckRow key={x.name} label={x.name} sub={x.examples} checked={a.allergens.includes(x.name)} onPress={() => toggle(x.name)} first={i === 0} testID={`reg-allergen-${x.name}`} />
+          ))}
+          <CheckRow label="None of these" sub="None of the 9 allergens above are used in my kitchen" checked={a.noAllergens} onPress={toggleNone} none testID="reg-allergen-none" />
+        </View>
+        <Text style={type.small} accessibilityLiveRegion="polite">
+          {a.noAllergens ? "You said none of these are used." : a.allergens.length ? `${a.allergens.length} ticked: ${a.allergens.join(", ")}` : "Nothing ticked yet."}
+        </Text>
+        <FieldError text={errors.allergens} />
+      </View>
       <Field label="Food hygiene or business licence number" value={a.licenceNo} onChange={(v) => set({ licenceNo: v })} error={errors.licenceNo} placeholder="e.g. MBJB-LK-2024-08812" autoCapitalize="characters" testID="reg-licence" />
     </>
   );
@@ -198,6 +214,16 @@ export function PicturesStep({ a, set, errors }: StepProps) {
             </View>
           </View>
           <Field label="Description" value={m.description} onChange={(v) => setItem(i, { description: v })} placeholder="One short line" maxLength={120} testID={`reg-dish-${i}-desc`} />
+          {/* Only the allergens ticked in step 6 are offered, so the list stays short. Shown to customers as "Contains: ...". */}
+          {!a.noAllergens && a.allergens.length ? (
+            <Chips
+              label="Allergens in this dish (tap all that apply)"
+              options={a.allergens.map((k) => ({ key: k, label: k }))}
+              selected={m.allergens.filter((x) => a.allergens.includes(x))}
+              onPick={(k) => setItem(i, { allergens: m.allergens.includes(k) ? m.allergens.filter((x) => x !== k) : [...m.allergens, k] })}
+              testID={`reg-dish-${i}-allergen`}
+            />
+          ) : null}
           <UploadTile label="Dish photo" kind="image" file={m.photo} onChange={(x) => setItem(i, { photo: x })} testID={`reg-dish-${i}-photo`} />
           <FieldError text={errors[`menu${i}`]} />
         </View>
@@ -226,7 +252,7 @@ export function ReviewStep({ a, set, errors, goTo }: StepProps) {
     ["Location", `${a.address.trim()}${a.landmark.trim() ? ` · ${a.landmark.trim()}` : ""} · pin ${a.lat}, ${a.lng}`],
     ["Food", `${a.cuisine.trim()} · ${"RM ".repeat(a.priceRange ?? 0).trim()}${a.vegetarianOptions ? " · vegetarian options" : ""} · ${a.halal ? "Halal" : "Not halal"}`],
     ["Hours and service", `Open ${open.length} days (${open[0]?.open ?? ""}–${open[0]?.close ?? ""} on ${DAYS.find((d) => d.key === open[0]?.day)?.label ?? ""}) · ${service} · prep ${a.prepMinutes} min${a.minOrder.trim() ? ` · min RM ${a.minOrder.trim()}` : ""}`],
-    ["Allergens and hygiene", `${a.allergens.length ? a.allergens.join(", ") : "None listed"} · licence ${a.licenceNo.trim()}`],
+    ["Allergens and hygiene", `${a.noAllergens ? "None of the 9 used" : a.allergens.join(", ")} · licence ${a.licenceNo.trim()}`],
     ["Pictures", `${photos} · ${a.menuItems.length} dishes`],
   ];
   return (
@@ -258,6 +284,26 @@ export function ReviewStep({ a, set, errors, goTo }: StepProps) {
   );
 }
 
+/** A full-width checkbox row: name, small examples underneath, and a tick box on the left. */
+function CheckRow({ label, sub, checked, onPress, first, none, testID }: { label: string; sub: string; checked: boolean; onPress: () => void; first?: boolean; none?: boolean; testID?: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[s.checkRow, !first && s.checkRowLine, none && s.checkRowNone, checked && s.checkRowOn]}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={`${label}. ${sub}`}
+      testID={testID}
+    >
+      <View style={[s.box, checked && s.boxOn]}>{checked ? <Ionicons name="checkmark" size={15} color={colors.white} /> : null}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={type.h3}>{label}</Text>
+        <Text style={type.small}>{sub}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export const STEP_COMPONENTS = [AccountStep, BusinessStep, LocationStep, FoodStep, ServiceStep, HygieneStep, PicturesStep, ReviewStep];
 
 const s = StyleSheet.create({
@@ -278,4 +324,9 @@ const s = StyleSheet.create({
   agree: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm, minHeight: 44 },
   box: { width: 24, height: 24, borderRadius: 6, borderWidth: 1.5, borderColor: colors.ink, alignItems: "center", justifyContent: "center" },
   boxOn: { backgroundColor: colors.ink },
+  checkList: { backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.sm, overflow: "hidden" },
+  checkRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, minHeight: 56 },
+  checkRowLine: { borderTopWidth: 1, borderTopColor: colors.stoneLine },
+  checkRowNone: { borderTopWidth: 2, borderTopColor: colors.stone },
+  checkRowOn: { backgroundColor: colors.amberTint },
 });

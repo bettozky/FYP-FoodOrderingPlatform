@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { api } from "../../shared/api";
 import { Link } from "react-router-dom";
-import { Stars, rm } from "../../shared/ui";
+import { Modal, Notice, Stars, rm } from "../../shared/ui";
 import { StatusLine, useLoad } from "../../shared/useLoad";
+import ApplicationReview, { Status } from "./ApplicationReview";
 
-type Status = "pending" | "approved" | "rejected" | "suspended";
 type Merchant = {
   id: string; name: string; stallNo: string; owner?: string; email?: string; phone: string; approval: Status;
   rating: number; reviewCount: number; orders30: number; revenue30: number; level: "good" | "watch" | "at_risk"; flags: { text: string }[];
@@ -19,27 +19,40 @@ const filters: { key: "" | Status; label: string }[] = [
   { key: "suspended", label: "Suspended" },
 ];
 
-// FR-6.2: review, approve, reject or suspend merchant registrations (live data from the backend).
+const doneText: Record<Status, string> = { approved: "approved. It is now live for customers.", rejected: "rejected. The shop has been told.", suspended: "suspended. Customers can no longer order from it.", pending: "set back to pending." };
+
+// FR-6.2: the admin opens a shop's sign-up application, checks it, then approves, rejects or suspends it.
+// Decisions are only made inside the application window, so nobody approves a shop without seeing what it sent.
 export default function MerchantsPage() {
   const [filter, setFilter] = useState<"" | Status>("");
+  const [open, setOpen] = useState<Merchant | null>(null);
   const [actionError, setActionError] = useState("");
+  const [done, setDone] = useState("");
   const { data, error, loading, reload, setData } = useLoad(() => api<{ merchants: Merchant[] }>("/admin/merchants").then((r) => r.merchants));
 
-  const set = async (m: Merchant, approval: Status) => {
+  const decide = async (m: Merchant, approval: Status, reason: string) => {
     setActionError("");
+    setDone("");
     try {
-      await api(`/admin/merchants/${m.id}`, { method: "PATCH", body: { approval } });
+      await api(`/admin/merchants/${m.id}`, { method: "PATCH", body: { approval, ...(reason ? { reason } : {}) } });
       setData((rows) => (rows ?? []).map((x) => (x.id === m.id ? { ...x, approval } : x)));
+      setOpen(null);
+      setDone(`${m.name} ${doneText[approval]}`);
+      return true;
     } catch (e) {
       setActionError(`Could not update ${m.name}: ${(e as Error).message}`);
+      return false;
     }
   };
 
+  const pending = (data ?? []).filter((m) => m.approval === "pending").length;
   const rows = (data ?? []).filter((m) => !filter || m.approval === filter);
   return (
     <div>
       <h1>Merchants</h1>
-      <p className="muted">Approve, reject or suspend shops that signed up in the merchant app.</p>
+      <p className="muted">Open a shop's application to check its documents, menu and photos, then approve, reject or suspend it.</p>
+      {pending > 0 ? <p><b>{pending} shop{pending > 1 ? "s are" : " is"} waiting for review.</b></p> : null}
+      <Notice text={done} />
       <div className="filters" role="group" aria-label="Filter by status">
         {filters.map((f) => (
           <button key={f.key} className={`chip ${filter === f.key ? "on" : ""}`} aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>
@@ -48,7 +61,7 @@ export default function MerchantsPage() {
         ))}
       </div>
       <StatusLine loading={loading} error={error} onRetry={reload} />
-      {actionError ? <div className="card error" role="alert">{actionError}</div> : null}
+      {actionError && !open ? <div className="card error" role="alert">{actionError}</div> : null}
       {!loading && !error && rows.length === 0 ? <div className="card">No merchants in this list.</div> : null}
       {rows.length > 0 ? (
         <div className="table-wrap">
@@ -73,9 +86,11 @@ export default function MerchantsPage() {
                   <td data-label="Status"><span className={`badge ${m.approval}`}>{m.approval}</span></td>
                   <td data-label="Actions">
                     <div className="row-actions">
-                      <button className="btn small" aria-label={`Approve ${m.name}`} disabled={m.approval === "approved"} onClick={() => set(m, "approved")}>Approve</button>
-                      <button className="btn small danger" aria-label={`Reject ${m.name}`} disabled={m.approval === "rejected"} onClick={() => set(m, "rejected")}>Reject</button>
-                      <button className="btn small" aria-label={`Suspend ${m.name}`} disabled={m.approval === "suspended"} onClick={() => set(m, "suspended")}>Suspend</button>
+                      {m.approval === "pending" ? (
+                        <button className="btn small" aria-label={`Review application from ${m.name}`} onClick={() => { setActionError(""); setOpen(m); }} data-testid={`review-${m.id}`}>Review application</button>
+                      ) : (
+                        <button className="btn small ghost" aria-label={`View ${m.name}`} onClick={() => { setActionError(""); setOpen(m); }} data-testid={`review-${m.id}`}>View</button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -84,6 +99,14 @@ export default function MerchantsPage() {
           </table>
         </div>
       ) : null}
+      <Modal open={!!open} title={open ? open.name : ""} onClose={() => setOpen(null)}>
+        {open ? (
+          <>
+            {actionError ? <div className="card error" role="alert">{actionError}</div> : null}
+            <ApplicationReview key={open.id} id={open.id} onDecide={(approval, reason) => decide(open, approval, reason)} />
+          </>
+        ) : null}
+      </Modal>
     </div>
   );
 }

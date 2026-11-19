@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { cleanAllergens } from "../../lib/allergens.js";
 import { HttpError, int, money, str } from "../../lib/http.js";
 import { uid } from "../../lib/ids.js";
 import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
@@ -65,7 +66,9 @@ function dishImage(v: unknown): string {
 function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | "merchantId"> {
   const price = Number(b.price ?? base?.price);
   if (!Number.isFinite(price) || price <= 0 || price > 500) throw new HttpError(400, "Price must be above 0");
-  const dietary = Array.isArray(b.dietary) ? (b.dietary as unknown[]).map(String).slice(0, 6) : base?.dietary ?? [];
+  const allergens = cleanAllergens(b.allergens) ?? base?.allergens;
+  let dietary = Array.isArray(b.dietary) ? (b.dietary as unknown[]).map(String).slice(0, 6) : base?.dietary ?? [];
+  if (allergens?.length) dietary = dietary.filter((t) => t !== "allergy_free"); // a dish with allergens cannot be "allergy-free"
   const style = b.style === "dry" || b.style === "wet" ? b.style : b.style === "" ? undefined : base?.style;
   return {
     name: str(b.name ?? base?.name, "Name", { max: 80 }),
@@ -79,6 +82,7 @@ function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | 
     stock: b.stock === undefined ? base?.stock : Math.max(0, Math.floor(Number(b.stock) || 0)),
     spicy: dietary.includes("spicy"),
     dietary, style,
+    ...(allergens ? { allergens } : {}),
     customisations: Array.isArray(b.customisations)
       ? (b.customisations as unknown[]).map((x) => String(x).trim()).filter(Boolean).slice(0, 12)
       : base?.customisations ?? [],
