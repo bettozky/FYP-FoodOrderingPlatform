@@ -8,7 +8,8 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { OrderSteps, NotChargedNote } from "../components/OrderSteps";
 import { MODE_ICON, MODE_LABEL, Mode } from "../../../shared/api/types";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
-import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
+import EmptyState from "../../../shared/components/EmptyState";
+import { colors, layout, radius, shadow, spacing, type, ui, font } from "../../../shared/theme/theme";
 
 const ALL_MODES: Mode[] = ["dine_in", "takeaway", "delivery"];
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real fee
@@ -26,12 +27,8 @@ export default function CartScreen({ navigation }: any) {
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         <ScreenHeader title="Your cart" />
         <View style={styles.emptyWrap}>
-          <View style={styles.emptyIcon}>
-            <Ionicons name="bag-outline" size={40} color={colors.amberText} />
-          </View>
-          <Text style={type.h2}>Your cart is empty</Text>
-          <Text style={[type.bodyMuted, { textAlign: "center" }]}>Search a dish you're craving to get started.</Text>
-          <PrimaryButton label="Browse dishes" style={{ marginTop: spacing.lg }} onPress={() => navigation.popTo("MainTabs")} />
+          <EmptyState icon="bag-handle-outline" title="Your cart is empty" hint="Find a dish you're craving and tap + to add it." />
+          <PrimaryButton label="Browse dishes" style={{ alignSelf: "stretch", marginTop: -spacing.xl }} onPress={() => navigation.popTo("MainTabs")} />
         </View>
       </View>
     );
@@ -55,30 +52,32 @@ export default function CartScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <View style={styles.line}>
             <View style={styles.lineTop}>
-              <DishImage image={item.dish.image} size={56} tint={softTint(merchant?.color)} label={item.dish.name} />
-              <View style={{ flex: 1 }}>
-                <Text style={type.h3}>{item.dish.name}</Text>
-                <Text style={type.bodyMuted}>RM {item.dish.price.toFixed(2)} each{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
+              <DishImage image={item.dish.image} size={60} tint={softTint(merchant?.color)} label={item.dish.name} />
+              <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                <Text style={type.h3} numberOfLines={2}>{item.dish.name}</Text>
+                <Text style={type.bodyMuted} numberOfLines={2}>RM {item.dish.price.toFixed(2)} each{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
               </View>
               <Pressable onPress={() => removeLine(item.key)} hitSlop={12} style={styles.trashBtn} testID={`remove-${item.dish.id}`} accessibilityRole="button" accessibilityLabel={`Remove ${item.dish.name} from cart`}>
-                <Ionicons name="trash-outline" size={18} color={colors.stoneText} />
+                <Ionicons name="trash-outline" size={18} color={colors.chiliText} />
               </Pressable>
             </View>
-            {modes.map((m) => (
-              <View key={m} style={[styles.modeRow, item.qty[m] > 0 && styles.modeRowOn]}>
-                <Ionicons name={MODE_ICON[m] as any} size={15} color={item.qty[m] ? colors.ink : colors.stoneText} />
+            <View style={styles.modes}>
+            {modes.map((m, mi) => (
+              <View key={m} style={[styles.modeRow, mi > 0 && styles.modeRowLine]}>
+                <Ionicons name={MODE_ICON[m] as any} size={18} color={item.qty[m] ? colors.ink : colors.stoneText} />
                 <Text style={[styles.modeLabel, !item.qty[m] && { color: colors.stoneText }]}>{MODE_LABEL[m]}</Text>
                 <View style={styles.stepper}>
                   <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] - 1)} hitSlop={8} style={styles.stepBtn} testID={`dec-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Decrease ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
-                    <Text style={styles.stepBtnText}>–</Text>
+                    <Ionicons name="remove" size={16} color={item.qty[m] > 0 ? colors.ink : colors.stoneSoft} />
                   </Pressable>
                   <Text style={styles.qty} testID={`qty-${item.dish.id}-${m}`}>{item.qty[m]}</Text>
                   <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] + 1)} hitSlop={8} style={styles.stepBtn} testID={`inc-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Increase ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
-                    <Text style={styles.stepBtnText}>+</Text>
+                    <Ionicons name="add" size={16} color={colors.ink} />
                   </Pressable>
                 </View>
               </View>
             ))}
+            </View>
             <View style={styles.lineTotal}>
               <Text style={type.small}>{lineTotalQty(item.qty)} × RM {item.dish.price.toFixed(2)}</Text>
               <Text style={styles.lineTotalValue}>RM {(item.dish.price * lineTotalQty(item.qty)).toFixed(2)}</Text>
@@ -99,7 +98,7 @@ export default function CartScreen({ navigation }: any) {
           </View>
         )}
         <View style={styles.totalBar}>
-          <View>
+          <View style={{ flexShrink: 0 }}>
             <Text style={type.small}>Total</Text>
             <Text style={styles.totalValue} testID="cart-total">RM {total.toFixed(2)}</Text>
           </View>
@@ -113,26 +112,26 @@ export default function CartScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
-  line: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md, gap: spacing.sm },
+  list: { paddingHorizontal: layout.gutter, paddingBottom: spacing.xl },
+  line: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md, gap: spacing.md },
   lineTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  trashBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
-  modeRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.pill, paddingVertical: 6, paddingLeft: spacing.md, paddingRight: 6 },
-  modeRowOn: { backgroundColor: colors.amberTint },
-  modeLabel: { flex: 1, fontFamily: fonts.display, fontSize: 13, color: colors.ink },
+  trashBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.chiliSoft, alignItems: "center", justifyContent: "center" },
+  // The three ways to get this dish, as a small grouped list with a stepper on each row.
+  modes: { borderRadius: radius.md, backgroundColor: colors.paperDim, overflow: "hidden" },
+  modeRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 48, paddingLeft: spacing.md, paddingRight: 6 },
+  modeRowLine: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
+  modeLabel: { flex: 1, ...font.display, fontSize: 15, color: colors.ink },
   stepper: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  stepBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border },
-  stepBtnText: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.text, marginTop: -1 },
-  qty: { minWidth: 18, textAlign: "center", fontFamily: fonts.displayBold },
-  lineTotal: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 2 },
+  stepBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", ...shadow.soft },
+  qty: { minWidth: 22, textAlign: "center", ...font.displayBold, fontSize: 16, color: colors.ink, fontVariant: ["tabular-nums"] },
+  lineTotal: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   lineTotalValue: { ...ui.price },
-  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.paper },
+  footer: { paddingHorizontal: layout.gutter, paddingTop: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft, backgroundColor: colors.paper },
   // Label takes the leftover width and wraps; the price keeps its own width so "RM 3.50" never splits.
   summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md, marginBottom: 6 },
   summaryLabel: { flex: 1 },
-  summaryValue: { flexShrink: 0, textAlign: "right" },
-  totalBar: { flexDirection: "row", alignItems: "center", gap: spacing.lg, marginTop: spacing.sm },
-  totalValue: { fontFamily: fonts.displayExtraBold, fontSize: 21, color: colors.ink },
-  emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: spacing.xl },
-  emptyIcon: { width: 84, height: 84, borderRadius: 42, backgroundColor: colors.amberTint, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
+  summaryValue: { flexShrink: 0, textAlign: "right", fontVariant: ["tabular-nums"] },
+  totalBar: { flexDirection: "row", alignItems: "center", gap: spacing.lg, marginTop: spacing.md },
+  totalValue: { ...font.displayExtraBold, fontSize: 24, color: colors.ink, letterSpacing: -0.3, fontVariant: ["tabular-nums"] },
+  emptyWrap: { flex: 1, justifyContent: "center", paddingHorizontal: layout.gutter, paddingBottom: spacing.xxl },
 });

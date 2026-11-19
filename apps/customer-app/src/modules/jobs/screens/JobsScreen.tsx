@@ -7,7 +7,7 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import { api, errorText } from "../../../shared/api/client";
 import { Job } from "../../../shared/api/types";
-import { colors, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 
 // FR-4.1: F&B job listings posted by merchants. Tap one to read it and apply.
 export default function JobsScreen({ navigation }: any) {
@@ -68,7 +68,7 @@ export default function JobsScreen({ navigation }: any) {
               {item.description ? <Text style={type.body} numberOfLines={2}>{item.description}</Text> : null}
               <View style={styles.foot}>
                 <Text style={type.price}>{item.pay}</Text>
-                <Text style={styles.more}>View & apply ›</Text>
+                <Text style={styles.more}>View and apply</Text>
               </View>
             </Pressable>
           )}
@@ -81,9 +81,9 @@ export default function JobsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: 4 },
   foot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2 },
-  more: { fontSize: 13, color: colors.turmericDeep, fontWeight: "700" },
+  more: { fontSize: 13, color: colors.amberText, fontWeight: "700" },
   mine: { minHeight: 34, paddingHorizontal: 12, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
-  mineText: { fontSize: 12.5, color: colors.ink, fontWeight: "700" },
+  mineText: { fontSize: 13, color: colors.ink, fontWeight: "700" },
   searchBar: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: spacing.lg, paddingHorizontal: spacing.md, minHeight: 44, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine },
   searchInput: { flex: 1, color: colors.ink, minHeight: 44 },
   chips: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },

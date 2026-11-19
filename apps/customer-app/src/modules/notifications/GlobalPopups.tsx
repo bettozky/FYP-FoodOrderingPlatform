@@ -3,7 +3,7 @@ import { Modal, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import PrimaryButton from "../../shared/components/PrimaryButton";
-import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 import { navRef } from "../../navigation/navRef";
 import { useLive } from "../ordering/LiveDataContext";
 import OrderFeedbackFlow from "../feedback/OrderFeedbackFlow";
@@ -139,6 +139,6 @@ const styles = StyleSheet.create({
   icon: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center" },
   title: { ...type.h2, textAlign: "center" },
   body: { ...type.body, textAlign: "center", color: colors.stone },
-  hint: { fontFamily: fonts.serif, fontSize: 12, color: colors.stone },
-  error: { fontFamily: fonts.display, color: colors.chili, textAlign: "center" },
+  hint: { ...font.serif, fontSize: 12, color: colors.stone },
+  error: { ...font.display, color: colors.chili, textAlign: "center" },
 });

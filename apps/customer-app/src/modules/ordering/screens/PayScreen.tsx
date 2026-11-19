@@ -7,7 +7,7 @@ import { MODE_LABEL } from "../../../shared/api/types";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { mmss, rm, useCountdown } from "../../../shared/util/format";
-import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import { OrderSteps } from "../components/OrderSteps";
 import { PayMethod } from "../payments";
@@ -179,7 +179,7 @@ export default function PayScreen({ route, navigation }: any) {
         )}
         {method === "cash" && (
           <View style={styles.detail}>
-            <Text style={type.body}>Nothing is charged now. Pay <Text style={{ fontFamily: fonts.displayBold }}>{rm(order.total)}</Text> in cash at the stall when you collect. The stall starts preparing right away.</Text>
+            <Text style={type.body}>Nothing is charged now. Pay <Text style={{ ...font.displayBold }}>{rm(order.total)}</Text> in cash at the stall when you collect. The stall starts preparing right away.</Text>
           </View>
         )}
 
@@ -199,16 +199,16 @@ const styles = StyleSheet.create({
   note: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", padding: spacing.lg, borderRadius: radius.lg },
   timer: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.herbLight, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   timerUrgent: { backgroundColor: colors.chiliSoft },
-  timerText: { flex: 1, fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.herb },
+  timerText: { flex: 1, ...font.displayBold, fontSize: 14, color: colors.herb },
   card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: 6 },
   line: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
   totalLine: { marginTop: 4, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border },
   method: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg },
   methodOn: { borderColor: colors.herb, backgroundColor: colors.herbLight },
-  methodTitle: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
+  methodTitle: { ...font.displayBold, fontSize: 15, color: colors.ink },
   detail: { gap: spacing.sm, paddingHorizontal: 2 },
   bankWrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  input: { backgroundColor: colors.paper, borderRadius: radius.md, padding: spacing.md, fontFamily: fonts.serif, fontSize: 16, borderWidth: 1, borderColor: colors.border },
-  error: { color: colors.chili, fontFamily: fonts.display },
+  input: { backgroundColor: colors.paper, borderRadius: radius.md, padding: spacing.md, ...font.serif, fontSize: 16, borderWidth: 1, borderColor: colors.border },
+  error: { color: colors.chili, ...font.display },
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.border },
 });

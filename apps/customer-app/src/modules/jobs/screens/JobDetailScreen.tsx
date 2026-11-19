@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   wrap: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl * 3 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginTop: spacing.xs },
   pay: { flexDirection: "row", alignItems: "center", gap: 8, marginVertical: spacing.xs },
-  h: { fontSize: 13, fontWeight: "700", color: colors.stoneText, textTransform: "uppercase", letterSpacing: 0.5, marginTop: spacing.md },
+  h: { fontSize: 13, fontWeight: "700", color: colors.stoneText, marginTop: spacing.md },
   status: { marginTop: spacing.lg, backgroundColor: colors.paper, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine, padding: spacing.md, gap: 4 },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
 });

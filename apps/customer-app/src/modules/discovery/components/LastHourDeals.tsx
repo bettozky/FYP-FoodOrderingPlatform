@@ -6,7 +6,7 @@ import type { Dish, Merchant } from "../../../shared/api/types";
 import { useCountdown } from "../../../shared/util/format";
 import FadeInView from "../../../shared/motion/FadeInView";
 import PulseRing from "../../../shared/motion/PulseRing";
-import { colors, fonts, radius, spacing, ui } from "../../../shared/theme/theme";
+import { colors, layout, radius, spacing, ui, font } from "../../../shared/theme/theme";
 import DishCard from "./DishCard";
 
 // Sprint 3 "last-hour deals" on Home: leftover dishes stalls sell off cheaper before closing, ending soonest first,
@@ -58,7 +58,7 @@ export default function LastHourDeals({ onOpen, onAdd }: { onOpen: (d: Dish) => 
         {deals.map(({ dish, merchant }, i) => (
           <FadeInView key={dish.id} index={i} from="right" style={{ gap: 6 }}>
             <EndsChip endsAt={dish.dealEndsAt} />
-            <DishCard variant="grid" width={150} dish={dish} merchant={merchant} onPress={() => onOpen(dish)} onAdd={() => onAdd(dish, merchant)} />
+            <DishCard variant="grid" width={164} dish={dish} merchant={merchant} onPress={() => onOpen(dish)} onAdd={() => onAdd(dish, merchant)} />
           </FadeInView>
         ))}
       </ScrollView>
@@ -67,11 +67,11 @@ export default function LastHourDeals({ onOpen, onAdd }: { onOpen: (d: Dish) => 
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: spacing.lg, gap: spacing.sm },
-  head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingHorizontal: spacing.lg },
-  sub: { fontFamily: fonts.display, fontSize: 12, color: colors.stoneText },
-  row: { paddingHorizontal: spacing.lg, gap: spacing.md, paddingBottom: spacing.sm },
+  wrap: { marginTop: layout.section, gap: spacing.md },
+  head: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: layout.gutter },
+  sub: { ...font.serif, fontSize: 14, color: colors.stoneText, marginTop: 2 },
+  row: { paddingHorizontal: layout.gutter, gap: spacing.md, paddingBottom: spacing.sm },
   ends: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", backgroundColor: colors.chiliSoft, borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
   endsUrgent: { backgroundColor: colors.chili },
-  endsText: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.chiliText },
+  endsText: { ...font.displayBold, fontSize: 12, color: colors.chiliText, fontVariant: ["tabular-nums"] },
 });

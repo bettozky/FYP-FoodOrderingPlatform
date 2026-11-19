@@ -22,7 +22,7 @@ import { useAuth } from "../AuthContext";
 import { errorText } from "../../../shared/api/client";
 import GoogleSignInButton, { googleSignInAvailable } from "../components/GoogleSignInButton";
 import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
-import { colors, spacing, type, radius, fonts, shadow } from "../../../shared/theme/theme";
+import { colors, spacing, type, radius, shadow, font } from "../../../shared/theme/theme";
 
 const TABS = ["Sign In", "Sign Up"];
 
@@ -305,11 +305,11 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   outerScroll: { flexGrow: 1, backgroundColor: colors.ink },
   heroWrap: { alignItems: "center", paddingTop: spacing.xxl, paddingBottom: 56 },
-  brand: { fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, marginTop: spacing.md },
-  tagline: { fontFamily: fonts.display, fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 4, textAlign: "center", paddingHorizontal: spacing.xl },
-  points: { marginTop: spacing.md, gap: 8, paddingHorizontal: spacing.xl },
+  brand: { ...font.displayExtraBold, fontSize: 32, color: colors.white, marginTop: spacing.lg, letterSpacing: -0.6 },
+  tagline: { ...font.display, fontSize: 16, color: "rgba(255,255,255,0.82)", marginTop: 6, textAlign: "center", paddingHorizontal: spacing.xl },
+  points: { marginTop: spacing.lg, gap: 10, paddingHorizontal: spacing.xl },
   pointRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  pointText: { fontFamily: fonts.display, fontSize: 13, color: "rgba(255,255,255,0.9)", flexShrink: 1 },
+  pointText: { ...font.display, fontSize: 15, color: "rgba(255,255,255,0.9)", flexShrink: 1 },
   hero: {
     width: 120,
     height: 120,
@@ -329,8 +329,8 @@ const styles = StyleSheet.create({
   tabWrap: { width: 208, alignSelf: "center" },
   tabRow: { flexDirection: "row", justifyContent: "space-between" },
   tabBtn: { width: 88, alignItems: "center", paddingBottom: spacing.sm },
-  tabText: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.textFaint },
-  tabTextActive: { color: colors.turmeric },
+  tabText: { ...font.displayBold, fontSize: 16, color: colors.stoneText },
+  tabTextActive: { color: colors.ink },
   underlineTrack: {
     height: 2,
     backgroundColor: colors.stoneLine,
@@ -343,14 +343,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.turmeric,
     left: 0,
   },
-  label: { ...type.small, marginBottom: 4, marginTop: spacing.md },
+  label: { ...type.small, ...font.displayBold, color: colors.ink, marginBottom: 6, marginTop: spacing.lg },
   input: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
+    minHeight: 50,
     paddingVertical: 12,
-    fontSize: 15,
-    fontFamily: fonts.serif,
+    fontSize: 16,
+    ...font.serif,
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.border,
@@ -380,21 +381,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   checkboxChecked: { backgroundColor: colors.turmeric, borderColor: colors.turmeric },
-  link: { ...type.small, color: colors.turmericDeep },
+  link: { ...type.small, ...font.displayBold, color: colors.amberText },
   cta: {
     backgroundColor: colors.turmeric,
-    borderRadius: radius.md,
-    paddingVertical: 15,
+    borderRadius: radius.pill,
+    minHeight: 52,
+    justifyContent: "center",
     alignItems: "center",
     marginTop: spacing.xl,
-    ...shadow.card,
   },
   // ink on amber is 9.2:1; white on amber was 2.0:1 (fails WCAG AA)
-  ctaText: { color: colors.ink, fontFamily: fonts.displayBold, fontSize: 15 },
+  ctaText: { color: colors.ink, ...font.displayBold, fontSize: 16 },
   orRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginVertical: spacing.lg },
   gBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", padding: spacing.xl },
   gCard: { width: "100%", maxWidth: 420, backgroundColor: colors.bg, borderRadius: radius.xl, padding: spacing.xl },
-  gTitle: { fontFamily: fonts.displayBold, fontSize: 20, color: colors.ink, marginBottom: spacing.sm },
+  gTitle: { ...font.displayBold, fontSize: 20, color: colors.ink, marginBottom: spacing.sm },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.xl, marginTop: spacing.sm },
   dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerText: { ...type.small },
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   hint: { ...type.small, textAlign: "center", marginTop: spacing.md, paddingHorizontal: spacing.xl },
-  error: { color: colors.chili, fontFamily: fonts.display, fontSize: 13, marginTop: spacing.md },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14, marginTop: spacing.md },
   dobRow: { flexDirection: "row", gap: spacing.sm },
   guestRow: {
     flexDirection: "row",
@@ -421,5 +422,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     marginBottom: spacing.xxl,
   },
-  guestText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.turmericDeep },
+  guestText: { ...font.displayBold, fontSize: 14, color: colors.amberText },
 });

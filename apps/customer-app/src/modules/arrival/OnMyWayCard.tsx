@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import type { Order } from "../../shared/api/types";
-import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font } from "../../shared/theme/theme";
 
 // Feature 2 "Ready when you arrive" (Nov 2026), shown on Order tracking for dine-in / takeaway food.
 // The customer taps "I'm 5 min away" (or 10 / 15); the stall gets a "Customer on the way" alert and sees
@@ -114,10 +114,10 @@ const styles = StyleSheet.create({
   card: { ...ui.card, padding: spacing.lg, gap: spacing.md },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   icon: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
-  bold: { fontFamily: fonts.displayBold },
+  bold: { ...font.displayBold },
   fit: { flexDirection: "row", alignItems: "center", gap: spacing.sm, borderRadius: radius.md, padding: spacing.md },
-  fitText: { flex: 1, fontFamily: fonts.displayBold, fontSize: 13 },
+  fitText: { flex: 1, ...font.displayBold, fontSize: 13 },
   choices: { flexDirection: "row", gap: spacing.sm },
   choice: { flex: 1, justifyContent: "center" },
-  error: { fontFamily: fonts.display, fontSize: 12.5, color: colors.chiliText },
+  error: { ...font.display, fontSize: 13, color: colors.chiliText },
 });

@@ -8,7 +8,7 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { api, errorText } from "../../../shared/api/client";
 import { JobApplication } from "../../../shared/api/types";
 import { confirmAsync } from "../../../shared/util/confirm";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { fmtDate, fmtWhen, STATUS_HELP, STATUS_LABEL, STATUS_TONE } from "../status";
 
 // "My job applications": what I applied for, where each one stands, interview details, and withdraw.
@@ -101,6 +101,6 @@ const styles = StyleSheet.create({
   interview: { flexDirection: "row", gap: spacing.sm, backgroundColor: colors.amberTint, borderRadius: radius.sm, padding: spacing.sm, marginTop: spacing.sm },
   actions: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.sm },
   action: { minHeight: 32, justifyContent: "center" },
-  actionText: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
+  actionText: { fontSize: 14, fontWeight: "700", color: colors.ink },
   thanks: { flexDirection: "row", gap: spacing.sm, alignItems: "center", margin: spacing.lg, marginBottom: 0, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.herbLight },
 });

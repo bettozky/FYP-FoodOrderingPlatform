@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { api, errorText } from "../api/client";
-import { colors, fonts, radius, spacing, type } from "../theme/theme";
+import { colors, radius, spacing, type, font } from "../theme/theme";
 
 // Forgot password, in two steps: (1) type your email and we send a 6-digit code, (2) type the code and a new password.
 export default function ForgotPasswordModal({ visible, onClose, defaultEmail = "", onDone }: { visible: boolean; onClose: () => void; defaultEmail?: string; onDone?: (email: string) => void }) {
@@ -71,6 +71,6 @@ const styles = StyleSheet.create({
   input: { minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.bg },
   error: { color: colors.danger, fontSize: 13 },
   cta: { minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", marginTop: spacing.xs },
-  ctaText: { fontFamily: fonts.displayBold, color: colors.ink, fontSize: 15 },
-  link: { textAlign: "center", color: colors.stoneText, fontSize: 13.5, paddingVertical: 4 },
+  ctaText: { ...font.displayBold, color: colors.ink, fontSize: 15 },
+  link: { textAlign: "center", color: colors.stoneText, fontSize: 14, paddingVertical: 4 },
 });

@@ -42,14 +42,9 @@ export default function PrimaryButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isOutline ? colors.primary : colors.white} />
+        <ActivityIndicator color={isSecondary ? colors.white : colors.ink} />
       ) : (
-        <Text
-          style={[
-            type.h3,
-            { color: isOutline ? colors.primary : colors.white, fontSize: 15, textAlign: "center", flexShrink: 1 },
-          ]}
-        >
+        <Text style={[type.h3, { color: isSecondary ? colors.white : colors.ink, textAlign: "center", flexShrink: 1 }]}>
           {label}
         </Text>
       )}
@@ -57,21 +52,22 @@ export default function PrimaryButton({
   );
 }
 
+// primary = the screen's main action (turmeric, ink label); secondary = ink; outline = quiet bordered pill.
 const styles = StyleSheet.create({
   base: {
-    paddingVertical: 14,
-    paddingHorizontal: spacing.md,
-    minHeight: 48,
-    borderRadius: radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.xl,
+    minHeight: 52,
+    borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
-  primary: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: colors.secondary },
+  primary: { backgroundColor: colors.turmeric },
+  secondary: { backgroundColor: colors.ink },
   outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: colors.primary,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.stoneSoft,
   },
-  disabled: { opacity: 0.5 },
+  disabled: { opacity: 0.45 },
 });

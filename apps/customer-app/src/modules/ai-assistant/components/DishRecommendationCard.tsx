@@ -8,12 +8,7 @@ import {
 } from "react-native";
 import type { Dish, Merchant } from "../../../shared/api/types";
 import { isPhoto, mediaUrl } from "../../../shared/media";
-import {
-  colors,
-  fonts,
-  radius,
-  spacing,
-} from "../../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../../shared/theme/theme";
 
 export type Recommendation = {
   dish: Dish;
@@ -134,22 +129,22 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   name: {
-    fontFamily: fonts.display,
+    ...font.display,
     fontSize: 16,
     color: colors.ink,
   },
   muted: {
-    fontFamily: fonts.serif,
+    ...font.serif,
     fontSize: 12,
     color: colors.stone,
   },
   description: {
-    fontFamily: fonts.serif,
+    ...font.serif,
     fontSize: 13,
     color: colors.ink,
   },
   price: {
-    fontFamily: fonts.display,
+    ...font.display,
     fontSize: 18,
     color: colors.turmericDeep,
   },
@@ -164,7 +159,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    fontFamily: fonts.display,
+    ...font.display,
     fontSize: 13,
     color: colors.white,
   },

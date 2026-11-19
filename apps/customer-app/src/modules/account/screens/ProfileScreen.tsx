@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
 import Avatar from "../../../shared/components/Avatar";
@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
   input: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.bg },
   btn: { minHeight: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.turmeric, marginTop: spacing.xs },
   photoBtn: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
-  photoBtnText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  btnText: { fontFamily: fonts.displayBold, color: colors.ink },
+  photoBtnText: { ...font.displayBold, fontSize: 13, color: colors.ink },
+  btnText: { ...font.displayBold, color: colors.ink },
 });

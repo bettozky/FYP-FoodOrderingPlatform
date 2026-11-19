@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { Animated, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, fonts, radius, spacing } from "../theme/theme";
+import { colors, radius, spacing, font, shadow } from "../theme/theme";
 
 // A side menu that slides in from the left. Open it with the menu button (useDrawer().open) or by swiping from the
 // left edge (<DrawerEdge />); close it by tapping outside, tapping an item, or swiping it back to the left.
@@ -94,21 +94,21 @@ export function MenuButton({ badge, style }: { badge?: number; style?: object })
   const { open } = useDrawer();
   return (
     <Pressable onPress={open} hitSlop={8} style={[styles.menuBtn, style]} accessibilityRole="button" accessibilityLabel={badge ? `Menu, ${badge} unread` : "Menu"} testID="menu-button">
-      <Ionicons name="menu" size={22} color={colors.ink} />
+      <Ionicons name="menu" size={20} color={colors.ink} />
       {badge ? <View style={styles.dot}><Text style={styles.dotText}>{badge > 9 ? "9+" : badge}</Text></View> : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  panel: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: colors.paper, borderTopRightRadius: radius.lg, borderBottomRightRadius: radius.lg, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 16, elevation: 16 },
+  panel: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: colors.paper, borderTopRightRadius: radius.lg, borderBottomRightRadius: radius.lg, shadowColor: "#15130F", shadowOpacity: 0.18, shadowRadius: 24, elevation: 16 },
   header: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.stoneLine, marginBottom: spacing.sm },
-  section: { fontFamily: fonts.displayBold, fontSize: 11.5, letterSpacing: 0.6, color: colors.stoneText, textTransform: "uppercase", paddingHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: 2 },
+  section: { ...font.displayBold, fontSize: 13, color: colors.stoneText, paddingHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: 2 },
   item: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 48, paddingHorizontal: spacing.lg },
-  itemText: { flex: 1, fontFamily: fonts.display, fontSize: 15, color: colors.ink },
+  itemText: { flex: 1, ...font.display, fontSize: 15, color: colors.ink },
   badge: { minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6, backgroundColor: colors.chili, alignItems: "center", justifyContent: "center" },
-  badgeText: { color: colors.white, fontSize: 11.5, fontFamily: fonts.displayBold },
-  menuBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.stoneLine },
+  badgeText: { color: colors.white, fontSize: 12, ...font.displayBold },
+  menuBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center", ...shadow.soft },
   dot: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.chili, alignItems: "center", justifyContent: "center" },
-  dotText: { color: colors.white, fontSize: 10.5, fontFamily: fonts.displayBold },
+  dotText: { color: colors.white, fontSize: 11, ...font.displayBold },
 });

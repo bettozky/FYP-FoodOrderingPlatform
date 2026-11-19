@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius, spacing } from "../../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../../shared/theme/theme";
 import PulseRing, { PopOnChange } from "../../../shared/motion/PulseRing";
 
 // The three-step journey every order follows: send the request, the stall confirms, then the customer pays.
@@ -63,12 +63,12 @@ const styles = StyleSheet.create({
   dot: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
   dotActive: { backgroundColor: colors.turmeric },
   dotDone: { backgroundColor: colors.herb },
-  dotText: { fontFamily: fonts.displayExtraBold, fontSize: 12, color: colors.stoneText },
-  label: { fontFamily: fonts.display, fontSize: 12, color: colors.stoneText },
-  labelOn: { fontFamily: fonts.displayExtraBold, color: colors.ink },
-  bar: { flex: 1, height: 2, backgroundColor: colors.border, minWidth: 8 },
+  dotText: { ...font.displayBold, fontSize: 12, color: colors.stoneText },
+  label: { ...font.display, fontSize: 13, color: colors.stoneText, flexShrink: 1 },
+  labelOn: { ...font.displayBold, color: colors.ink },
+  bar: { flex: 1, height: 2, borderRadius: 1, backgroundColor: colors.stoneLine, minWidth: 8 },
   barDone: { backgroundColor: colors.herb },
-  note: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.herbLight, borderRadius: radius.md, borderWidth: 1, borderColor: colors.herbBorder, padding: spacing.md },
-  noteText: { flex: 1, fontFamily: fonts.serif, fontSize: 13, lineHeight: 19, color: colors.herb },
-  noteBold: { fontFamily: fonts.displayBold },
+  note: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.herbLight, borderRadius: radius.md, borderWidth: 1, borderColor: colors.herbBorder, padding: spacing.lg },
+  noteText: { flex: 1, ...font.serif, fontSize: 14, lineHeight: 20, color: colors.herb },
+  noteBold: { ...font.displayBold },
 });

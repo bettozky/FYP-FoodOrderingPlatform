@@ -13,13 +13,22 @@ import { OrderSteps } from "../components/OrderSteps";
 import { api, errorText } from "../../../shared/api/client";
 import BusyNotice from "../components/BusyNotice";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
-import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, layout, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 import BudgetWarning from "../../spending/BudgetWarning";
 
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real total
 
 export function formatCard(raw: string) {
   return raw.replace(/\D/g, "").slice(0, 19).replace(/(.{4})/g, "$1 ").trim();
+}
+
+/** iOS-style selection mark: an ink tick in a circle when chosen, an empty ring when not. */
+function Radio({ on }: { on: boolean }) {
+  return (
+    <View style={[styles.radio, on && styles.radioOn]}>
+      {on ? <Ionicons name="checkmark" size={14} color={colors.white} /> : null}
+    </View>
+  );
 }
 
 export default function CheckoutScreen({ navigation }: any) {
@@ -125,7 +134,7 @@ export default function CheckoutScreen({ navigation }: any) {
       <ScreenHeader title="Checkout" subtitle={merchant.name} />
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         <OrderSteps current={0} />
-        <Text style={[styles.sectionTitle, { marginTop: spacing.lg }]}>Order summary</Text>
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Order summary</Text>
         <View style={styles.card}>
           {(["dine_in", "takeaway", "delivery"] as Mode[]).map((m) => {
             const part = lines.filter((l) => l.qty[m] > 0);
@@ -146,7 +155,8 @@ export default function CheckoutScreen({ navigation }: any) {
           <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Subtotal</Text><Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text></View>
           {hasDelivery && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Delivery fee</Text><Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text></View>}
           {discount > 0 && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Voucher</Text><Text style={[type.body, styles.summaryValue, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
-          <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel]}>Total</Text><Text style={[type.h3, styles.summaryValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
+          <View style={[styles.divider, { marginTop: 2 }]} />
+          <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel, { fontSize: 17 }]}>Total</Text><Text style={[type.h3, styles.summaryValue, styles.totalValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
         </View>
         {/* Sprint 3 weekly budget: warns before this order takes the customer over their limit */}
         <BudgetWarning adding={total} />
@@ -156,16 +166,16 @@ export default function CheckoutScreen({ navigation }: any) {
             <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Delivery address</Text>
             <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
               <Pressable style={styles.mapBtn} onPress={() => setPickerOpen(true)} accessibilityRole="button" testID="choose-on-map">
-                <Ionicons name="map" size={16} color={colors.paper} />
+                <Ionicons name="add" size={18} color={colors.ink} />
                 <Text style={styles.mapBtnText}>Add address</Text>
               </Pressable>
               {(address.pinned && !addresses.some((a) => a.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
                 const on = a.line === address.line;
                 return (
                   <Pressable key={a.line} onPress={() => setAddress(a)} style={[styles.option, on && styles.optionOn]}>
-                    <Ionicons name="location" size={16} color={on ? colors.turmericDeep : colors.stone} />
-                    <Text style={[type.body, { flex: 1 }]}>{a.id ? `${a.label} · ${a.line}` : a.line}</Text>
-                    <View style={[styles.radio, on && styles.radioOn]} />
+                    <Ionicons name="location-outline" size={18} color={on ? colors.ink : colors.stone} />
+                    <Text style={[type.body, { flex: 1 }]} numberOfLines={2}>{a.id ? `${a.label} · ${a.line}` : a.line}</Text>
+                    <Radio on={on} />
                   </Pressable>
                 );
               })}
@@ -173,7 +183,7 @@ export default function CheckoutScreen({ navigation }: any) {
                 <View style={styles.pinCard} testID="checkout-pin-card">
                   <LocationMap lat={address.lat} lng={address.lng} height={usingPin ? 160 : 110} />
                   <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-                    <Ionicons name="location" size={16} color={colors.turmericDeep} />
+                    <Ionicons name="location" size={18} color={colors.ink} />
                     <Text style={[type.body, { flex: 1 }]} numberOfLines={3} testID="checkout-address-line">{address.line}</Text>
                     <Pressable onPress={() => setPickerOpen(true)} hitSlop={8} accessibilityRole="button" testID="change-address"><Text style={styles.changeText}>Change</Text></Pressable>
                   </View>
@@ -193,17 +203,17 @@ export default function CheckoutScreen({ navigation }: any) {
         <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
           <Pressable onPress={() => setVoucherId("")} style={[styles.option, !voucherId && styles.optionOn]}>
             <Text style={[type.body, { flex: 1 }]}>No voucher</Text>
-            <View style={[styles.radio, !voucherId && styles.radioOn]} />
+            <Radio on={!voucherId} />
           </Pressable>
           {offers.map(({ v, reason }) => (
             <Pressable key={v.id} onPress={() => { if (!reason) setVoucherId(v.id); }} disabled={!!reason} accessibilityState={{ disabled: !!reason }}
               style={[styles.option, voucherId === v.id && styles.optionOn, !!reason && styles.optionOff]} testID={`voucher-${v.id}`}>
-              <Ionicons name="pricetag" size={16} color={reason ? colors.stone : colors.turmericDeep} />
+              <Ionicons name="pricetag-outline" size={18} color={reason ? colors.stone : colors.amberText} />
               <View style={{ flex: 1 }}>
                 <Text style={type.body}>{v.title}</Text>
                 <Text style={type.small}>{reason && !v.used ? reason : v.description}</Text>
               </View>
-              {v.used ? <View style={styles.usedPill} testID={`voucher-used-${v.id}`}><Text style={styles.usedText}>Used</Text></View> : reason ? <Ionicons name="alert-circle-outline" size={18} color={colors.stone} /> : <View style={[styles.radio, voucherId === v.id && styles.radioOn]} />}
+              {v.used ? <View style={styles.usedPill} testID={`voucher-used-${v.id}`}><Text style={styles.usedText}>Used</Text></View> : reason ? <Ionicons name="alert-circle-outline" size={18} color={colors.stone} /> : <Radio on={voucherId === v.id} />}
             </Pressable>
           ))}
           {eligible.length === 0 && <Text style={type.small}>{offers.length ? "No voucher can be used on this order yet." : "No voucher applies to this order yet."}</Text>}
@@ -220,15 +230,15 @@ export default function CheckoutScreen({ navigation }: any) {
 
         {error ? (
           <View style={styles.errorBox} testID="checkout-error">
-            <Ionicons name="alert-circle" size={16} color={colors.chili} />
+            <Ionicons name="alert-circle" size={18} color={colors.chiliText} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Pressable style={[ui.buttonAccent, (placing || needsPinOk || busyBlocked) && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing || needsPinOk || busyBlocked} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk || busyBlocked }}>
-          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : live?.ordersPaused ? "Orders paused · try again in a few minutes" : busyBlocked ? "Tick \"I'm OK waiting\" to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
+        <Pressable style={[ui.buttonAccent, (placing || needsPinOk || busyBlocked) && styles.ctaOff]} onPress={placeOrder} disabled={placing || needsPinOk || busyBlocked} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk || busyBlocked }}>
+          <Text style={[ui.buttonAccentText, { textAlign: "center" }]} numberOfLines={2}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : live?.ordersPaused ? "Orders paused · try again in a few minutes" : busyBlocked ? "Tick \"I'm OK waiting\" to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
         </Pressable>
       </View>
     </View>
@@ -236,32 +246,34 @@ export default function CheckoutScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: 160 },
-  sectionTitle: { ...ui.sectionTitle },
-  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.sm, gap: 8 },
+  wrap: { paddingHorizontal: layout.gutter, paddingTop: spacing.sm, paddingBottom: 170 },
+  sectionTitle: { ...ui.sectionTitle, fontSize: 18 },
+  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, marginTop: spacing.md, gap: 10 },
   howCard: { backgroundColor: colors.herbLight, borderColor: colors.herbBorder },
-  modeHead: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
+  modeHead: { ...font.displayBold, fontSize: 14, color: colors.amberText },
   // Name/label wraps in the leftover width; the amount never wraps or collides with the name.
   summaryLine: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md },
   summaryLabel: { flex: 1 },
-  summaryValue: { flexShrink: 0, textAlign: "right" },
-  divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
-  option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
-  optionOff: { opacity: 0.45 },
-  usedPill: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: colors.border },
-  usedText: { fontFamily: fonts.displayBold, fontSize: 11.5, color: colors.ink },
-  optionOn: { borderColor: colors.turmeric, backgroundColor: colors.amberTint },
-  radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
-  radioOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
-  mapBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 46, borderRadius: radius.pill, backgroundColor: colors.ink },
-  mapBtnText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.paper },
-  changeText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
-  pinCard: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, gap: spacing.sm },
-  confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 40 },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  summaryValue: { flexShrink: 0, textAlign: "right", fontVariant: ["tabular-nums"] },
+  totalValue: { ...font.displayExtraBold, fontSize: 19, letterSpacing: -0.2 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.stoneSoft, marginVertical: 4 },
+  option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, minHeight: 56, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderWidth: 1, borderColor: colors.stoneLine },
+  optionOff: { opacity: 0.5 },
+  usedPill: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: colors.paperDim },
+  usedText: { ...font.displayBold, fontSize: 12, color: colors.stoneText },
+  optionOn: { borderColor: colors.ink, borderWidth: 1.5 },
+  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: colors.stoneSoft, alignItems: "center", justifyContent: "center" },
+  radioOn: { borderColor: colors.ink, backgroundColor: colors.ink },
+  mapBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneSoft },
+  mapBtnText: { ...font.displayBold, fontSize: 15, color: colors.ink },
+  changeText: { ...font.displayBold, fontSize: 15, color: colors.amberText },
+  pinCard: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine, padding: spacing.md, gap: spacing.md, overflow: "hidden" },
+  confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 44 },
+  checkbox: { width: 24, height: 24, borderRadius: 7, borderWidth: 1.5, borderColor: colors.stoneSoft, alignItems: "center", justifyContent: "center" },
   checkboxOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
-  input: { backgroundColor: colors.paper, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
-  errorBox: { flexDirection: "row", gap: spacing.sm, alignItems: "center", backgroundColor: colors.chiliSoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
-  errorText: { flex: 1, color: colors.chili, fontFamily: fonts.display, fontSize: 13 },
-  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.border },
+  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.lg, minHeight: 50, paddingVertical: 12, fontSize: 16, ...font.serif, color: colors.text, borderWidth: 1, borderColor: colors.stoneLine },
+  errorBox: { flexDirection: "row", gap: spacing.sm, alignItems: "center", backgroundColor: colors.chiliSoft, borderRadius: radius.md, padding: spacing.lg, marginTop: spacing.lg },
+  errorText: { flex: 1, color: colors.chiliText, ...font.display, fontSize: 14, lineHeight: 20 },
+  ctaOff: { backgroundColor: colors.paperDim },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: layout.gutter, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
 });

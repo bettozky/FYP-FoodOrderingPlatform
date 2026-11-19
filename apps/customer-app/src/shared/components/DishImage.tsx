@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius } from "../theme/theme";
+import { colors, radius, font } from "../theme/theme";
 import { isPhoto, mediaUrl } from "../media";
 
 // The one picture used for a dish everywhere (cards, stall menu, dish detail, cart, tracking).
@@ -63,5 +63,5 @@ export default function DishImage({ image, size = 64, shape = "tile", tint = col
 const styles = StyleSheet.create({
   base: { alignItems: "center", justifyContent: "center", overflow: "hidden" },
   overlay: { backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center" },
-  overlayText: { color: colors.white, fontSize: 11, fontFamily: fonts.displayBold, textAlign: "center", paddingHorizontal: 4 },
+  overlayText: { color: colors.white, fontSize: 11, ...font.displayBold, textAlign: "center", paddingHorizontal: 4 },
 });

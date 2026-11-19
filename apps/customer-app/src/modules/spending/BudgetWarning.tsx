@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { rm } from "../../shared/util/format";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import { useLive } from "../ordering/LiveDataContext";
 import { budgetState, spendingSummary } from "./spending";
 import { useBudget } from "./useBudget";
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   box: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md, borderWidth: 1 },
   near: { backgroundColor: colors.amberTint, borderColor: colors.amberBorder },
   over: { backgroundColor: colors.chiliSoft, borderColor: colors.chiliBorder },
-  title: { fontFamily: fonts.displayBold, fontSize: 13 },
-  text: { fontFamily: fonts.display, fontSize: 12, lineHeight: 16, color: colors.stoneText },
-  link: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
+  title: { ...font.displayBold, fontSize: 13 },
+  text: { ...font.display, fontSize: 12, lineHeight: 16, color: colors.stoneText },
+  link: { ...font.displayBold, fontSize: 13, color: colors.ink, textDecorationLine: "underline" },
 });

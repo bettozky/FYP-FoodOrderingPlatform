@@ -6,7 +6,7 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { api, errorText } from "../../../shared/api/client";
 import { Dish, Reservation } from "../../../shared/api/types";
 import { prettyDate } from "../../../shared/util/format";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import DishImage from "../../../shared/components/DishImage";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
@@ -169,17 +169,17 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: spacing.sm, paddingVertical: spacing.sm },
   chip: { paddingHorizontal: spacing.md, paddingVertical: 9, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.border },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
+  chipText: { ...font.display, fontSize: 13, color: colors.ink },
   partyRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: spacing.lg, marginBottom: spacing.md },
   stepper: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   stepBtn: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
-  stepVal: { fontFamily: fonts.displayBold, fontSize: 16, minWidth: 18, textAlign: "center" },
-  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border, marginTop: spacing.sm },
+  stepVal: { ...font.displayBold, fontSize: 16, minWidth: 18, textAlign: "center" },
+  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, ...font.serif, color: colors.text, borderWidth: 1, borderColor: colors.border, marginTop: spacing.sm },
   dishRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm },
   option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, marginTop: spacing.sm },
   optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-  error: { color: colors.chili, fontFamily: fonts.display, marginTop: spacing.md },
+  error: { color: colors.chili, ...font.display, marginTop: spacing.md },
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, padding: spacing.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
 });

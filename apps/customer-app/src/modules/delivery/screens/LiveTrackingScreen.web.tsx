@@ -12,7 +12,7 @@ import {
   Tracking,
   DeliveryStatus,
 } from "../api";
-import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, shadow, font } from "../../../shared/theme/theme";
 
 // react-native-maps has no web renderer, so the browser build of this screen
 // shows the same live status feed (real backend or local simulator, same as
@@ -186,7 +186,7 @@ export default function LiveTrackingScreen({ route }: any) {
 const styles = StyleSheet.create({
   mapWrap: { height: 260 },
   previewNote: { position: "absolute", left: spacing.md, right: spacing.md, bottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(0,0,0,0.72)", borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5 },
-  previewNoteText: { fontFamily: fonts.display, fontSize: 11, color: colors.white, flexShrink: 1 },
+  previewNoteText: { ...font.display, fontSize: 11, color: colors.white, flexShrink: 1 },
   mapBox: { flex: 1, overflow: "hidden" },
   topRow: {
     position: "absolute",
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.turmeric },
-  livePillText: { color: colors.paper, fontFamily: fonts.displayBold, fontSize: 12 },
+  livePillText: { color: colors.paper, ...font.displayBold, fontSize: 12 },
   wrap: { flex: 1, padding: spacing.lg, marginTop: -20 },
   sheet: {
     backgroundColor: colors.paper,
@@ -234,13 +234,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  riderAvatarText: { color: colors.turmeric, fontFamily: fonts.displayBold, fontSize: 16 },
+  riderAvatarText: { color: colors.turmeric, ...font.displayBold, fontSize: 16 },
   stepper: { flexDirection: "row", alignItems: "flex-start" },
   step: { alignItems: "center", width: 68 },
   stepDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.stoneLine, marginBottom: 6 },
   stepDotDone: { backgroundColor: colors.ink },
-  stepLabel: { fontSize: 10.5, color: colors.stone, textAlign: "center" },
-  stepLabelDone: { color: colors.ink, fontFamily: fonts.display },
+  stepLabel: { fontSize: 11, color: colors.stone, textAlign: "center" },
+  stepLabelDone: { color: colors.ink, ...font.display },
   stepLine: { flex: 1, height: 2, backgroundColor: colors.stoneLine, marginTop: 4 },
   stepLineDone: { backgroundColor: colors.ink },
   note: { marginTop: spacing.lg, paddingHorizontal: spacing.sm },

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { Address, useCatalog } from "../../discovery/CatalogContext";
@@ -145,27 +145,27 @@ export default function AddressesScreen() {
 
 const styles = StyleSheet.create({
   wrap: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl * 3 },
-  section: { fontFamily: fonts.displayBold, fontSize: 13, letterSpacing: 0.4, color: colors.stone, textTransform: "uppercase", marginTop: spacing.xs },
+  section: { ...font.displayBold, fontSize: 13, color: colors.stone, marginTop: spacing.xs },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 64, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   rowOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   rowMain: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: spacing.md },
   actions: { flexDirection: "row", gap: spacing.md },
   selected: { flexDirection: "row", alignItems: "center", gap: 4 },
-  selectedText: { color: colors.herb, fontSize: 12, fontFamily: fonts.displayBold },
+  selectedText: { color: colors.herb, fontSize: 12, ...font.displayBold },
   add: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderStyle: "dashed", borderColor: colors.border },
-  addText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  addText: { ...font.displayBold, fontSize: 14, color: colors.ink },
   form: { gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   input: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.bg },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
   chip: { paddingHorizontal: spacing.md, minHeight: 36, justifyContent: "center", borderRadius: radius.pill ?? 999, borderWidth: 1, borderColor: colors.border },
   chipOn: { backgroundColor: colors.turmeric, borderColor: colors.turmeric },
-  chipText: { fontSize: 13, color: colors.stone, fontFamily: fonts.displayBold },
+  chipText: { fontSize: 13, color: colors.stone, ...font.displayBold },
   check: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 36 },
   error: { color: colors.danger ?? "#B3261E", fontSize: 13 },
   buttons: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
   btn: { flex: 1, minHeight: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
   btnGhost: { borderWidth: 1, borderColor: colors.border },
-  btnGhostText: { fontFamily: fonts.displayBold, color: colors.ink },
+  btnGhostText: { ...font.displayBold, color: colors.ink },
   btnMain: { backgroundColor: colors.turmeric },
-  btnMainText: { fontFamily: fonts.displayBold, color: colors.ink },
+  btnMainText: { ...font.displayBold, color: colors.ink },
 });

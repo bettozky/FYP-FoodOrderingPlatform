@@ -3,7 +3,7 @@ import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
-import { colors, fonts, radius, spacing } from "../../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../../shared/theme/theme";
 
 // Lets the browser pop-up hand its result back to the app when Google redirects to us.
 WebBrowser.maybeCompleteAuthSession();
@@ -56,5 +56,5 @@ export default function GoogleSignInButton(props: Props) {
 
 const styles = StyleSheet.create({
   btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingVertical: 14 },
-  text: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
+  text: { ...font.displayBold, fontSize: 15, color: colors.ink },
 });

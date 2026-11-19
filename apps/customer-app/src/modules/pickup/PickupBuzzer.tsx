@@ -6,7 +6,7 @@ import type { AppNotification } from "../../shared/api/types";
 import PulseRing from "../../shared/motion/PulseRing";
 import { useReducedMotion } from "../../shared/motion/useReducedMotion";
 import { startRing, stopRing } from "../../shared/util/ringtone";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import { counterParts } from "./counter";
 
 // Sprint 3, "phone as a pickup buzzer".
@@ -143,28 +143,28 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.herb, paddingHorizontal: spacing.xl, justifyContent: "space-between" },
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   modeChip: { backgroundColor: "rgba(255,255,255,0.18)", borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 },
-  modeText: { fontFamily: fonts.displayBold, color: colors.white, fontSize: 13 },
+  modeText: { ...font.displayBold, color: colors.white, fontSize: 13 },
   muteBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
   center: { alignItems: "center", gap: spacing.sm },
   bell: { width: 132, height: 132, borderRadius: 66, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
-  ready: { fontFamily: fonts.displayExtraBold, fontSize: 28, color: colors.white, marginTop: spacing.lg, textAlign: "center" },
-  small: { fontFamily: fonts.display, fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: spacing.md, textTransform: "uppercase", letterSpacing: 1.2 },
-  orderNo: { fontFamily: fonts.displayExtraBold, fontSize: 56, color: colors.white, letterSpacing: 1 },
+  ready: { ...font.displayExtraBold, fontSize: 28, color: colors.white, marginTop: spacing.lg, textAlign: "center" },
+  small: { ...font.display, fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: spacing.md },
+  orderNo: { ...font.displayExtraBold, fontSize: 56, color: colors.white, letterSpacing: 1 },
   where: { alignItems: "center", gap: 6, marginTop: spacing.sm },
-  stall: { fontFamily: fonts.displayBold, fontSize: 20, color: colors.white, textAlign: "center" },
+  stall: { ...font.displayBold, fontSize: 20, color: colors.white, textAlign: "center" },
   counterRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  counter: { fontFamily: fonts.displayBold, fontSize: 16, color: colors.turmericLight },
-  again: { marginTop: spacing.md, fontFamily: fonts.displayBold, color: colors.ink, backgroundColor: colors.turmericLight, paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill, overflow: "hidden" },
+  counter: { ...font.displayBold, fontSize: 16, color: colors.turmericLight },
+  again: { marginTop: spacing.md, ...font.displayBold, color: colors.ink, backgroundColor: colors.turmericLight, paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill, overflow: "hidden" },
   actions: { gap: spacing.md, alignItems: "stretch" },
   collected: { flexDirection: "row", gap: spacing.sm, alignItems: "center", justifyContent: "center", backgroundColor: colors.white, borderRadius: radius.pill, paddingVertical: 18 },
-  collectedText: { fontFamily: fonts.displayExtraBold, fontSize: 18, color: colors.herb },
+  collectedText: { ...font.displayExtraBold, fontSize: 18, color: colors.herb },
   showWhere: { flexDirection: "row", gap: spacing.sm, alignItems: "center", justifyContent: "center", borderRadius: radius.pill, paddingVertical: 14, borderWidth: 2, borderColor: "rgba(255,255,255,0.6)" },
-  showWhereText: { fontFamily: fonts.displayBold, fontSize: 16, color: colors.white },
-  hint: { fontFamily: fonts.display, fontSize: 12, color: "rgba(255,255,255,0.75)", textAlign: "center" },
-  error: { fontFamily: fonts.displayBold, color: colors.white, backgroundColor: colors.chili, padding: spacing.sm, borderRadius: radius.sm, textAlign: "center", overflow: "hidden" },
+  showWhereText: { ...font.displayBold, fontSize: 16, color: colors.white },
+  hint: { ...font.display, fontSize: 12, color: "rgba(255,255,255,0.75)", textAlign: "center" },
+  error: { ...font.displayBold, color: colors.white, backgroundColor: colors.chili, padding: spacing.sm, borderRadius: radius.sm, textAlign: "center", overflow: "hidden" },
   miniWrap: { position: "absolute", left: spacing.lg, right: spacing.lg, alignItems: "center" },
   mini: { width: "100%", maxWidth: 480, flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.herb, borderRadius: radius.lg, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, shadowColor: "#15130F", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 14, elevation: 8 },
-  miniTitle: { fontFamily: fonts.displayExtraBold, color: colors.white, fontSize: 15 },
-  miniSub: { fontFamily: fonts.display, color: "rgba(255,255,255,0.85)", fontSize: 12 },
-  miniOpen: { fontFamily: fonts.displayExtraBold, color: colors.turmericLight, fontSize: 14 },
+  miniTitle: { ...font.displayExtraBold, color: colors.white, fontSize: 15 },
+  miniSub: { ...font.display, color: "rgba(255,255,255,0.85)", fontSize: 12 },
+  miniOpen: { ...font.displayExtraBold, color: colors.turmericLight, fontSize: 14 },
 });

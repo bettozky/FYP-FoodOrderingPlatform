@@ -50,7 +50,7 @@ export default function FavouritesScreen({ navigation }: any) {
                   <Pressable key={m.id} style={styles.shop} onPress={() => navigation.navigate("Stall", { merchantId: m.id })} accessibilityRole="button" testID={`saved-stall-${m.id}`}>
                     <View style={{ flex: 1 }}>
                       <Text style={type.h3}>{m.name}</Text>
-                      <Text style={type.small}>{m.rating.toFixed(1)}★ · {m.openNow ? "Open" : "Closed"} · {m.stallNo}</Text>
+                      <Text style={type.small}>Rated {m.rating.toFixed(1)} · {m.openNow ? "Open" : "Closed"} · {m.stallNo}</Text>
                     </View>
                   </Pressable>
                 ))}

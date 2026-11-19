@@ -1,0 +1,642 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-19T16:59:46.052Z",
+  "title": "Design System: ScootMeal",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Kopi Ink",
+        "canonical": "#15130F",
+        "oklch": "oklch(18.8% 0.009 84.6)",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#252421",
+          "#413F3B",
+          "#605D58",
+          "#82807B",
+          "#A7A49F",
+          "#CDCAC5",
+          "#F0EEEB"
+        ]
+      },
+      "turmeric": {
+        "role": "primary",
+        "displayName": "Turmeric",
+        "canonical": "#F5A623",
+        "oklch": "oklch(78.4% 0.159 73.0)",
+        "tonalRamp": [
+          "#180600",
+          "#3E1800",
+          "#692D00",
+          "#914800",
+          "#B86D00",
+          "#DF9200",
+          "#FFBC60",
+          "#FFE5A9"
+        ]
+      },
+      "turmeric-deep": {
+        "role": "primary",
+        "displayName": "Turmeric Deep",
+        "canonical": "#D9860B",
+        "oklch": "oklch(69.2% 0.151 66.7)",
+        "tonalRamp": [
+          "#190500",
+          "#401700",
+          "#6B2B00",
+          "#934600",
+          "#BA6A00",
+          "#E38F1F",
+          "#FFBA6B",
+          "#FFE4AF"
+        ]
+      },
+      "turmeric-light": {
+        "role": "primary",
+        "displayName": "Turmeric Light",
+        "canonical": "#FFC24D",
+        "oklch": "oklch(84.9% 0.147 80.4)",
+        "tonalRamp": [
+          "#160700",
+          "#391C00",
+          "#613400",
+          "#875000",
+          "#AD7400",
+          "#D4990B",
+          "#F4C266",
+          "#FFE9AD"
+        ]
+      },
+      "amber-text": {
+        "role": "primary",
+        "displayName": "Amber Text",
+        "canonical": "#8A5200",
+        "oklch": "oklch(49.2% 0.110 66.0)",
+        "tonalRamp": [
+          "#160700",
+          "#391C00",
+          "#603300",
+          "#864F00",
+          "#AC722F",
+          "#D39656",
+          "#F4BF8A",
+          "#FFE7C2"
+        ]
+      },
+      "amber-soft": {
+        "role": "primary",
+        "displayName": "Amber Soft",
+        "canonical": "#F3E4C4",
+        "oklch": "oklch(92.3% 0.045 85.9)",
+        "tonalRamp": [
+          "#0E0B05",
+          "#2A2314",
+          "#493E27",
+          "#695C40",
+          "#8C7F61",
+          "#B1A385",
+          "#D6C9AF",
+          "#F6EEDB"
+        ]
+      },
+      "amber-tint": {
+        "role": "primary",
+        "displayName": "Amber Tint",
+        "canonical": "#FDF1DA",
+        "oklch": "oklch(96.2% 0.033 83.7)",
+        "tonalRamp": [
+          "#0D0B06",
+          "#292319",
+          "#473F2F",
+          "#675C49",
+          "#8A7F6A",
+          "#AEA38E",
+          "#D3C9B7",
+          "#F5EEE0"
+        ]
+      },
+      "amber-border": {
+        "role": "primary",
+        "displayName": "Amber Border",
+        "canonical": "#F6DFAF",
+        "oklch": "oklch(91.1% 0.067 85.3)",
+        "tonalRamp": [
+          "#100A02",
+          "#2D220A",
+          "#4E3D18",
+          "#6F5B2E",
+          "#937D51",
+          "#B8A274",
+          "#DBC8A1",
+          "#FBEDD1"
+        ]
+      },
+      "herb": {
+        "role": "secondary",
+        "displayName": "Banana Leaf",
+        "canonical": "#2F6F4E",
+        "oklch": "oklch(49.0% 0.085 158.4)",
+        "tonalRamp": [
+          "#020F07",
+          "#082B1A",
+          "#144B31",
+          "#2C6C4B",
+          "#50906D",
+          "#75B591",
+          "#A3D9B9",
+          "#D4F9E2"
+        ]
+      },
+      "herb-light": {
+        "role": "secondary",
+        "displayName": "Herb Light",
+        "canonical": "#EAF3EC",
+        "oklch": "oklch(95.5% 0.013 152.6)",
+        "tonalRamp": [
+          "#0A0C0A",
+          "#212522",
+          "#3B423D",
+          "#58605A",
+          "#7B837C",
+          "#9FA7A1",
+          "#C5CDC7",
+          "#EBF0EC"
+        ]
+      },
+      "herb-border": {
+        "role": "secondary",
+        "displayName": "Herb Border",
+        "canonical": "#CFE4D5",
+        "oklch": "oklch(89.9% 0.030 154.7)",
+        "tonalRamp": [
+          "#080D09",
+          "#1D2720",
+          "#35443A",
+          "#516356",
+          "#738678",
+          "#97AB9C",
+          "#BED0C3",
+          "#E6F2E9"
+        ]
+      },
+      "chili": {
+        "role": "tertiary",
+        "displayName": "Chili",
+        "canonical": "#E8483A",
+        "oklch": "oklch(62.8% 0.199 29.0)",
+        "tonalRamp": [
+          "#210000",
+          "#500000",
+          "#830000",
+          "#B30000",
+          "#DE3E31",
+          "#FF6857",
+          "#FF9C8A",
+          "#FFD1C2"
+        ]
+      },
+      "chili-text": {
+        "role": "tertiary",
+        "displayName": "Chili Text",
+        "canonical": "#AE2A1F",
+        "oklch": "oklch(49.6% 0.170 29.4)",
+        "tonalRamp": [
+          "#1E0000",
+          "#4A0201",
+          "#7B0603",
+          "#A9241A",
+          "#D24E3F",
+          "#FD7463",
+          "#FFA593",
+          "#FFD6C8"
+        ]
+      },
+      "chili-soft": {
+        "role": "tertiary",
+        "displayName": "Chili Soft",
+        "canonical": "#F1DAD6",
+        "oklch": "oklch(90.6% 0.026 29.4)",
+        "tonalRamp": [
+          "#0F0A09",
+          "#2B2120",
+          "#4B3B39",
+          "#6C5855",
+          "#8F7B77",
+          "#B59F9B",
+          "#D9C6C2",
+          "#F9EBE9"
+        ]
+      },
+      "chili-border": {
+        "role": "tertiary",
+        "displayName": "Chili Border",
+        "canonical": "#F3CBC5",
+        "oklch": "oklch(87.5% 0.046 28.0)",
+        "tonalRamp": [
+          "#110908",
+          "#301F1C",
+          "#533834",
+          "#76544F",
+          "#9A7671",
+          "#C09A95",
+          "#E3C2BD",
+          "#FFE8E4"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Market Cream",
+        "canonical": "#FBFAF6",
+        "oklch": "oklch(98.5% 0.005 95.1)",
+        "tonalRamp": [
+          "#0B0B0A",
+          "#242422",
+          "#40403D",
+          "#5E5E5A",
+          "#81807D",
+          "#A5A5A1",
+          "#CBCAC7",
+          "#EFEEEC"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#808080",
+          "#A4A4A4",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "paper-dim": {
+        "role": "neutral",
+        "displayName": "Paper Dim",
+        "canonical": "#F4F1EA",
+        "oklch": "oklch(95.9% 0.010 87.5)",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#252421",
+          "#42403B",
+          "#605D57",
+          "#83807A",
+          "#A7A49E",
+          "#CDCAC5",
+          "#F0EEEA"
+        ]
+      },
+      "stone-line": {
+        "role": "neutral",
+        "displayName": "Stone Line",
+        "canonical": "#ECE7DA",
+        "oklch": "oklch(92.8% 0.018 89.4)",
+        "tonalRamp": [
+          "#0C0B08",
+          "#26241E",
+          "#433F36",
+          "#625D52",
+          "#848074",
+          "#A9A498",
+          "#CECAC0",
+          "#F1EEE7"
+        ]
+      },
+      "stone-soft": {
+        "role": "neutral",
+        "displayName": "Stone Soft",
+        "canonical": "#C9C4B6",
+        "oklch": "oklch(82.0% 0.020 90.6)",
+        "tonalRamp": [
+          "#0C0B08",
+          "#26241D",
+          "#434036",
+          "#625D51",
+          "#858073",
+          "#A9A497",
+          "#CFCABE",
+          "#F1EEE6"
+        ]
+      },
+      "stone": {
+        "role": "neutral",
+        "displayName": "Stone",
+        "canonical": "#8C8880",
+        "oklch": "oklch(62.8% 0.013 84.6)",
+        "tonalRamp": [
+          "#0C0B09",
+          "#262420",
+          "#423F39",
+          "#615D56",
+          "#848078",
+          "#A8A49C",
+          "#CECAC3",
+          "#F1EEE9"
+        ]
+      },
+      "stone-text": {
+        "role": "neutral",
+        "displayName": "Stone Text",
+        "canonical": "#6B675F",
+        "oklch": "oklch(51.5% 0.013 84.6)",
+        "tonalRamp": [
+          "#0C0B09",
+          "#262420",
+          "#433F39",
+          "#615D55",
+          "#848077",
+          "#A8A49B",
+          "#CECAC2",
+          "#F1EEE9"
+        ]
+      },
+      "text-faint": {
+        "role": "neutral",
+        "displayName": "Text Faint",
+        "canonical": "#B8B3A6",
+        "oklch": "oklch(76.7% 0.019 89.4)",
+        "tonalRamp": [
+          "#0C0B08",
+          "#26241E",
+          "#433F36",
+          "#625D52",
+          "#858074",
+          "#A9A497",
+          "#CECABF",
+          "#F1EEE6"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#EFEBE3",
+        "oklch": "oklch(94.1% 0.012 84.6)",
+        "tonalRamp": [
+          "#0C0B09",
+          "#262420",
+          "#423F3A",
+          "#615D56",
+          "#838079",
+          "#A8A49D",
+          "#CDCAC4",
+          "#F0EEE9"
+        ]
+      },
+      "overlay": {
+        "role": "neutral",
+        "displayName": "Overlay",
+        "canonical": "rgba(21,19,15,0.5)"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Screen titles and large totals."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sheet and modal titles, stall names."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Section headings with optional See all link."
+      },
+      "subtitle": {
+        "displayName": "Subtitle",
+        "purpose": "Card titles, dish names, button labels."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, chat, form text."
+      },
+      "body-muted": {
+        "displayName": "Body Muted",
+        "purpose": "Supporting lines and timestamps in stone-text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, badges, captions; tab labels at 11px."
+      },
+      "price": {
+        "displayName": "Price",
+        "purpose": "Every RM amount, in amber-text."
+      },
+      "price-large": {
+        "displayName": "Price Large",
+        "purpose": "Checkout and order totals."
+      }
+    },
+    "shadows": [
+      {
+        "name": "soft",
+        "value": "0 1px 4px rgba(21,19,15,0.06)",
+        "purpose": "Round icon buttons over headers and photos. Android elevation 1."
+      },
+      {
+        "name": "card",
+        "value": "0 4px 12px rgba(21,19,15,0.06)",
+        "purpose": "Raised borderless cards. Android elevation 3."
+      },
+      {
+        "name": "sheet",
+        "value": "0 -4px 16px rgba(21,19,15,0.06)",
+        "purpose": "Tab bar and bottom sheets. Android elevation 4."
+      },
+      {
+        "name": "floating",
+        "value": "0 8px 18px rgba(21,19,15,0.16)",
+        "purpose": "Cart bar and raised Assistant button. Android elevation 6."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press-spring",
+        "value": "Animated.spring speed 40, bounciness 0 in / 10 out",
+        "purpose": "PressableScale: scale to 0.96 (buttons), 0.98 (cards), 0.88–0.9 (tabs)."
+      },
+      {
+        "name": "fade-in",
+        "value": "260ms timing, 14px rise, staggered by index",
+        "purpose": "FadeInView list and section entrances."
+      },
+      {
+        "name": "screen-transition",
+        "value": "240ms, 28px from right",
+        "purpose": "ScreenTransition between pushed screens."
+      },
+      {
+        "name": "tab-pop",
+        "value": "Animated.spring speed 20, bounciness 14",
+        "purpose": "PopOnChange on the newly active tab icon."
+      },
+      {
+        "name": "pulse",
+        "value": "700ms in / 700ms out loop",
+        "purpose": "Live status and alert pulses."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "duration 0, no scale",
+        "purpose": "useReducedMotion disables every helper above."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "The one turmeric primary action per screen.",
+      "html": "<button class=\"ds-btn-accent\">Place order</button>",
+      "css": ".ds-btn-accent{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:52px;padding:0 24px;border:0;border-radius:999px;background:#F5A623;color:#15130F;font-weight:600;font-size:16px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2),background .15s}.ds-btn-accent:hover{background:#FFC24D}.ds-btn-accent:active{transform:scale(.96)}.ds-btn-accent:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+    },
+    {
+      "name": "Dark Button",
+      "kind": "button",
+      "refersTo": "button-dark",
+      "description": "Secondary action, e.g. Call or Browse stalls.",
+      "html": "<button class=\"ds-btn-dark\">Browse stalls</button>",
+      "css": ".ds-btn-dark{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:#15130F;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2)}.ds-btn-dark:hover{background:#000}.ds-btn-dark:active{transform:scale(.96)}.ds-btn-dark:focus-visible{outline:3px solid #F5A623;outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Tertiary action, e.g. Chat.",
+      "html": "<button class=\"ds-btn-outline\">Chat</button>",
+      "css": ".ds-btn-outline{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 16px;border:1px solid #C9C4B6;border-radius:999px;background:#fff;color:#15130F;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2),border-color .15s}.ds-btn-outline:hover{border-color:#C9C4B6}.ds-btn-outline:active{transform:scale(.96)}.ds-btn-outline:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Pill filters; selected chip is ink with white text.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-on\">Nearby</button><button class=\"ds-chip\">Halal</button><button class=\"ds-chip\">Open now</button></div>",
+      "css": ".ds-chips{display:flex;gap:8px}.ds-chip{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:36px;padding:7px 14px;border-radius:999px;border:1px solid #ECE7DA;background:#fff;color:#15130F;font-weight:600;font-size:14px;cursor:pointer}.ds-chip:hover{border-color:#C9C4B6}.ds-chip-on{background:#15130F;border-color:#15130F;color:#fff}.ds-chip:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+    },
+    {
+      "name": "Status Badges",
+      "kind": "chip",
+      "refersTo": "badge-success",
+      "description": "Text-labelled status pills; colour is never the only cue.",
+      "html": "<div class=\"ds-badges\"><span class=\"ds-badge ds-ok\">Confirmed</span><span class=\"ds-badge ds-warn\">Awaiting stall</span><span class=\"ds-badge ds-bad\">Cancelled</span></div>",
+      "css": ".ds-badges{display:flex;gap:8px}.ds-badge{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px}.ds-ok{background:#EAF3EC;color:#2F6F4E}.ds-warn{background:#F3E4C4;color:#8A5200}.ds-bad{background:#F1DAD6;color:#AE2A1F}"
+    },
+    {
+      "name": "Dish Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Bordered white card with circular photo, amber price and the round turmeric add button.",
+      "html": "<div class=\"ds-dish\"><div class=\"ds-dish-img\"></div><div class=\"ds-dish-body\"><div class=\"ds-dish-name\">Nasi lemak ayam</div><div class=\"ds-dish-meta\">Sambal, egg, peanuts</div><div class=\"ds-dish-price\">RM 8.50</div></div><button class=\"ds-add\" aria-label=\"Add\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#15130F\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></button></div>",
+      "css": ".ds-dish{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border:1px solid #ECE7DA;border-radius:16px;max-width:360px;transition:transform .18s}.ds-dish:active{transform:scale(.98)}.ds-dish-img{width:84px;height:84px;border-radius:16px;background:radial-gradient(circle at 35% 35%,#FFC24D,#D9860B)}.ds-dish-body{flex:1}.ds-dish-name{font-weight:600;font-size:15px;color:#15130F}.ds-dish-meta{font-size:13px;color:#6B675F;margin:2px 0 4px}.ds-dish-price{font-weight:700;font-size:15px;color:#8A5200}.ds-add{width:30px;height:30px;border-radius:50%;border:0;background:#F5A623;display:grid;place-items:center;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2)}.ds-add:active{transform:scale(.9)}.ds-add:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Grey iOS-style search field.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search stalls or dishes\">",
+      "css": ".ds-input{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:#F4F1EA;color:#15130F;font-size:15px;width:280px}.ds-input::placeholder{color:#B8B3A6}.ds-input:focus-visible{outline:none;border-color:#15130F;box-shadow:0 0 0 3px #FDF1DA}"
+    },
+    {
+      "name": "Floating Cart Bar",
+      "kind": "custom",
+      "refersTo": "bottom-bar",
+      "description": "Signature ink pill pinned above the tab bar.",
+      "html": "<div class=\"ds-cartbar\"><span>2 items · RM 17.50</span><button class=\"ds-cartbar-btn\">View cart</button></div>",
+      "css": ".ds-cartbar{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 6px 0 16px;border-radius:999px;background:#15130F;color:#fff;font-weight:700;font-size:14px;max-width:360px;box-shadow:0 8px 18px rgba(21,19,15,.16)}.ds-cartbar-btn{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:#F5A623;color:#15130F;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s}.ds-cartbar-btn:active{transform:scale(.96)}.ds-cartbar-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "White tab bar with the raised turmeric Assistant button.",
+      "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab ds-tab-on\">Home</a><a class=\"ds-tab\">Orders</a><a class=\"ds-tab-mid\" aria-label=\"Assistant\">✦</a><a class=\"ds-tab\">Tables</a><a class=\"ds-tab\">Account</a></nav>",
+      "css": ".ds-tabs{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;display:flex;align-items:center;justify-content:space-around;height:64px;width:360px;background:#fff;border-top:1px solid #ECE7DA;}.ds-tab{font-size:11px;font-weight:600;color:#6B675F;cursor:pointer}.ds-tab-on{color:#15130F;font-weight:600}.ds-tab-mid{width:56px;height:56px;margin-top:-26px;border-radius:50%;background:#F5A623;border:4px solid #fff;display:grid;place-items:center;color:#15130F;font-size:22px;box-shadow:0 8px 18px rgba(21,19,15,.16)}"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "Round paper button floating over headers and photos.",
+      "html": "<button class=\"ds-icon-btn\" aria-label=\"Back\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#15130F\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 18l-6-6 6-6\"/></svg></button>",
+      "css": ".ds-icon-btn{width:38px;height:38px;border-radius:50%;border:0;background:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(21,19,15,.05);transition:transform .18s}.ds-icon-btn:active{transform:scale(.92)}.ds-icon-btn:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Bold Market",
+    "overview": "ScootMeal looks like a good stall front, refined: clean cream and white surfaces, confident near-black lettering, and one turmeric sign that tells you where to go next. The palette comes straight from the food it sells: turmeric, chili, banana-leaf herb green, and kopi-dark ink. The premium pass (Nov 2026) keeps that palette and sets it in the phone's own typeface, so the app feels native on iPhone first and at home on Android.\n\nDensity is medium and phone-first. Screens are built from white cards and inset grouped lists on a warm off-white page, pill-shaped chips and buttons, round icon buttons, grey iOS-style search fields and segmented controls, and food photography that bleeds to the card edge. Hierarchy comes from size and weight in one family. Motion is small and physical: presses shrink slightly and spring back, lists fade up in a short stagger, the active tab icon pops, the cart count pops when it grows. All of it collapses to instant when the OS asks for reduced motion.\n\nThe customer app wears turmeric (its icon and splash are turmeric); the merchant app wears ink (its icon is ink, and it leans on dark surfaces for counter-side alerts). Both apps share one palette. The web admin is a plain staff tool that borrows the same ink, cream, line and amber values as CSS variables.",
+    "keyCharacteristics": [
+      "Warm off-white page (`bg`), white cards, hairline warm-grey borders.",
+      "Ink for text, dark buttons, selected chips, selection ticks and the floating cart bar.",
+      "Turmeric reserved for the one main action per screen, the raised Assistant tab and the round \"+\" on dishes.",
+      "Pills for actions and chips; 16px corners for cards; 12px for search fields and segmented controls.",
+      "The system typeface (SF Pro on iPhone, Roboto on Android) in four weights, 400 to 700.",
+      "Quiet, ink-tinted shadows (6% opacity at rest, 16% for floating bars), never grey or black."
+    ],
+    "rules": [
+      {
+        "name": "The One Turmeric Rule",
+        "body": "Each screen has at most one turmeric call to action. Everything else is an ink, outline or text button. The raised Assistant tab, the small \"+\" add buttons and the assistant's send button are the only standing exceptions.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dark-Tone Text Rule",
+        "body": "Turmeric, turmeric-deep, chili, stone and herb-light are for icons, fills and large shapes. Text uses the text tones: `amber-text`, `chili-text`, `stone-text`, `herb`, `ink`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Green-Means-Done Rule",
+        "body": "Herb green marks success and reassurance only. It is never a brand accent, an avatar or a decorative card.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "The system font only. Contrast comes from weight (400 to 700) and size. Code sets type with `font.*` tokens (`{ ...font.displayBold, fontSize: 16 }`), which carry family and weight together; the token names (`display`, `serif`) are legacy names, not typefaces.",
+        "section": "typography"
+      },
+      {
+        "name": "The 11px Floor Rule",
+        "body": "No text below 11px; descriptions and meta lines are at least 13px.",
+        "section": "typography"
+      },
+      {
+        "name": "The Amber Price Rule",
+        "body": "Prices are always bold and `amber-text`, so \"how much\" is findable at a glance on every card.",
+        "section": "typography"
+      },
+      {
+        "name": "The Border-or-Shadow Rule",
+        "body": "A card has a hairline border or a shadow, not both. Bordered cards sit on the page; shadowed cards float over it.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use exactly one turmeric primary button per screen, with an ink label.",
+      "**Do** put every price in bold `amber-text` with tabular figures.",
+      "**Do** set type with `font.*` tokens so family and weight travel together.",
+      "**Do** use the text tones (`amber-text`, `chili-text`, `stone-text`) for text; keep `turmeric`, `turmeric-deep`, `chili` and `stone` for icons and shapes.",
+      "**Do** pair every status colour with a text label.",
+      "**Do** use `ListGroup` for settings-shaped lists and `SearchField` for search instead of one-off styles.",
+      "**Do** keep tap targets at least 44px, respect the safe area on every top-level screen, and route every animation through the shared motion helpers so reduced motion is respected.",
+      "**Do** reference tokens from `theme.ts` (`colors.*`, `font.*`, `layout.*`, `radius.*`, `spacing.*`, `ui.*`) instead of raw hex or numbers. Only Nathan edits `theme.ts`; ask before adding tokens."
+    ],
+    "donts": [
+      "**Don't** put white text on turmeric, or use turmeric or turmeric-deep for text.",
+      "**Don't** add a second typeface or load a custom font.",
+      "**Don't** bring back multicolour illustration icons, emoji or text glyphs as icons.",
+      "**Don't** use green for anything but success.",
+      "**Don't** put an uppercase eyebrow label above a heading.",
+      "**Don't** make something look like a button unless it does something.",
+      "**Don't** use square corners on buttons, chips or cards in the apps.",
+      "**Don't** use grey or pure-black shadows, or stack a shadow on a bordered card.",
+      "**Don't** make colour the only signal for status, allergens or timers."
+    ]
+  }
+}

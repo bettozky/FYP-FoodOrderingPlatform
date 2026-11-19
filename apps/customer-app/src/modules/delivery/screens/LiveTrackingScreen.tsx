@@ -12,7 +12,7 @@ import {
   Tracking,
   DeliveryStatus,
 } from "../api";
-import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, shadow, font } from "../../../shared/theme/theme";
 
 // react-native-maps types no longer allow children on the animated marker,
 // but it still renders them, so widen the type here.
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.turmeric },
-  livePillText: { color: colors.paper, fontFamily: fonts.displayBold, fontSize: 12 },
+  livePillText: { color: colors.paper, ...font.displayBold, fontSize: 12 },
   riderDot: {
     width: 32,
     height: 32,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
     ...shadow.floating,
   },
-  riderDotText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 13 },
+  riderDotText: { color: colors.white, ...font.displayBold, fontSize: 13 },
   destinationPin: {
     width: 28,
     height: 28,
@@ -225,14 +225,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  riderAvatarText: { color: colors.turmeric, fontFamily: fonts.displayBold, fontSize: 16 },
-  riderName: { fontFamily: fonts.display, fontSize: 15, color: colors.ink },
+  riderAvatarText: { color: colors.turmeric, ...font.displayBold, fontSize: 16 },
+  riderName: { ...font.display, fontSize: 15, color: colors.ink },
   stepper: { flexDirection: "row", alignItems: "flex-start" },
   step: { alignItems: "center", width: 68 },
   stepDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.stoneLine, marginBottom: 6 },
   stepDotDone: { backgroundColor: colors.ink },
-  stepLabel: { fontSize: 10.5, color: colors.stone, textAlign: "center" },
-  stepLabelDone: { color: colors.ink, fontFamily: fonts.display },
+  stepLabel: { fontSize: 11, color: colors.stone, textAlign: "center" },
+  stepLabelDone: { color: colors.ink, ...font.display },
   stepLine: { flex: 1, height: 2, backgroundColor: colors.stoneLine, marginTop: 4 },
   stepLineDone: { backgroundColor: colors.ink },
 });

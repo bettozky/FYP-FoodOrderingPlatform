@@ -8,7 +8,7 @@ import OrdersScreen from "../modules/ordering/screens/OrdersScreen";
 import ReservationsScreen from "../modules/dine-in/screens/ReservationsScreen";
 import AIAssistantScreen from "../modules/ai-assistant/screens/AIAssistantScreen";
 import AccountScreen from "../modules/account/screens/AccountScreen";
-import { colors, fonts, shadow } from "../shared/theme/theme";
+import { colors, shadow, font } from "../shared/theme/theme";
 import { DrawerEdge } from "../shared/components/SideDrawer";
 import { useLive } from "../modules/ordering/LiveDataContext";
 import PayBar from "../modules/ordering/components/PayBar";
@@ -92,7 +92,7 @@ export default function MainTabs({ navigation, route }: any) {
               {/* The icon bounces when its tab becomes the active one. */}
               <View>
                 <PopOnChange trigger={focused}>
-                  <Ionicons name={focused ? r.iconOn : r.icon} size={22} color={focused ? colors.turmericDeep : colors.stone} />
+                  <Ionicons name={focused ? r.iconOn : r.icon} size={24} color={focused ? colors.ink : colors.stone} />
                 </PopOnChange>
                 {r.key === "account" && unread > 0 ? <View style={styles.dot} /> : null}
               </View>
@@ -114,14 +114,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: colors.paper,
-    borderTopWidth: 1,
-    borderTopColor: colors.stoneLine,
-    ...shadow.sheet,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.stoneSoft,
   },
   dot: { position: "absolute", top: -2, right: -4, width: 10, height: 10, borderRadius: 5, backgroundColor: colors.chili, borderWidth: 1.5, borderColor: colors.paper },
   item: { flex: 1, height: TAB_BAR_HEIGHT, alignItems: "center", justifyContent: "center", gap: 3 },
-  label: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneText },
-  labelOn: { color: colors.ink, fontFamily: fonts.displayBold },
+  label: { ...font.display, fontSize: 11, color: colors.stoneText, letterSpacing: 0.1 },
+  labelOn: { color: colors.ink, ...font.displayBold },
   // Raised round button in the middle; sits half above the bar.
   centerBtn: {
     width: 56,

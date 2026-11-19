@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 import { StarRow } from "./Stars";
 import type { Breakdown } from "./types";
 
@@ -30,7 +30,7 @@ export default function RatingSummary({ average, count, breakdown }: { average: 
 const styles = StyleSheet.create({
   wrap: { flexDirection: "row", gap: spacing.lg, alignItems: "center", marginBottom: spacing.md },
   left: { alignItems: "center", gap: 2, minWidth: 80 },
-  avg: { fontFamily: fonts.displayExtraBold, fontSize: 36, color: colors.ink },
+  avg: { ...font.displayExtraBold, fontSize: 36, color: colors.ink },
   bars: { flex: 1, gap: 4 },
   barRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   barLabel: { width: 12, fontSize: 12, color: colors.stoneText, textAlign: "right" },

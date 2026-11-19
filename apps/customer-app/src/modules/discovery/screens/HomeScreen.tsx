@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TextInput, FlatList, StyleSheet, Pressable, Animated, Modal, ScrollView, Platform } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, Animated, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import EmptyState from "../../../shared/components/EmptyState";
@@ -12,8 +12,8 @@ import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import StallCard from "../components/StallCard";
 import CategoryGrid, { lookFor, type GridItem } from "../components/CategoryGrid";
-import HazeBackground from "../components/HazeBackground";
-import WavyGreeting from "../components/WavyGreeting";
+import SearchField from "../../../shared/components/SearchField";
+import SectionHeader from "../../../shared/components/SectionHeader";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
@@ -22,8 +22,7 @@ import PromoBanner from "../components/PromoBanner";
 import CanteenMapCard from "../components/CanteenMapCard";
 import LastHourDeals from "../components/LastHourDeals";
 import { categoriesFromDishes } from "../categories";
-import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
-import PressableScale from "../../../shared/motion/PressableScale";
+import { colors, layout, radius, spacing, type, shadow, ui, font } from "../../../shared/theme/theme";
 import FadeInView from "../../../shared/motion/FadeInView";
 import { DishRowSkeleton, DishTileSkeleton } from "../../../shared/motion/Skeleton";
 
@@ -185,24 +184,21 @@ export default function HomeScreen({ navigation }: any) {
 
   const header = (
     <View>
-      <HazeBackground />
-      <View style={[styles.topRow, { paddingTop: insets.top + spacing.md }]}>
+      <View style={[styles.topRow, { paddingTop: insets.top + spacing.sm }]}>
         <MenuButton badge={unread} />
-        <Pressable style={styles.addr} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
-          <View style={styles.addrIcon}>
-            <Ionicons name="location-outline" size={16} color={colors.amberText} />
+        <Pressable style={({ pressed }) => [styles.addr, pressed && { opacity: 0.6 }]} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text style={styles.addrLabel}>Deliver to</Text>
+            {liveOn ? <View style={styles.liveChip}><View style={styles.liveDotSm} /><Text style={styles.liveChipText}>Live</Text></View> : null}
           </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={styles.addrLabel}>Deliver to</Text>
-              {liveOn ? <View style={styles.liveChip}><View style={styles.liveDotSm} /><Text style={styles.liveChipText}>Live</Text></View> : null}
-            </View>
+          <View style={styles.addrLine}>
             <Text style={styles.addrText} numberOfLines={1}>{address.line}</Text>
+            <Ionicons name="chevron-down" size={14} color={colors.ink} />
           </View>
         </Pressable>
         <Animated.View style={{ transform: [{ scale: cartScale }] }}>
-          <Pressable style={ui.iconButton} onPress={() => navigation.navigate("Cart")} testID="cart-pill" accessibilityRole="button" accessibilityLabel={itemCount ? `Cart, ${itemCount} items` : "Cart, empty"}>
-            <Ionicons name="bag-handle-outline" size={18} color={colors.ink} />
+          <Pressable style={ui.iconButton} onPress={() => navigation.navigate("Cart")} hitSlop={4} testID="cart-pill" accessibilityRole="button" accessibilityLabel={itemCount ? `Cart, ${itemCount} items` : "Cart, empty"}>
+            <Ionicons name="bag-handle-outline" size={20} color={colors.ink} />
             {itemCount > 0 ? (
               <View style={styles.cartBadge}>
                 <Text style={styles.cartBadgeText}>{itemCount}</Text>
@@ -212,29 +208,21 @@ export default function HomeScreen({ navigation }: any) {
         </Animated.View>
       </View>
 
-      <WavyGreeting name={firstName} />
+      <View style={styles.greeting}>
+        <Text style={styles.hello} numberOfLines={1}>Hi {firstName}</Text>
+        <Text style={type.h1} accessibilityRole="header">What are you craving?</Text>
+      </View>
 
       <View style={styles.searchRow}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={16} color={colors.stone} />
-          <TextInput
-            style={styles.searchInput}
-            accessibilityLabel="Search dishes or stalls"
-            placeholder="Search dishes or stalls"
-            placeholderTextColor={colors.textFaint}
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-            testID="search-input"
-          />
-          {query ? (
-            <Pressable onPress={() => setQuery("")} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
-              <Ionicons name="close-circle" size={16} color={colors.stone} />
-            </Pressable>
-          ) : null}
-        </View>
-        <Pressable style={styles.filterBtn} onPress={() => setFiltersOpen(true)} accessibilityRole="button" accessibilityLabel={filterCount ? `Filters, ${filterCount} on` : "Filters"} testID="filters-button">
-          <Ionicons name="options-outline" size={19} color={colors.white} />
+        <SearchField
+          style={{ flex: 1 }}
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search dishes or stalls"
+          testID="search-input"
+        />
+        <Pressable style={({ pressed }) => [styles.filterBtn, filterCount ? styles.filterBtnOn : null, pressed && { opacity: 0.7 }]} onPress={() => setFiltersOpen(true)} accessibilityRole="button" accessibilityLabel={filterCount ? `Filters, ${filterCount} on` : "Filters"} testID="filters-button">
+          <Ionicons name="options-outline" size={20} color={filterCount ? colors.white : colors.ink} />
           {filterCount ? (
             <View style={styles.filterBadge}>
               <Text style={styles.filterBadgeText}>{filterCount}</Text>
@@ -256,39 +244,28 @@ export default function HomeScreen({ navigation }: any) {
       {error || loadError ? <Text style={styles.errorText}>{error || loadError}</Text> : null}
 
       {gridMode ? (
-        <View style={styles.sectionRow}>
-          <Text style={ui.sectionTitle} numberOfLines={1}>
-            {query.trim() ? `Results for "${query.trim()}"` : category !== "All" ? category : "All dishes"}
-          </Text>
-          <Pressable onPress={() => { setShowAll(false); setQuery(""); clearFilters(); }} hitSlop={8} accessibilityRole="button">
-            <Text style={ui.link}>Back to home</Text>
-          </Pressable>
-        </View>
+        <SectionHeader
+          title={query.trim() ? `Results for "${query.trim()}"` : category !== "All" ? category : "All dishes"}
+          action="Done"
+          onAction={() => { setShowAll(false); setQuery(""); clearFilters(); }}
+        />
       ) : (
         <>
-          <View style={styles.sectionRow}>
-            <Text style={ui.sectionTitle}>Popular near you</Text>
-            <Pressable onPress={() => setShowAll(true)} hitSlop={8} accessibilityRole="button" testID="see-all">
-              <Text style={ui.link}>See all</Text>
-            </Pressable>
-          </View>
+          <SectionHeader title="Popular near you" action="See all" onAction={() => setShowAll(true)} actionTestID="see-all" />
           {!menuLoaded ? (
             <DishTileSkeleton />
           ) : popular.length ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularRow} decelerationRate="fast" snapToInterval={POPULAR_W + GAP} snapToAlignment="start">
               {popular.map((d, i) => (
                 <FadeInView key={d.id} index={i} from="right">
-                  <DishCard variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+                  <DishCard variant="grid" width={POPULAR_W} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
                 </FadeInView>
               ))}
             </ScrollView>
           ) : (
-            <Text style={[type.bodyMuted, { paddingHorizontal: spacing.lg }]}>No stalls are open right now.</Text>
+            <Text style={[type.bodyMuted, { paddingHorizontal: layout.gutter }]}>No stalls are open right now.</Text>
           )}
-          <View style={styles.sectionRow}>
-            <Text style={ui.sectionTitle}>Stalls near you</Text>
-            <Text style={type.small}>{stalls.filter((m) => m.openNow).length} open now</Text>
-          </View>
+          <SectionHeader title="Stalls near you" note={`${stalls.filter((m) => m.openNow).length} open now`} />
         </>
       )}
     </View>
@@ -421,43 +398,43 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const GAP = spacing.md;
+const POPULAR_W = 164;
 
 const styles = StyleSheet.create({
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingHorizontal: spacing.lg },
-  addr: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  addrIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.amberTint, alignItems: "center", justifyContent: "center" },
-  addrLabel: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneText },
-  liveChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#E4F4EA", borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1 },
-  liveChipText: { fontFamily: fonts.displayBold, fontSize: 10, color: "#1E6B43" },
-  liveDotSm: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#22A55A" },
-  mapPickBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.pill, backgroundColor: colors.ink, marginBottom: spacing.sm },
-  mapPickText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.paper },
-  addrText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
-  cartBadge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.paper },
-  cartBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
-  searchRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginHorizontal: spacing.lg, marginTop: spacing.lg },
-  searchBar: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.stoneLine, paddingHorizontal: spacing.lg, minHeight: 46 },
-  // On web the browser draws its own focus box inside the pill; the pill itself is the visible field.
-  searchInput: { flex: 1, paddingVertical: 11, fontSize: 14, fontFamily: fonts.serif, color: colors.ink, ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as object) : {}) },
-  filterBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
-  filterBadge: { position: "absolute", top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
-  filterBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
-  sectionRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: spacing.md, paddingHorizontal: spacing.lg, marginTop: spacing.xl, marginBottom: spacing.md },
-  popularRow: { paddingHorizontal: spacing.lg, gap: GAP, paddingBottom: spacing.xs },
-  gridRow: { paddingHorizontal: spacing.lg, gap: GAP, marginBottom: GAP },
+  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingHorizontal: layout.gutter },
+  addr: { flex: 1, minWidth: 0, alignItems: "center", gap: 1 },
+  addrLabel: { ...font.display, fontSize: 12, color: colors.stoneText },
+  addrLine: { flexDirection: "row", alignItems: "center", gap: 4, maxWidth: "100%" },
+  liveChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.herbLight, borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1 },
+  liveChipText: { ...font.displayBold, fontSize: 11, color: colors.herb },
+  liveDotSm: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.herb },
+  mapPickBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.ink, marginBottom: spacing.sm },
+  mapPickText: { ...font.displayBold, fontSize: 15, color: colors.paper },
+  addrText: { ...font.displayBold, fontSize: 15, color: colors.ink, flexShrink: 1 },
+  cartBadge: { position: "absolute", top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
+  cartBadgeText: { ...font.displayBold, fontSize: 11, color: colors.ink, fontVariant: ["tabular-nums"] },
+  greeting: { paddingHorizontal: layout.gutter, marginTop: spacing.xl, gap: 2 },
+  hello: { ...font.displayBold, fontSize: 17, color: colors.stoneText },
+  searchRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginHorizontal: layout.gutter, marginTop: spacing.lg },
+  filterBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
+  filterBtnOn: { backgroundColor: colors.ink },
+  filterBadge: { position: "absolute", top: -5, right: -5, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
+  filterBadgeText: { ...font.displayBold, fontSize: 11, color: colors.ink },
+  popularRow: { paddingHorizontal: layout.gutter, gap: GAP, paddingBottom: spacing.xs },
+  gridRow: { paddingHorizontal: layout.gutter, gap: GAP, marginBottom: GAP },
   gridCell: { flex: 1 },
   // An odd last dish keeps the same width as the others instead of stretching across.
   gridCellAlone: { flex: 0, width: "50%", paddingRight: GAP / 2 },
-  errorText: { color: colors.chiliText, fontFamily: fonts.display, paddingHorizontal: spacing.lg, marginTop: spacing.md },
-  list: { paddingBottom: 140 },
+  errorText: { color: colors.chiliText, ...font.display, fontSize: 14, paddingHorizontal: layout.gutter, marginTop: spacing.md },
+  list: { paddingBottom: layout.tabBarClearance },
   sheetBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" },
-  sheet: { backgroundColor: colors.paper, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.xl, gap: spacing.sm, ...shadow.sheet },
-  sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: colors.stoneLine, marginBottom: spacing.sm },
-  sheetLabel: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink, marginTop: spacing.md },
+  sheet: { backgroundColor: colors.paper, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.xl, paddingTop: spacing.md, gap: spacing.sm, ...shadow.sheet },
+  sheetHandle: { alignSelf: "center", width: 36, height: 5, borderRadius: 3, backgroundColor: colors.stoneSoft, marginBottom: spacing.md },
+  sheetLabel: { ...font.displayBold, fontSize: 15, color: colors.ink, marginTop: spacing.lg },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   sheetButtons: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xl },
   modalBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: "center", alignItems: "center", padding: spacing.xl },
   modalCard: { width: "100%", maxWidth: 400, backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, gap: spacing.sm },
-  addrOption: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },
-  addrOptionOn: { borderColor: colors.turmericDeep, backgroundColor: colors.paperDim },
+  addrOption: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 52, paddingHorizontal: spacing.lg, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine },
+  addrOptionOn: { borderColor: colors.ink, backgroundColor: colors.paperDim },
 });

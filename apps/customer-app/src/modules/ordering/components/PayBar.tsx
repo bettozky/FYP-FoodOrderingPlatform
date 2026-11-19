@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { rm, mmss, useCountdown } from "../../../shared/util/format";
-import { colors, fonts, radius, shadow, spacing } from "../../../shared/theme/theme";
+import { colors, radius, shadow, spacing, font } from "../../../shared/theme/theme";
 import { usePayableOrders } from "../payments";
 
 // Stays on Home and Orders while an order is confirmed but unpaid, even after the top banner was swiped away.
@@ -31,8 +31,8 @@ export default function PayBar({ onPress, bottom }: { onPress: (orderId: string)
 const styles = StyleSheet.create({
   bar: { position: "absolute", left: spacing.md, right: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingLeft: 10, paddingRight: 10, ...shadow.sheet },
   icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
-  title: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.white },
-  sub: { fontFamily: fonts.serif, fontSize: 12, color: colors.stoneSoft },
+  title: { ...font.displayBold, fontSize: 14, color: colors.white },
+  sub: { ...font.serif, fontSize: 12, color: colors.stoneSoft },
   cta: { height: 36, paddingHorizontal: 16, borderRadius: 18, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
-  ctaText: { fontFamily: fonts.displayExtraBold, fontSize: 13, color: colors.ink },
+  ctaText: { ...font.displayExtraBold, fontSize: 13, color: colors.ink },
 });

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { navRef } from "../../navigation/navRef";
 import { rm, mmss, useCountdown } from "../../shared/util/format";
-import { colors, fonts, radius, shadow, spacing } from "../../shared/theme/theme";
+import { colors, radius, shadow, spacing, font } from "../../shared/theme/theme";
 import { usePayableOrders } from "../ordering/payments";
 
 // "Ah Seng confirmed #SM-10252 · Pay RM12.00 · 9:42 left": a small banner at the top, on any screen except the
@@ -96,8 +96,8 @@ const styles = StyleSheet.create({
   wrap: { position: "absolute", left: spacing.md, right: spacing.md, zIndex: 900, elevation: 900 },
   card: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.ink, borderRadius: radius.lg, paddingVertical: 10, paddingLeft: 10, paddingRight: 14, ...shadow.sheet },
   icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.herb, alignItems: "center", justifyContent: "center" },
-  title: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.white },
-  sub: { fontFamily: fonts.serif, fontSize: 12.5, color: colors.stoneSoft },
+  title: { ...font.displayBold, fontSize: 14, color: colors.white },
+  sub: { ...font.serif, fontSize: 13, color: colors.stoneSoft },
   cta: { height: 32, paddingHorizontal: 14, borderRadius: 16, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
-  ctaText: { fontFamily: fonts.displayExtraBold, fontSize: 13, color: colors.ink },
+  ctaText: { ...font.displayExtraBold, fontSize: 13, color: colors.ink },
 });

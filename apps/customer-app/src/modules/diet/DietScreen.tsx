@@ -6,7 +6,7 @@ import ScreenHeader from "../../shared/components/ScreenHeader";
 import PrimaryButton from "../../shared/components/PrimaryButton";
 import { errorText } from "../../shared/api/client";
 import { PopOnChange } from "../../shared/motion/PulseRing";
-import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font } from "../../shared/theme/theme";
 import { ALLERGENS, DIET_PREFS, EMPTY_DIET, type DietProfile } from "./diet";
 import { useDiet } from "./useDiet";
 
@@ -81,7 +81,7 @@ export default function DietScreen({ navigation }: any) {
               <Pressable key={p.key} onPress={() => toggle("prefs", p.key)} style={[styles.prefRow, on && styles.prefRowOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`diet-pref-${p.key}`}>
                 <Ionicons name={on ? "checkbox" : "square-outline"} size={22} color={on ? colors.herb : colors.stone} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[type.body, { fontFamily: fonts.displayBold }]}>{p.label}</Text>
+                  <Text style={[type.body, { ...font.displayBold }]}>{p.label}</Text>
                   <Text style={type.small}>{p.hint}</Text>
                 </View>
               </Pressable>
@@ -92,7 +92,7 @@ export default function DietScreen({ navigation }: any) {
         <View style={[styles.prefRow, { marginTop: spacing.lg }]}>
           <Ionicons name="eye-off-outline" size={22} color={colors.ink} />
           <View style={{ flex: 1 }}>
-            <Text style={[type.body, { fontFamily: fonts.displayBold }]}>Hide dishes that don't fit</Text>
+            <Text style={[type.body, { ...font.displayBold }]}>Hide dishes that don't fit</Text>
             <Text style={type.small}>Off: show them with a red label instead</Text>
           </View>
           <Switch
@@ -124,12 +124,12 @@ const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.md },
   hero: { flexDirection: "row", gap: spacing.md, alignItems: "center", backgroundColor: colors.herbLight, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.herbBorder },
   heroIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
-  section: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.stoneText, textTransform: "uppercase", letterSpacing: 0.8, marginTop: spacing.md },
+  section: { ...font.displayBold, fontSize: 13, color: colors.stoneText, marginTop: spacing.md },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chipOn: { backgroundColor: colors.chili, borderColor: colors.chili, flexDirection: "row", alignItems: "center", gap: 4 },
   prefRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   prefRowOn: { borderColor: colors.herb, backgroundColor: colors.herbLight },
   note: { ...type.small, marginTop: spacing.sm },
-  error: { fontFamily: fonts.displayBold, color: colors.chili },
+  error: { ...font.displayBold, color: colors.chili },
   saved: { flexDirection: "row", gap: spacing.sm, alignItems: "center" },
 });

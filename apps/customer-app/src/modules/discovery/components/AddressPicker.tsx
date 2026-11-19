@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import PinMap from "../../../shared/location/PinMap";
 import { api, errorText } from "../../../shared/api/client";
-import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 import { useCatalog } from "../CatalogContext";
 import type { Address } from "../places";
 
@@ -413,30 +413,30 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
-  title: { fontFamily: fonts.displayBold, fontSize: 20, color: colors.ink },
+  title: { ...font.displayBold, fontSize: 20, color: colors.ink },
   body: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 140, gap: spacing.md },
   searchBox: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.lg, minHeight: 48 },
-  searchInput: { flex: 1, fontSize: 15, fontFamily: fonts.serif, color: colors.ink, paddingVertical: 10 },
+  searchInput: { flex: 1, fontSize: 15, ...font.serif, color: colors.ink, paddingVertical: 10 },
   results: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: "hidden" },
   resultRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   locateFab: { position: "absolute", right: spacing.md, bottom: spacing.md, flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.border, zIndex: 1100 },
-  locateText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  locateText: { ...font.displayBold, fontSize: 13, color: colors.ink },
   sectionTitle: { ...ui.sectionTitle },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.border },
   chipOn: { backgroundColor: colors.amberTint, borderColor: colors.turmeric },
-  chipText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  linkText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink, textDecorationLine: "underline" },
+  chipText: { ...font.displayBold, fontSize: 13, color: colors.ink },
+  linkText: { ...font.displayBold, fontSize: 13, color: colors.ink, textDecorationLine: "underline" },
   field: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
   caret: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
   menu: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: "hidden" },
-  menuTitle: { fontFamily: fonts.displayBold, fontSize: 12, letterSpacing: 0.6, textTransform: "uppercase", color: colors.stone, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.xs },
+  menuTitle: { ...font.displayBold, fontSize: 12, color: colors.stone, paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.xs },
   menuRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, minHeight: 48, paddingVertical: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
   menuRowOn: { backgroundColor: colors.amberTint },
   menuMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0 },
   menuNote: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
-  fieldInput: { flex: 1, minHeight: 40, fontSize: 15, fontFamily: fonts.serif, color: colors.ink, padding: 0 },
-  input: { backgroundColor: colors.paper, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.ink, borderWidth: 1, borderColor: colors.border },
+  fieldInput: { flex: 1, minHeight: 40, fontSize: 15, ...font.serif, color: colors.ink, padding: 0 },
+  input: { backgroundColor: colors.paper, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, ...font.serif, color: colors.ink, borderWidth: 1, borderColor: colors.border },
   saveRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 40 },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
   checkboxOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },
