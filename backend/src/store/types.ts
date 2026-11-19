@@ -16,6 +16,10 @@ export interface User {
   googleSub?: string; // Google account id, set when the customer signs in with Google
   noPassword?: boolean; // created through Google: no password until they use "Forgot password" to choose one
   suspended?: boolean; // set by an admin: the user can no longer log in or use the API
+  // Week task 3 "Rate the app" (customers): their rating, when they were last asked, and "Don't ask again".
+  appRating?: { rating: number; comment?: string; at: number; orderId?: string };
+  appRatingAskedAt?: number;
+  appRatingNever?: boolean;
 }
 
 export interface Merchant {
