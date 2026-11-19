@@ -20,6 +20,8 @@ export type Dish = {
   calories: number; soldOut: boolean; spicy?: boolean; dietary: string[]; style?: "dry" | "wet"; customisations: string[];
   /** Allergens the shop says this dish contains (e.g. "Peanuts", "Soy"). */
   allergens?: string[];
+  /** Sprint 3 last-hour deal: while it runs, `price` is the deal price and these say what it was and when it ends. */
+  originalPrice?: number; dealPercent?: number; dealEndsAt?: number;
 };
 
 export type OrderItem = {

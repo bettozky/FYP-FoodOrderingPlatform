@@ -19,6 +19,7 @@ import { form, LocalFile } from "../../../shared/util/files";
 import { colors, spacing, type } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
 import { ALLERGENS } from "../../onboarding/signup/types";
+import DealControl, { type Deal } from "../DealControl";
 
 export interface ExtendedDish {
   id: string;
@@ -35,6 +36,7 @@ export interface ExtendedDish {
   allergens: string[];
   style?: "dry" | "wet";
   customisations: string[];
+  deal?: Deal; // Sprint 3 last-hour deal
 }
 
 const NO_LIMIT = 999;
@@ -49,6 +51,7 @@ const fromApi = (d: any): ExtendedDish => ({
   id: d.id, name: d.name, price: d.price, image: d.image, description: d.description, category: d.category,
   calories: d.calories, soldOut: d.soldOut, quantity: d.stock ?? NO_LIMIT, cost: d.cost ?? 0,
   dietary: d.dietary ?? [], allergens: d.allergens ?? [], style: d.style, customisations: d.customisations ?? [],
+  deal: d.deal,
 });
 
 export default function MerchantMenuScreen() {
@@ -291,6 +294,9 @@ export default function MerchantMenuScreen() {
                   {item.allergens.length ? (
                     <Text style={styles.costLabel}>Contains: {item.allergens.join(", ")}</Text>
                   ) : null}
+
+                  {/* Sprint 3: last-hour deal (not for sold-out dishes) */}
+                  {!isUnavailable || item.deal ? <DealControl dishId={item.id} price={item.price} deal={item.deal} onChanged={load} /> : null}
 
                   {/* Quantity Display Badge */}
                   <View style={{ flexDirection: "row", marginTop: 2 }}>

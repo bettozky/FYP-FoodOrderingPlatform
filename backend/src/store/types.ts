@@ -59,6 +59,7 @@ export interface Dish {
   spicy?: boolean;
   dietary: string[]; // spicy | vegetarian | plant_based | allergy_free
   allergens?: string[]; // allergens the shop says this dish contains (names from lib/allergens.ts)
+  deal?: { percent: number; startedAt: number; endsAt: number }; // Sprint 3 last-hour deal (see merchants/deals.ts)
   style?: "dry" | "wet";
   customisations: string[];
   cost?: number; // ingredient cost, for the merchant's profit report (FR-5.12)

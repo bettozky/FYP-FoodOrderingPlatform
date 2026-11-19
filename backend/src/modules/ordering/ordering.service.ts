@@ -7,6 +7,7 @@ import type { FulfilmentMode, Order, OrderItem } from "../../store/types.js";
 import { startDelivery } from "../delivery/delivery.service.js";
 import { screenReview } from "../admin/moderation.js";
 import { notify, notifyMerchant } from "../notifications/notifications.service.js";
+import { priceNow } from "../merchants/deals.js";
 import { charge, chargeFpx, refund } from "../payment/payment.service.js";
 
 const MODES: FulfilmentMode[] = ["delivery", "dine_in", "takeaway"];
@@ -62,7 +63,8 @@ export function placeOrder(inp: NewOrderInput): Order {
     const qty = Number(line.qty);
     if (!Number.isInteger(qty) || qty < 1 || qty > 20) throw new HttpError(400, "Quantity must be 1-20");
     const options = (line.options ?? []).filter((o) => dish.customisations.includes(o));
-    items.push({ id: uid("i"), dishId: dish.id, name: dish.name, price: dish.price, qty, mode: line.mode, options, status: "preparing" });
+    // Sprint 3 last-hour deals: the deal price if one is on right now.
+    items.push({ id: uid("i"), dishId: dish.id, name: dish.name, price: priceNow(dish), qty, mode: line.mode, options, status: "preparing" });
   }
 
   assertStock({ items });
