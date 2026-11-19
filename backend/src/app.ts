@@ -23,6 +23,7 @@ import { dealsRouter, merchantDealsRouter } from "./modules/merchants/deals.rout
 import { portalRouter } from "./modules/merchants/portal.routes.js";
 import { notificationsRouter } from "./modules/notifications/notifications.routes.js";
 import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.routes.js";
+import { forecastRouter } from "./modules/merchants/forecast.routes.js";
 import { merchantReviewsRouter, reviewsRouter } from "./modules/reviews/reviews.routes.js";
 import { applicationsRouter, jobsRouter, merchantApplicationsRouter } from "./modules/jobs/jobs.routes.js";
 import { geoRouter } from "./modules/geo/geo.routes.js";
@@ -83,6 +84,7 @@ app.use("/api/deals", dealsRouter);
 app.use("/api/merchant/applications", merchantApplicationsRouter);
 app.use("/api/merchant", uploadsRouter);
 app.use("/api/merchant", analyticsRouter);
+app.use("/api/merchant", forecastRouter); // Sprint 3: prep forecast
 app.use("/api/merchant", portalRouter);
 app.use("/api/admin/announcements", adminAnnouncementsRouter);
 app.use("/api/admin/app-ratings", adminFeedbackRouter);

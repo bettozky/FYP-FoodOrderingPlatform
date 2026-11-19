@@ -9,6 +9,7 @@ import MerchantOrderQueueScreen from "../modules/orders/screens/MerchantOrderQue
 import MerchantMenuScreen from "../modules/menu/screens/MerchantMenuScreen";
 import MerchantVouchersScreen from "../modules/promotions/screens/MerchantVouchersScreen";
 import MerchantAnalyticsScreen from "../modules/analytics/screens/MerchantAnalyticsScreen";
+import MerchantForecastScreen from "../modules/forecast/MerchantForecastScreen";
 import MerchantReservationsScreen from "../modules/reservations/screens/MerchantReservationsScreen";
 import MerchantJobBoardScreen from "../modules/jobs/screens/MerchantJobBoardScreen";
 import MerchantReviewsScreen from "../modules/reviews/screens/MerchantReviewsScreen";
@@ -37,6 +38,8 @@ export default function RootNavigator() {
           <Stack.Screen name="MerchantMenu" component={MerchantMenuScreen} />
           <Stack.Screen name="MerchantVouchers" component={MerchantVouchersScreen} />
           <Stack.Screen name="MerchantAnalytics" component={MerchantAnalyticsScreen} />
+          {/* Sprint 3: prep forecast (Dashboard → Prep forecast) */}
+          <Stack.Screen name="MerchantForecast" component={MerchantForecastScreen} />
           <Stack.Screen name="MerchantReservations" component={MerchantReservationsScreen} />
           <Stack.Screen name="MerchantJobBoard" component={MerchantJobBoardScreen} />
           <Stack.Screen name="MerchantReviews" component={MerchantReviewsScreen} />
