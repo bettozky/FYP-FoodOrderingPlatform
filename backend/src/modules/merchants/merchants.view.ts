@@ -10,7 +10,9 @@ export function merchantView(m: Merchant, from = CAMPUS) {
   const open = m.approval === "approved" && m.storeMode !== "offline" && isOpenNow(m);
   return {
     id: m.id, name: m.name, stallNo: m.stallNo, rating: liveRating(m), prepMinutes: m.prepMinutes, tags: m.tags,
-    color: m.color, hours: m.hours, venueCategory: m.venueCategory, phone: m.phone, lat: m.lat, lng: m.lng,
+    color: m.color, hours: m.hours,
+    weeklyHours: m.weeklyHours?.length ? m.weeklyHours : null, // per-day hours (0 = Sunday, missing day = closed); null = `hours` every day
+    venueCategory: m.venueCategory, phone: m.phone, lat: m.lat, lng: m.lng,
     storeMode: m.storeMode, logo: m.logo, cover: m.cover,
     allergens: kitchenAllergens(m, db.dishes.values()), // undefined = the shop never said
     openNow: open, // FR-1.6
