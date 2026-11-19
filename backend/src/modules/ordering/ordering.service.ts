@@ -266,7 +266,29 @@ export function markReady(o: Order, mode: "dine_in" | "takeaway") {
   if (!items.length) throw new HttpError(409, `No ${mode.replace("_", "-")} items waiting`);
   items.forEach((i) => (i.status = "ready"));
   const label = mode === "dine_in" ? "dine-in" : "takeaway";
-  notify(o.customerId, "food_ready", "Your food is ready!", `Your ${label} food from ${o.merchantName} is ready - please collect.`, { orderId: o.id, mode, persistent: true });
+  const m = db.merchants.get(o.merchantId);
+  // Sprint 3 "phone as a pickup buzzer": the customer's phone shows the order number, stall and counter full screen.
+  notify(o.customerId, "food_ready", "Your food is ready!", `Your ${label} food from ${o.merchantName} is ready - please collect.`, {
+    orderId: o.id, mode, persistent: true, merchantId: o.merchantId, merchantName: o.merchantName, stallNo: m?.stallNo, buzzCount: 1, buzzedAt: Date.now(),
+  });
+}
+
+/** How long a stall must wait between two buzzes for the same food, so a customer is not spammed (tests shorten it). */
+export const BUZZ_GAP_MS = Number(process.env.BUZZ_GAP_MS ?? 10000);
+
+/**
+ * "Buzz again": the stall nudges a customer who has not collected yet. The open food-ready notice gets a new
+ * buzzedAt, and the customer's phone (which polls notices) chimes and vibrates again.
+ */
+export function buzzAgain(o: Order, mode: "dine_in" | "takeaway", now = Date.now()) {
+  const n = [...db.notifications.values()].find(
+    (x) => x.userId === o.customerId && x.type === "food_ready" && x.data?.orderId === o.id && x.data?.mode === mode && !x.ackedAt
+  );
+  if (!n) throw new HttpError(409, "Nothing to buzz: the customer has already collected this food");
+  const last = Number(n.data?.buzzedAt ?? 0);
+  if (now - last < BUZZ_GAP_MS) throw new HttpError(429, `Wait ${Math.ceil((BUZZ_GAP_MS - (now - last)) / 1000)} s before buzzing again`);
+  n.data = { ...n.data, buzzedAt: now, buzzCount: Number(n.data?.buzzCount ?? 1) + 1 };
+  return { buzzCount: n.data.buzzCount as number, buzzedAt: now };
 }
 
 export function confirmCollected(o: Order, mode: "dine_in" | "takeaway") {
