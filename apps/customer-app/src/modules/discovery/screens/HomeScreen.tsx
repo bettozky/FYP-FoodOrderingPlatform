@@ -20,6 +20,7 @@ import { useLive } from "../../ordering/LiveDataContext";
 import AddressPicker from "../components/AddressPicker";
 import PromoBanner from "../components/PromoBanner";
 import CanteenMapCard from "../components/CanteenMapCard";
+import LastHourDeals from "../components/LastHourDeals";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
@@ -248,6 +249,9 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Category panel: cute icons in two rows you swipe sideways (venue types, Halal, live map, food types, shortcuts). */}
       {!gridMode ? <CategoryGrid items={gridItems} /> : null}
+
+      {/* Sprint 3: leftovers at a discount before closing (hidden when no deal is on) */}
+      {!gridMode ? <LastHourDeals onOpen={openDish} onAdd={(d, m) => addToCart(d, m)} /> : null}
 
       {error || loadError ? <Text style={styles.errorText}>{error || loadError}</Text> : null}
 

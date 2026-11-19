@@ -11,6 +11,8 @@ import { useFavourites } from "../../favourites/FavouritesContext";
 import ReviewsList from "../../reviews/ReviewsList";
 import DishImage from "../../../shared/components/DishImage";
 import ReadyChip from "../components/ReadyChip";
+import { Price } from "../components/DishCard";
+import { EndsChip } from "../components/LastHourDeals";
 import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
 import FadeInView from "../../../shared/motion/FadeInView";
@@ -143,7 +145,15 @@ export default function DishDetailScreen({ route }: any) {
 
         <Text style={[type.h1, styles.centerText, { marginTop: spacing.lg }]} accessibilityRole="header">{dish.name}</Text>
         {dish.description ? <Text style={[styles.desc, styles.centerText]}>{dish.description}</Text> : null}
-        <Text style={[ui.priceLarge, styles.centerText, { marginTop: spacing.sm }]}>RM {dish.price.toFixed(2)}</Text>
+        <View style={{ marginTop: spacing.sm, alignItems: "center", gap: 6 }}>
+          <Price dish={dish} large />
+          {dish.dealPercent ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }} testID="deal-detail">
+              <Text style={{ fontFamily: fonts.displayExtraBold, fontSize: 12, color: colors.chiliText }}>Last-hour deal · {dish.dealPercent}% off</Text>
+              <EndsChip endsAt={dish.dealEndsAt} />
+            </View>
+          ) : null}
+        </View>
         <Text style={[type.small, styles.centerText]}>Per dish · delivery fee added at checkout</Text>
 
         <View style={styles.chips}>
