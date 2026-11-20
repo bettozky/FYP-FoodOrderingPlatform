@@ -4,6 +4,7 @@ import { env } from "../../config/env.js";
 import { HttpError } from "../../lib/http.js";
 import { auth, currentUser } from "../../middleware/auth.js";
 import { getAssistantContext } from "./ai-assistant.data.js";
+import { aiMerchantRouter } from "./ai-merchant.routes.js";
 import {
   generateReply,
   type ChatMessage,
@@ -16,7 +17,11 @@ import {
 
 export const aiAssistantRouter = Router();
 
-// Only signed-in customers can access these routes.
+// Merchant assistant (/api/ai/merchant/...). Registered BEFORE the customer-only check below,
+// so merchant requests are answered here and never reach it.
+aiAssistantRouter.use("/merchant", aiMerchantRouter);
+
+// Only signed-in customers can access the routes below.
 aiAssistantRouter.use(auth("customer"));
 
 // One voice recording in the "audio" field, kept in memory (it is never saved).
