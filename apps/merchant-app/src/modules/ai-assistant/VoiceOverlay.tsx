@@ -1,8 +1,9 @@
 // VOICE mode (Siri-like, minimal): edge glow, the orb, and the latest answer in a card at the top.
 // Opening it starts listening straight away. It stops by itself when the merchant goes quiet (or when they
-// tap the orb), turns the speech into text, asks the assistant, and shows the answer in the card.
+// tap the orb), turns the speech into text, asks the assistant, shows the answer in the card and reads it
+// out loud. If the answer asks the merchant something, it listens again by itself.
 // Tapping anywhere closes it, except the orb and the chat button. Android back and the screen-reader
-// "escape" gesture also close it. Closing stops the microphone.
+// "escape" gesture also close it. Closing stops the microphone and the voice.
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Animated, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,23 +12,34 @@ import { colors, fonts } from "../../shared/theme/theme";
 import EdgeGlow, { type GlowMode } from "./EdgeGlow";
 import Orb from "./Orb";
 import type { MerchantChat } from "./useMerchantChat";
+import { useSpeaker } from "./useSpeaker";
 import { useSpeechToText } from "./useSpeechToText";
 
 type Props = { active: boolean; chat: MerchantChat; onClose: () => void; onOpenChat: () => void };
 
 const FADE_MS = 220;
 const LISTEN_DELAY_MS = 250; // let the overlay fade in before the microphone starts
-const SPEAK_PULSE_MS = 1500;
 const DIM = "rgba(21,19,15,0.35)"; // lighter than colors.overlay, so the app stays visible behind
 const useNative = Platform.OS !== "web";
 
 export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Props) {
   const insets = useSafeAreaInsets();
   const { messages, loading, send } = chat;
+  const speaker = useSpeaker();
 
-  // `activeRef` lets late results (a transcription that finishes after closing) be ignored.
+  // `activeRef` lets late results (a transcription or reply that arrives after closing) be ignored.
   const activeRef = useRef(active);
   activeRef.current = active;
+
+  // With a screen reader on, the screen reader reads the answer instead (two voices at once is confusing).
+  // Phones only: in a browser this check always says "on", because browsers can't tell.
+  const screenReader = useRef(false);
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    void AccessibilityInfo.isScreenReaderEnabled().then((on) => (screenReader.current = on));
+    const sub = AccessibilityInfo.addEventListener("screenReaderChanged", (on) => (screenReader.current = on));
+    return () => sub.remove();
+  }, []);
 
   // Speech -> text -> ask the assistant. Voice mode stops by itself when the merchant goes quiet.
   const speech = useSpeechToText(
@@ -49,38 +61,36 @@ export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Prop
   const last = session[session.length - 1];
   const answer = last?.from === "bot" ? last : undefined;
 
-  // A short "speaking" pulse when an answer arrives (step 8 replaces this with the real voice).
-  const [speaking, setSpeaking] = useState(false);
-  const speakTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (speakTimer.current) clearTimeout(speakTimer.current);
-  }, []);
-
   async function ask(text: string) {
     const reply = await send(text);
-    if (reply && activeRef.current) {
-      AccessibilityInfo.announceForAccessibility(reply);
-      setSpeaking(true);
-      if (speakTimer.current) clearTimeout(speakTimer.current);
-      speakTimer.current = setTimeout(() => setSpeaking(false), SPEAK_PULSE_MS);
+    if (!reply || !activeRef.current) return;
+
+    if (screenReader.current) {
+      AccessibilityInfo.announceForAccessibility(reply.reply);
+      return;
     }
+
+    // Read the answer out loud. If it asked the merchant something and wasn't interrupted, listen again.
+    const finished = await speaker.speak(reply.spoken || reply.reply, reply.language ?? "en");
+    if (finished && reply.asksQuestion && activeRef.current) void speech.start();
   }
 
-  // Opening: start listening (after the fade-in). Closing: throw away any recording and free the microphone.
+  // Opening: start listening (after the fade-in). Closing: stop the microphone and the voice.
   useEffect(() => {
     if (!active) {
       void speech.cancel();
       speech.clearError();
-      setSpeaking(false);
+      speaker.stop();
       return;
     }
     const timer = setTimeout(() => void speech.start(), LISTEN_DELAY_MS);
     return () => clearTimeout(timer);
   }, [active]);
 
-  // Orb: while listening, tap = "I'm done"; when idle, tap = listen again.
+  // Orb: while speaking, tap = be quiet; while listening, tap = "I'm done"; otherwise tap = listen again.
   function onOrbPress() {
-    if (listening) void speech.stop();
+    if (speaker.speaking) speaker.stop();
+    else if (listening) void speech.stop();
     else if (!transcribing && !loading) void speech.start();
   }
 
@@ -90,7 +100,7 @@ export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Prop
       ? "listening"
       : transcribing || loading
         ? "thinking"
-        : speaking
+        : speaker.speaking
           ? "speaking"
           : "idle";
 

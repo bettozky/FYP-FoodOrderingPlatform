@@ -32,11 +32,15 @@ r = await chat(merch, { message: "How much did I sell today?" });
 ok(r.status === 200 && typeof r.body.reply === "string", "a merchant gets a reply");
 ok(r.body.reply?.includes(`RM${Number(stats.revenue).toFixed(2)}`), "the offline reply shows the same sales as the dashboard (RM" + stats.revenue + ")");
 ok(r.body.reply?.includes(`${stats.orders} orders`), "the offline reply shows today's order count");
+ok(typeof r.body.spoken === "string" && !/RM\s?\d/.test(r.body.spoken) && /ringgit/.test(r.body.spoken), "the spoken version says money in words (ringgit), not RM");
+ok(r.body.language === "en" && r.body.asksQuestion === false, "the reply says it is English and asks nothing back");
 
 r = await chat(merch, { message: "Berapa jualan saya hari ini?" });
 ok(r.status === 200 && r.body.reply?.startsWith("Maaf"), "Malay message gets a Malay offline reply");
+ok(r.body.language === "ms" && /ringgit/.test(r.body.spoken ?? ""), "Malay reply is marked ms and its spoken version uses ringgit");
 r = await chat(merch, { message: "我今天卖了多少？" });
 ok(r.status === 200 && r.body.reply?.startsWith("抱歉"), "Chinese message gets a Chinese offline reply");
+ok(r.body.language === "zh" && /令吉/.test(r.body.spoken ?? ""), "Chinese reply is marked zh and its spoken version uses 令吉");
 
 r = await chat(merch, { message: "hi", history: "not a list" });
 ok(r.status === 200, "history that is not a list is ignored");

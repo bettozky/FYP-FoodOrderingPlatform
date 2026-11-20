@@ -59,7 +59,7 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
     if (!text.trim() || loading) return;
     setDraft("");
     const reply = await send(text);
-    if (reply) AccessibilityInfo.announceForAccessibility(reply); // screen readers read the answer out
+    if (reply) AccessibilityInfo.announceForAccessibility(reply.reply); // screen readers read the answer out
   }
 
   const [sheetHeight, setSheetHeight] = useState(400); // measured once the sheet is drawn
