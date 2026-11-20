@@ -7,11 +7,23 @@ export type Merchant = {
   id: string; name: string; stallNo: string; rating: number; prepMinutes: number; tags: string[]; color: string;
   hours: { open: string; close: string }; venueCategory?: string; phone: string; lat: number; lng: number;
   openNow: boolean; dineInOnly: boolean; distanceKm: number; logo?: string; cover?: string;
+  /** Live wait (backend merchants/waitTime.ts): orders ahead, minutes until food is ready, and the map colour. */
+  queue?: number; waitMinutes?: number; busy?: BusyLevel;
+  /** Sprint 3 busy mode: the stall's wait limit, and whether it is over it ("pause" stops orders, "warn" asks first). */
+  waitLimit?: number | null; ordersPaused?: boolean; longWaitWarning?: boolean;
+  /** Allergens the shop says its kitchen uses. undefined = the shop never said; [] = none of the 9 common ones. */
+  allergens?: string[];
 };
+
+export type BusyLevel = "quiet" | "busy" | "very_busy" | "closed";
 
 export type Dish = {
   id: string; merchantId: string; name: string; price: number; image: string; description: string; category: string;
   calories: number; soldOut: boolean; spicy?: boolean; dietary: string[]; style?: "dry" | "wet"; customisations: string[];
+  /** Allergens the shop says this dish contains (e.g. "Peanuts", "Soy"). */
+  allergens?: string[];
+  /** Sprint 3 last-hour deal: while it runs, `price` is the deal price and these say what it was and when it ends. */
+  originalPrice?: number; dealPercent?: number; dealEndsAt?: number;
 };
 
 export type OrderItem = {
@@ -27,6 +39,8 @@ export type Order = {
   payBy?: number; paidAt?: number; paymentMethod?: "card" | "fpx" | "cash"; cashDue?: number; cashReceivedAt?: number; cancelReason?: "no_reply" | "not_paid" | "customer";
   decision?: "pending" | "accepted_partial" | "cancelled";
   respondBy: number; createdAt: number; reviewedDishIds: string[]; canReview: boolean;
+  /** Feature 2: minutes until the food should be ready (null when nothing is left to cook), "I'm on my way" time and whether it applies. */
+  readyInMinutes?: number | null; arrivingAt?: number; canSayArriving?: boolean;
 };
 
 export type PreorderItem = { id: string; dishId: string; name: string; price: number; qty: number; status: "pending" | "approved" | "declined" };
@@ -39,7 +53,7 @@ export type Reservation = {
   allocatedTable?: string; respondBy: number; createdAt: number; cutoffMs: number;
 };
 
-export type Voucher = { id: string; title: string; description: string; amount: number; minSpend: number; requireCategory?: string; merchantId?: string };
+export type Voucher = { id: string; title: string; description: string; amount: number; kind?: "fixed" | "percent"; minSpend: number; requireCategory?: string; merchantId?: string; used?: boolean };
 
 export type AppNotification = { id: string; type: string; title: string; body: string; data?: Record<string, any>; createdAt: number };
 

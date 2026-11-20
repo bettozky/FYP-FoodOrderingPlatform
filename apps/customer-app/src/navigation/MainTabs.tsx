@@ -12,6 +12,8 @@ import { colors, fonts, shadow } from "../shared/theme/theme";
 import { DrawerEdge } from "../shared/components/SideDrawer";
 import { useLive } from "../modules/ordering/LiveDataContext";
 import PayBar from "../modules/ordering/components/PayBar";
+import PressableScale from "../shared/motion/PressableScale";
+import { PopOnChange } from "../shared/motion/PulseRing";
 
 // Main sections, swipeable left/right or chosen from the bottom bar (new layout, Oct 2026):
 // Home · Orders · (Assistant, raised in the middle) · Tables · Account.
@@ -76,21 +78,26 @@ export default function MainTabs({ navigation, route }: any) {
           const focused = i === index;
           if (r.key === "assistant") {
             return (
-              <Pressable key={r.key} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel="AI assistant" accessibilityState={{ selected: focused }}>
+              <PressableScale key={r.key} scaleTo={0.88} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel="AI assistant" accessibilityState={{ selected: focused }}>
                 <View style={[styles.centerBtn, focused && styles.centerBtnOn]}>
-                  <Ionicons name="sparkles" size={24} color={colors.ink} />
+                  <PopOnChange trigger={focused}>
+                    <Ionicons name="sparkles" size={24} color={colors.ink} />
+                  </PopOnChange>
                 </View>
-              </Pressable>
+              </PressableScale>
             );
           }
           return (
-            <Pressable key={r.key} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={r.title} accessibilityState={{ selected: focused }}>
+            <PressableScale key={r.key} scaleTo={0.9} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={r.title} accessibilityState={{ selected: focused }}>
+              {/* The icon bounces when its tab becomes the active one. */}
               <View>
-                <Ionicons name={focused ? r.iconOn : r.icon} size={22} color={focused ? colors.turmericDeep : colors.stone} />
+                <PopOnChange trigger={focused}>
+                  <Ionicons name={focused ? r.iconOn : r.icon} size={22} color={focused ? colors.turmericDeep : colors.stone} />
+                </PopOnChange>
                 {r.key === "account" && unread > 0 ? <View style={styles.dot} /> : null}
               </View>
               <Text style={[styles.label, focused && styles.labelOn]} numberOfLines={1}>{r.title}</Text>
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>

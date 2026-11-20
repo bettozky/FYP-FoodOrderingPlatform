@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, fonts, radius, spacing } from "../../../shared/theme/theme";
+import PulseRing, { PopOnChange } from "../../../shared/motion/PulseRing";
 
 // The three-step journey every order follows: send the request, the stall confirms, then the customer pays.
 // current = the step in progress (0, 1 or 2). Steps before it show a tick; 3 means all done.
@@ -16,9 +17,20 @@ export function OrderSteps({ current }: { current: 0 | 1 | 2 | 3 }) {
         return (
           <React.Fragment key={label}>
             <View style={styles.step}>
-              <View style={[styles.dot, active && styles.dotActive, done && styles.dotDone]}>
-                {done ? <Ionicons name="checkmark" size={13} color={colors.white} /> : <Text style={[styles.dotText, active && { color: colors.ink }]}>{i + 1}</Text>}
-              </View>
+              {/* Animated (Nathan, task 1): the active step pulses and a step pops when it is done. */}
+              <PopOnChange trigger={done ? "done" : active ? "active" : "todo"}>
+                {active ? (
+                  <PulseRing size={24} color={colors.turmeric}>
+                    <View style={[styles.dot, styles.dotActive]}>
+                      <Text style={[styles.dotText, { color: colors.ink }]}>{i + 1}</Text>
+                    </View>
+                  </PulseRing>
+                ) : (
+                  <View style={[styles.dot, done && styles.dotDone]}>
+                    {done ? <Ionicons name="checkmark" size={13} color={colors.white} /> : <Text style={styles.dotText}>{i + 1}</Text>}
+                  </View>
+                )}
+              </PopOnChange>
               <Text style={[styles.label, (active || done) && styles.labelOn]} numberOfLines={1}>{label}</Text>
             </View>
             {i < STEPS.length - 1 && <View style={[styles.bar, done && styles.barDone]} />}

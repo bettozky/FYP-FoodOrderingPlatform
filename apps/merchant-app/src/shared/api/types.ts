@@ -15,6 +15,7 @@ export type Order = {
   payBy?: number; paidAt?: number; paymentMethod?: "card" | "fpx" | "cash"; cashDue?: number; cashReceivedAt?: number; cancelReason?: "no_reply" | "not_paid" | "customer";
   decision?: "pending" | "accepted_partial" | "cancelled";
   respondBy: number; createdAt: number;
+  arrivingAt?: number; // Feature 2: when the customer said they will reach the stall
 };
 
 export type PreorderItem = { id: string; dishId: string; name: string; price: number; qty: number; status: "pending" | "approved" | "declined" };
@@ -28,5 +29,5 @@ export type Reservation = {
 
 export type MerchantProfile = {
   id: string; name: string; approval: "pending" | "approved" | "rejected" | "suspended";
-  storeMode: "online" | "dine_in" | "offline"; hours: { open: string; close: string }; openNow: boolean; phone: string; logo?: string; cover?: string;
+  storeMode: "online" | "dine_in" | "offline"; hours: { open: string; close: string }; weeklyHours?: { day: number; open: string; close: string }[] | null; openNow: boolean; phone: string; logo?: string; cover?: string;
 };

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import { env } from "../../config/env.js";
+import { cleanAllergens } from "../../lib/allergens.js";
 import { HttpError, money, str } from "../../lib/http.js";
 import { checkPassword, hashPassword, uid } from "../../lib/ids.js";
 import { ageOn } from "../../lib/time.js";
@@ -10,9 +11,10 @@ import { db } from "../../store/db.js";
 import type { Dish, Merchant, User } from "../../store/types.js";
 import { emailConfigured, sendMail } from "../../lib/mailer.js";
 import { notify } from "../notifications/notifications.service.js";
+import { verifyGoogleIdToken } from "../../lib/googleToken.js";
 
 export const authRouter = Router();
-authRouter.use(["/login", "/register", "/register-merchant", "/password", "/forgot", "/reset"], rateLimit(env.authRatePerMin, "auth"));
+authRouter.use(["/login", "/google", "/register", "/register-merchant", "/password", "/forgot", "/reset"], rateLimit(env.authRatePerMin, "auth"));
 
 function session(u: User) {
   const token = randomBytes(24).toString("hex");
@@ -58,6 +60,34 @@ authRouter.post("/register", (req, res) => {
   res.status(201).json(session(u));
 });
 
+// "Continue with Google" (customer app). The app sends the Google ID token; the server checks it, then either signs the person in
+// (matching their Google id, or the same verified email) or creates a customer account. A new account needs a date of birth for the
+// age rule, so the first call answers { needsDob: true } and the app asks for it and calls again with `dob`.
+authRouter.post("/google", async (req, res) => {
+  const g = await verifyGoogleIdToken(req.body?.idToken);
+  const users = [...db.users.values()];
+  let u = users.find((x) => x.googleSub === g.sub) ?? users.find((x) => x.email === g.email);
+  if (u) {
+    if (u.role !== "customer") throw new HttpError(403, `This email belongs to a ${u.role} account. Use the ${u.role} app.`);
+    if (u.suspended) throw new HttpError(403, "Your account has been suspended. Please contact the ScootMeal admin.");
+    if (!u.googleSub) u.googleSub = g.sub; // first Google sign-in on an existing account with the same verified email
+    return res.json(session(u));
+  }
+  const dob = typeof req.body?.dob === "string" ? req.body.dob.trim() : "";
+  if (!dob) return res.json({ needsDob: true, name: g.name, email: g.email });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob))) throw new HttpError(400, "Date of birth must be YYYY-MM-DD");
+  if (ageOn(dob) < 0) throw new HttpError(400, "Date of birth cannot be in the future");
+  if (ageOn(dob) < env.minAge) throw new HttpError(403, `You must be at least ${env.minAge} years old to use ScootMeal.`);
+  u = {
+    id: uid("u"), role: "customer", email: g.email, name: g.name, dob, googleSub: g.sub, noPassword: true,
+    phone: str(req.body?.phone, "Phone", { optional: true, max: 30 }) || undefined,
+    passwordHash: hashPassword(randomBytes(24).toString("hex")),
+    ...(g.picture ? { avatar: g.picture } : {}),
+  };
+  db.users.set(u.id, u);
+  res.status(201).json(session(u));
+});
+
 const isTime = (t: unknown): t is string => typeof t === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
 const DAY_NUMBER: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -83,15 +113,24 @@ authRouter.post("/register-merchant", (req, res) => {
     .filter((h: any) => h && !h.closed && h.day in DAY_NUMBER && isTime(h.open) && isTime(h.close) && h.open !== h.close)
     .map((h: any) => ({ day: DAY_NUMBER[h.day]!, open: h.open as string, close: h.close as string }));
 
+  // Allergens: "none of these" gives [], a ticked list gives that list, and no answer (older app versions) stays undefined.
+  const hygiene = application?.hygiene ?? {};
+  const ticked = cleanAllergens(hygiene.allergens) ?? [];
+  const shopAllergens = hygiene.noneUsed === true ? [] : ticked.length ? ticked : undefined;
+
   const id = uid("m");
   const menu: Dish[] = (Array.isArray(application?.menuItems) ? application!.menuItems : [])
     .filter((x: any) => typeof x?.name === "string" && x.name.trim() && finite(x.price) && x.price > 0 && x.price <= 500)
     .slice(0, 30)
-    .map((x: any): Dish => ({
-      id: uid("d"), merchantId: id, name: x.name.trim().slice(0, 80), price: money(x.price), image: "",
-      description: typeof x.description === "string" ? x.description.trim().slice(0, 300) : "",
-      category: "Mains", calories: 0, soldOut: false, spicy: false, dietary: [], customisations: [],
-    }));
+    .map((x: any): Dish => {
+      const allergens = cleanAllergens(x.allergens) ?? [];
+      return {
+        id: uid("d"), merchantId: id, name: x.name.trim().slice(0, 80), price: money(x.price), image: "",
+        description: typeof x.description === "string" ? x.description.trim().slice(0, 300) : "",
+        category: "Mains", calories: 0, soldOut: false, spicy: false, dietary: [], customisations: [],
+        ...(allergens.length ? { allergens } : {}),
+      };
+    });
 
   const prep = Number(service.prepMinutes);
   const u: User = {
@@ -108,6 +147,7 @@ authRouter.post("/register-merchant", (req, res) => {
     color: "#C97F03", hours: weeklyHours[0] ? { open: weeklyHours[0].open, close: weeklyHours[0].close } : hours,
     ...(weeklyHours.length ? { weeklyHours } : {}),
     approval: "pending", storeMode: "online", phone: u.phone!, ownerUserId: u.id,
+    ...(shopAllergens ? { allergens: shopAllergens } : {}),
     ...(application ? { application } : {}),
   };
   db.users.set(u.id, u);

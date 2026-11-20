@@ -7,9 +7,10 @@ import {
   ScrollView,
   Animated,
   LayoutChangeEvent,
-  TextInput,
 } from "react-native";
 import { api, errorText } from "../../../shared/api/client";
+import OpeningHoursCard from "../components/OpeningHoursCard";
+import BusyModeCard from "../components/BusyModeCard";
 import { useLive } from "../../orders/LiveDataContext";
 import { useAuth } from "../../auth/AuthContext";
 import NavRow from "../../../shared/components/NavRow";
@@ -28,9 +29,7 @@ export default function MerchantDashboardScreen({ navigation }: any) {
   const pendingCount = orders.filter((o) => o.status === "awaiting_merchant" || o.status === "preparing").length;
   const pendingReservations = reservations.filter((r) => r.status === "awaiting_restaurant").length;
   const [stats, setStats] = useState({ orders: 0, revenue: 0, avgPrepMinutes: 0 });
-  const [hoursOpen, setHoursOpen] = useState("");
-  const [hoursClose, setHoursClose] = useState("");
-  const [hoursMsg, setHoursMsg] = useState("");
+  const [statusMsg, setStatusMsg] = useState("");
   const [rating, setRating] = useState<{ average: number | null; count: number; unanswered: number } | null>(null);
 
   useEffect(() => {
@@ -86,25 +85,14 @@ export default function MerchantDashboardScreen({ navigation }: any) {
     if (profile) {
       setStoreStatus(profile.storeMode);
       slideAnim.setValue(statusConfig[profile.storeMode].index);
-      setHoursOpen((v) => v || profile.hours.open);
-      setHoursClose((v) => v || profile.hours.close);
     }
-  }, [profile?.storeMode, profile?.hours.open, profile?.hours.close]);
-
-  const saveHours = async () => {
-    try {
-      await api("PATCH", "/merchant/me", { hours: { open: hoursOpen, close: hoursClose } });
-      setHoursMsg("Saved. Customers see you as open or closed based on these hours.");
-      refresh();
-    } catch (e) {
-      setHoursMsg(errorText(e));
-    }
-  };
+  }, [profile?.storeMode]);
 
   // Switch handler with smooth sliding animation
   const handleStatusChange = (status: StoreStatus) => {
     setStoreStatus(status);
-    api("PATCH", "/merchant/me", { storeMode: status }).then(refresh).catch((e) => setHoursMsg(errorText(e)));
+    setStatusMsg("");
+    api("PATCH", "/merchant/me", { storeMode: status }).then(refresh).catch((e) => setStatusMsg(errorText(e)));
     const targetValue = statusConfig[status].index;
 
     Animated.spring(slideAnim, {
@@ -187,26 +175,14 @@ export default function MerchantDashboardScreen({ navigation }: any) {
           <View style={[styles.statusBanner, { backgroundColor: activeMode.bgColor, borderColor: activeMode.borderColor }]}>
             <Text style={[styles.statusBannerText, { color: activeMode.color }]}>{activeMode.description}</Text>
           </View>
+          {statusMsg ? <Text style={[styles.hint, { color: colors.chiliText }]}>{statusMsg}</Text> : null}
         </View>
 
-        {/* ---------- opening hours ---------- */}
-        <View style={styles.card}>
-          <View style={styles.cardHead}>
-            <Text style={styles.cardTitle}>Opening hours</Text>
-            <Text style={[styles.openPill, { color: profile?.openNow ? colors.herb : colors.chili, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
-              {profile?.openNow ? "Open now" : "Closed now"}
-            </Text>
-          </View>
-          <View style={styles.hoursRow}>
-            <TextInput style={styles.hoursInput} value={hoursOpen} onChangeText={setHoursOpen} placeholder="09:00" placeholderTextColor={colors.textFaint} testID="hours-open" />
-            <Text style={styles.to}>to</Text>
-            <TextInput style={styles.hoursInput} value={hoursClose} onChangeText={setHoursClose} placeholder="21:00" placeholderTextColor={colors.textFaint} testID="hours-close" />
-            <Pressable style={styles.saveBtn} onPress={saveHours} testID="hours-save">
-              <Text style={styles.saveText}>Save</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.hint}>{hoursMsg || "Customers see the open / closed label based on these hours."}</Text>
-        </View>
+        {/* ---------- opening hours (per day, folded by default) ---------- */}
+        <OpeningHoursCard profile={profile} onSaved={refresh} />
+
+        {/* ---------- Sprint 3: busy mode / auto-pause ---------- */}
+        <BusyModeCard />
 
         {/* ---------- manage ---------- */}
         <Text style={styles.section}>Manage</Text>
@@ -215,6 +191,7 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         <NavRow icon="restaurant-outline" tint={colors.chili} title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
         <NavRow icon="pricetags-outline" tint={colors.ink} title="Promotions & Vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
         <NavRow icon="stats-chart-outline" tint={colors.stoneText} title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
+        <NavRow icon="analytics-outline" tint={colors.herb} title="Prep forecast" subtitle="How much of each dish to prep tomorrow" onPress={() => navigation.navigate("MerchantForecast")} />
         <NavRow icon="star-outline" tint={colors.turmericDeep} title="Customer reviews" subtitle="Read feedback and reply" onPress={() => navigation.navigate("MerchantReviews")} />
         <NavRow icon="briefcase-outline" tint={colors.amberText} title="Restaurant Job Board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
         <NavRow icon="people-outline" tint={colors.herb} title="Applicants" subtitle="CVs and applications from students" badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
@@ -257,7 +234,6 @@ const styles = StyleSheet.create({
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   cardTitle: { fontSize: 15, fontFamily: fonts.displayBold, color: colors.ink },
   dot: { width: 10, height: 10, borderRadius: 5 },
-  openPill: { fontSize: 11.5, fontFamily: fonts.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
 
   segmentedTrack: { position: "relative", flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: radius.pill, padding: 4, height: 44, alignItems: "center" },
   slidingPill: { position: "absolute", top: 4, bottom: 4, left: 4, backgroundColor: colors.white, borderRadius: radius.pill, ...shadow.soft },
@@ -266,11 +242,6 @@ const styles = StyleSheet.create({
   statusBanner: { paddingVertical: 9, paddingHorizontal: spacing.md, borderRadius: radius.sm, borderWidth: 1 },
   statusBannerText: { fontSize: 12.5, fontFamily: fonts.display },
 
-  hoursRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  hoursInput: { flex: 1, minWidth: 0, backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 9, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.text, textAlign: "center" },
-  to: { fontSize: 13, fontFamily: fonts.display, color: colors.stone },
-  saveBtn: { backgroundColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: 10 },
-  saveText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.white },
   hint: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
 
   ratingCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, ...shadow.soft },

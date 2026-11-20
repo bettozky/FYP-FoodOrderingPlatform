@@ -1,16 +1,24 @@
 import { Router } from "express";
-import { HttpError, str } from "../../lib/http.js";
+import { HttpError, int, str } from "../../lib/http.js";
 import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
 import { db } from "../../store/db.js";
 import type { Order } from "../../store/types.js";
 import { FPX_BANKS } from "../payment/payment.service.js";
+import { canSayArriving, setArriving } from "../arrival/arrival.service.js";
+import { orderReadyMinutes } from "../merchants/waitTime.js";
 import {
-  cancelRequest, confirmCollected, customerDecision, handOver, markCashReceived, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
+  buzzAgain, cancelRequest, confirmCollected, customerDecision, handOver, markCashReceived, markOutOfStock, markReady, merchantRespond, payOrder, placeOrder, reviewItem,
 } from "./ordering.service.js";
 
 function view(o: Order) {
   const m = db.merchants.get(o.merchantId);
-  return { ...o, merchantPhone: m?.phone, canReview: o.items.some((i) => ["collected", "delivered"].includes(i.status) && !o.reviewedDishIds.includes(i.dishId)) };
+  return {
+    ...o,
+    merchantPhone: m?.phone,
+    // Feature 2: minutes until this order should be ready (null when nothing is left to cook), and whether "I'm on my way" applies.
+    readyInMinutes: m ? orderReadyMinutes(o, db.orders.values(), m.prepMinutes) : null,
+    canSayArriving: canSayArriving(o),
+    canReview: o.items.some((i) => ["collected", "delivered"].includes(i.status) && !o.reviewedDishIds.includes(i.dishId)) };
 }
 
 /** Customer side. */
@@ -30,6 +38,7 @@ ordersRouter.post("/", (req, res) => {
   const order = placeOrder({
     customerId: u.id, merchantId: String(b.merchantId ?? ""), items: b.items, address,
     voucherId: b.voucherId || undefined,
+    acceptLongWait: b.acceptLongWait === true,
   });
   res.status(201).json({ serverNow: Date.now(), order: view(order) });
 });
@@ -61,6 +70,13 @@ ordersRouter.post("/:id/pay", (req, res) => {
 });
 
 // The customer withdraws a request before paying.
+// Feature 2 "Ready when you arrive": the customer says how many minutes away they are; the stall is told.
+ordersRouter.post("/:id/arriving", (req, res) => {
+  const o = mine(res, req.params.id as string);
+  setArriving(o, int(req.body?.minutes ?? 5, "minutes", 1, 60));
+  res.json({ serverNow: Date.now(), order: view(o) });
+});
+
 ordersRouter.post("/:id/cancel", (req, res) => {
   const o = mine(res, req.params.id as string);
   cancelRequest(o);
@@ -135,6 +151,14 @@ merchantOrdersRouter.post("/:id/ready", (req, res) => {
   if (mode !== "dine_in" && mode !== "takeaway") throw new HttpError(400, "mode must be dine_in or takeaway");
   markReady(o, mode);
   res.json({ order: view(o) });
+});
+
+// Sprint 3 pickup buzzer: buzz the customer's phone again if they have not collected yet.
+merchantOrdersRouter.post("/:id/buzz", (req, res) => {
+  const o = own(res, req.params.id as string);
+  const mode = req.body?.mode;
+  if (mode !== "dine_in" && mode !== "takeaway") throw new HttpError(400, "mode must be dine_in or takeaway");
+  res.json(buzzAgain(o, mode));
 });
 
 merchantOrdersRouter.post("/:id/handover", (req, res) => {

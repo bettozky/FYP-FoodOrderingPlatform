@@ -1,22 +1,40 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Pressable, Animated, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Pressable, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../../shared/api/client";
-import { Dish } from "../../../shared/api/types";
+import { Dish, Merchant } from "../../../shared/api/types";
 import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import ReviewsList from "../../reviews/ReviewsList";
 import DishImage from "../../../shared/components/DishImage";
+import ReadyChip from "../components/ReadyChip";
+import { Price } from "../components/DishCard";
+import { EndsChip } from "../components/LastHourDeals";
 import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
+import PressableScale from "../../../shared/motion/PressableScale";
+import FadeInView from "../../../shared/motion/FadeInView";
+import { PopOnChange } from "../../../shared/motion/PulseRing";
+import { Skeleton } from "../../../shared/motion/Skeleton";
 
 // Dish detail, from Badrul's mock-up (Oct 2026):
 // back · stall name (opens the stall menu) · cart → big round picture → name, description, price
 // → "Per dish · delivery fee added at checkout" → chips (wet/dry, prep time, rating) → allergen note
 // → Customise chips → bottom bar with the qty stepper and "Add to cart · RM".
 // Dine-in / takeaway / delivery is chosen per dish in the cart, so it is not asked here.
+/**
+ * The allergen line under the dish. It only repeats what the stall told us and never calls a dish "safe":
+ * a dish with no allergens listed may still have them, so the customer is always told to check if it is serious.
+ */
+function allergenNote(dish: Dish, merchant: Merchant): string {
+  if (dish.allergens?.length) return "Listed by the stall. If your allergy is serious, check with them before ordering.";
+  if (merchant.allergens?.length) return `No allergens listed for this dish, but this kitchen uses ${merchant.allergens.join(", ")}. If your allergy is serious, check with the stall.`;
+  if (merchant.allergens) return "The stall says none of the 9 common allergens are used in its kitchen. If your allergy is serious, check with them.";
+  return "This stall has not listed its allergens. Check with the stall.";
+}
+
 export default function DishDetailScreen({ route }: any) {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -57,7 +75,13 @@ export default function DishDetailScreen({ route }: any) {
             </Pressable>
           </>
         ) : (
-          <ActivityIndicator color={colors.ink} />
+          // Loading: the shape of the page (round picture, name, price) instead of a spinner.
+          <View style={styles.loading} accessible accessibilityLabel="Loading" accessibilityRole="progressbar">
+            <Skeleton width={200} height={200} rounded={100} />
+            <Skeleton width="60%" height={24} />
+            <Skeleton width="80%" height={12} />
+            <Skeleton width={110} height={26} />
+          </View>
         )}
       </View>
     );
@@ -81,7 +105,6 @@ export default function DishDetailScreen({ route }: any) {
 
   const chips = [
     dish.style ? (dish.style === "dry" ? "Dry" : "Wet / soup") : null,
-    `${merchant.prepMinutes} min prep`,
     rating.average !== null ? `${rating.average}★` : `${merchant.rating.toFixed(1)}★`,
     dish.dietary.includes("spicy") ? "Spicy" : null,
     dish.dietary.includes("vegetarian") ? "Vegetarian" : null,
@@ -102,7 +125,9 @@ export default function DishDetailScreen({ route }: any) {
         </Pressable>
         <View style={styles.headerRight}>
           <Pressable onPress={() => toggle(dishId)} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={fav ? "Remove from saved dishes" : "Save this dish"} testID="fav">
-            <Ionicons name={fav ? "heart" : "heart-outline"} size={18} color={fav ? colors.chili : colors.ink} />
+            <PopOnChange trigger={fav}>
+              <Ionicons name={fav ? "heart" : "heart-outline"} size={18} color={fav ? colors.chili : colors.ink} />
+            </PopOnChange>
           </Pressable>
           <Pressable onPress={() => navigation.navigate("Cart")} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={itemCount ? `Cart, ${itemCount} items` : "Cart, empty"}>
             <Ionicons name="bag-handle-outline" size={18} color={colors.ink} />
@@ -111,14 +136,25 @@ export default function DishDetailScreen({ route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: 110 + insets.bottom }]}>
-        <DishImage image={dish.image} size={200} shape="circle" label={dish.name} overlay={dish.soldOut ? "Sold out" : undefined} style={styles.picture} />
+        <FadeInView distance={24} duration={360}>
+          <DishImage image={dish.image} size={200} shape="circle" label={dish.name} overlay={dish.soldOut ? "Sold out" : undefined} style={styles.picture} />
+        </FadeInView>
 
         <Text style={[type.h1, styles.centerText, { marginTop: spacing.lg }]} accessibilityRole="header">{dish.name}</Text>
         {dish.description ? <Text style={[styles.desc, styles.centerText]}>{dish.description}</Text> : null}
-        <Text style={[ui.priceLarge, styles.centerText, { marginTop: spacing.sm }]}>RM {dish.price.toFixed(2)}</Text>
+        <View style={{ marginTop: spacing.sm, alignItems: "center", gap: 6 }}>
+          <Price dish={dish} large />
+          {dish.dealPercent ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }} testID="deal-detail">
+              <Text style={{ fontFamily: fonts.displayExtraBold, fontSize: 12, color: colors.chiliText }}>Last-hour deal · {dish.dealPercent}% off</Text>
+              <EndsChip endsAt={dish.dealEndsAt} />
+            </View>
+          ) : null}
+        </View>
         <Text style={[type.small, styles.centerText]}>Per dish · delivery fee added at checkout</Text>
 
         <View style={styles.chips}>
+          <ReadyChip merchant={merchant} />
           {chips.map((c) => (
             <View key={c} style={[ui.infoChip, c.endsWith("★") && { backgroundColor: colors.amberTint }]}>
               <Text style={ui.infoChipText}>{c}</Text>
@@ -132,11 +168,14 @@ export default function DishDetailScreen({ route }: any) {
             <Text style={[styles.noteText, { color: colors.chiliText }]}>{merchant.name} is closed right now (opens {merchant.hours.open}), so you can't order yet.</Text>
           </View>
         ) : null}
-        <View style={styles.note}>
-          <Ionicons name="alert-circle-outline" size={15} color={colors.stoneText} />
-          <Text style={styles.noteText}>
-            Allergen information is unverified. Check with the stall.{merchant.dineInOnly ? " This stall is dine-in only right now." : ""}
-          </Text>
+        <View style={[styles.note, dish.allergens?.length ? styles.noteAllergen : null]} testID="allergen-note">
+          <Ionicons name="alert-circle-outline" size={15} color={dish.allergens?.length ? colors.amberText : colors.stoneText} />
+          <View style={{ flex: 1, gap: 2 }}>
+            {dish.allergens?.length ? <Text style={styles.noteTitle}>Contains: {dish.allergens.join(", ")}</Text> : null}
+            <Text style={styles.noteText}>
+              {allergenNote(dish, merchant)}{merchant.dineInOnly ? " This stall is dine-in only right now." : ""}
+            </Text>
+          </View>
         </View>
 
         {!unavailable && dish.customisations.length > 0 ? (
@@ -146,9 +185,9 @@ export default function DishDetailScreen({ route }: any) {
               {dish.customisations.map((c) => {
                 const on = options.includes(c);
                 return (
-                  <Pressable key={c} onPress={() => toggleOption(c)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`option-${c}`}>
+                  <PressableScale key={c} onPress={() => toggleOption(c)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`option-${c}`}>
                     <Text style={[ui.chipText, on && ui.chipTextOn]}>{c}</Text>
-                  </Pressable>
+                  </PressableScale>
                 );
               })}
             </View>
@@ -162,17 +201,19 @@ export default function DishDetailScreen({ route }: any) {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         {!unavailable ? (
           <View style={ui.stepper}>
-            <Pressable style={ui.stepperButton} onPress={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} accessibilityRole="button" accessibilityLabel="One less" testID="qty-minus">
+            <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} accessibilityRole="button" accessibilityLabel="One less" testID="qty-minus">
               <Ionicons name="remove" size={17} color={qty <= 1 ? colors.stoneSoft : colors.ink} />
-            </Pressable>
-            <Text style={ui.stepperValue} accessibilityLabel={`Quantity ${qty}`}>{qty}</Text>
-            <Pressable style={ui.stepperButton} onPress={() => setQty((q) => Math.min(20, q + 1))} disabled={qty >= 20} accessibilityRole="button" accessibilityLabel="One more" testID="qty-plus">
+            </PressableScale>
+            <PopOnChange trigger={qty}>
+              <Text style={ui.stepperValue} accessibilityLabel={`Quantity ${qty}`}>{qty}</Text>
+            </PopOnChange>
+            <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.min(20, q + 1))} disabled={qty >= 20} accessibilityRole="button" accessibilityLabel="One more" testID="qty-plus">
               <Ionicons name="add" size={17} color={qty >= 20 ? colors.stoneSoft : colors.ink} />
-            </Pressable>
+            </PressableScale>
           </View>
         ) : null}
         <Animated.View style={{ flex: 1, transform: [{ scale: btnScale }] }}>
-          <Pressable
+          <PressableScale
             style={[ui.buttonAccent, unavailable && styles.buttonOff, justAdded && { backgroundColor: colors.herb }]}
             onPress={handleAdd}
             disabled={unavailable}
@@ -183,7 +224,7 @@ export default function DishDetailScreen({ route }: any) {
             <Text style={[ui.buttonAccentText, unavailable && { color: colors.stoneText }, justAdded && { color: colors.white }]} numberOfLines={1}>
               {dish.soldOut ? "Sold out" : !merchant.openNow ? "Stall is closed" : justAdded ? "Added ✓" : `Add to cart · RM ${(dish.price * qty).toFixed(2)}`}
             </Text>
-          </Pressable>
+          </PressableScale>
         </Animated.View>
       </View>
     </View>
@@ -192,6 +233,7 @@ export default function DishDetailScreen({ route }: any) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", padding: spacing.xl },
+  loading: { width: "100%", alignItems: "center", gap: spacing.md },
   header: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
   headerTitle: { flex: 1, alignItems: "center", minHeight: 38, justifyContent: "center" },
   headerText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
@@ -204,6 +246,8 @@ const styles = StyleSheet.create({
   note: { ...ui.card, flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", padding: spacing.md, marginTop: spacing.lg },
   noteClosed: { backgroundColor: colors.chiliSoft, borderColor: colors.chiliBorder },
   noteText: { flex: 1, fontFamily: fonts.display, fontSize: 12, lineHeight: 17, color: colors.stoneText },
+  noteAllergen: { backgroundColor: colors.amberTint },
+  noteTitle: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
   section: { marginTop: spacing.xl, marginBottom: spacing.sm },
   optionWrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   footer: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.stoneLine, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },

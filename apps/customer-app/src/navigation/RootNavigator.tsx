@@ -6,6 +6,7 @@ import AuthScreen from "../modules/auth/screens/AuthScreen";
 import MainTabs from "./MainTabs";
 import DishDetailScreen from "../modules/discovery/screens/DishDetailScreen";
 import StallScreen from "../modules/discovery/screens/StallScreen";
+import CanteenMapScreen from "../modules/discovery/screens/CanteenMapScreen";
 import CartScreen from "../modules/ordering/screens/CartScreen";
 import CheckoutScreen from "../modules/ordering/screens/CheckoutScreen";
 import OrderTrackingScreen from "../modules/ordering/screens/OrderTrackingScreen";
@@ -25,6 +26,19 @@ import MyReviewsScreen from "../modules/reviews/MyReviewsScreen";
 import ProfileScreen from "../modules/account/screens/ProfileScreen";
 import HelpScreen from "../modules/account/screens/HelpScreen";
 import LoyaltyScreen from "../modules/loyalty/screens/LoyaltyScreen";
+import SpendingScreen from "../modules/spending/SpendingScreen";
+
+import ScreenTransition from "../shared/motion/ScreenTransition";
+
+// Screen transitions (task 1). Phones animate natively: most screens slide in from the right, these ones differ.
+// The web build has no native transitions, so ScreenTransition fades and slides each screen in instead.
+const SCREEN_ANIMATION: Record<string, "slide_from_bottom" | "fade" | "fade_from_bottom"> = {
+  DishDetail: "slide_from_bottom",
+  Cart: "slide_from_bottom",
+  Pay: "slide_from_bottom",
+  OrderTracking: "fade",
+  CanteenMap: "fade_from_bottom",
+};
 
 const Stack = createNativeStackNavigator();
 
@@ -32,7 +46,10 @@ export default function RootNavigator() {
   const { isLoggedIn } = useAuth();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+    <Stack.Navigator
+      screenOptions={({ route }) => ({ headerShown: false, animation: SCREEN_ANIMATION[route.name] ?? "slide_from_right", animationDuration: 280, gestureEnabled: true })}
+      screenLayout={({ children }) => <ScreenTransition>{children}</ScreenTransition>}
+    >
       {!isLoggedIn ? (
         <Stack.Group>
           <Stack.Screen name="Login" component={AuthScreen} />
@@ -43,6 +60,8 @@ export default function RootNavigator() {
           <Stack.Screen name="DishDetail" component={DishDetailScreen} options={{ animation: "slide_from_bottom" }} />
           {/* Stall menu: navigation.navigate("Stall", { merchantId }) */}
           <Stack.Screen name="Stall" component={StallScreen} />
+          {/* Live canteen map: navigation.navigate("CanteenMap") */}
+          <Stack.Screen name="CanteenMap" component={CanteenMapScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
@@ -64,6 +83,8 @@ export default function RootNavigator() {
           <Stack.Screen name="Help" component={HelpScreen} />
           {/* Loyalty left the bottom bar in the new layout; opened from Account. */}
           <Stack.Screen name="Loyalty" component={LoyaltyScreen} />
+          {/* Sprint 3: spending tracker and weekly budget (Account → Spending & budget) */}
+          <Stack.Screen name="Spending" component={SpendingScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

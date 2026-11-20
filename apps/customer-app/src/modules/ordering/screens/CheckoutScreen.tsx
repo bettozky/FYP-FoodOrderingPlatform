@@ -11,8 +11,10 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { OrderSteps } from "../components/OrderSteps";
 import { api, errorText } from "../../../shared/api/client";
+import BusyNotice from "../components/BusyNotice";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import BudgetWarning from "../../spending/BudgetWarning";
 
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real total
 
@@ -22,7 +24,7 @@ export function formatCard(raw: string) {
 
 export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
-  const { addresses, address, setAddress } = useCatalog();
+  const { addresses, address, setAddress, merchantById, refreshMerchants } = useCatalog();
   const { refresh } = useLive();
   const insets = useSafeAreaInsets();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -38,6 +40,16 @@ export default function CheckoutScreen({ navigation }: any) {
   useEffect(() => { setPinOk(false); }, [address.lat, address.lng, address.label]);
   const needsPinOk = usingPin && !pinOk;
 
+  // Sprint 3 busy mode: use the stall's live state (refreshed every 10 s here), not the copy saved in the cart.
+  const [acceptWait, setAcceptWait] = useState(false);
+  const live = merchant ? merchantById[merchant.id] ?? merchant : undefined;
+  const busyBlocked = !!(live && live.openNow && (live.ordersPaused || (live.longWaitWarning && !acceptWait)));
+  useEffect(() => {
+    refreshMerchants();
+    const t = setInterval(refreshMerchants, 10000);
+    return () => clearInterval(t);
+  }, [refreshMerchants]);
+
   // A saved address can carry a standing note ("Room 2-14, call on arrival"); start from it.
   useEffect(() => {
     setNote(address.note ?? "");
@@ -47,22 +59,25 @@ export default function CheckoutScreen({ navigation }: any) {
     api<{ vouchers: Voucher[] }>("GET", "/vouchers").then((r) => setVouchers(r.vouchers)).catch(() => {});
   }, []);
 
-  const eligible = useMemo(
-    () =>
-      vouchers.filter(
-        (v) =>
-          (!v.merchantId || v.merchantId === merchant?.id) &&
-          subtotal >= v.minSpend &&
-          (!v.requireCategory || lines.some((l) => l.dish.category === v.requireCategory))
-      ),
-    [vouchers, subtotal, lines, merchant]
-  );
+  // Every voucher that belongs to this shop (or to all shops), with why it cannot be picked yet: already used by this
+  // customer (shown faded as "Used"), or the basket is not big enough / missing a category.
+  const offers = useMemo(() => {
+    const list = vouchers
+      .filter((v) => !v.merchantId || v.merchantId === merchant?.id)
+      .map((v) => {
+        const missingCat = v.requireCategory && !lines.some((l) => l.dish.category === v.requireCategory) ? v.requireCategory : "";
+        const reason = v.used ? "Used" : subtotal < v.minSpend ? `Spend RM ${(v.minSpend - subtotal).toFixed(2)} more to use this offer` : missingCat ? `Add a ${missingCat} dish to use this offer` : "";
+        return { v, reason };
+      });
+    return [...list.filter((o) => !o.reason), ...list.filter((o) => o.reason && o.v.used !== true), ...list.filter((o) => o.v.used)];
+  }, [vouchers, subtotal, lines, merchant]);
+  const eligible = useMemo(() => offers.filter((o) => !o.reason).map((o) => o.v), [offers]);
   useEffect(() => {
     if (voucherId && !eligible.some((v) => v.id === voucherId)) setVoucherId("");
   }, [eligible, voucherId]);
 
   const voucher = eligible.find((v) => v.id === voucherId);
-  const discount = voucher ? Math.min(voucher.amount, subtotal) : 0;
+  const discount = voucher ? Math.min(voucher.kind === "percent" ? Math.round(subtotal * voucher.amount) / 100 : voucher.amount, subtotal) : 0;
   const deliveryFee = hasDelivery ? DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee - discount;
 
@@ -91,12 +106,14 @@ export default function CheckoutScreen({ navigation }: any) {
         items,
         address: hasDelivery ? { label: address.label, line: note.trim() ? `${address.line} (${note.trim()})` : address.line, lat: address.lat, lng: address.lng } : undefined,
         voucherId: voucherId || undefined,
+        acceptLongWait: acceptWait,
       });
       clearCart();
       await refresh();
       navigation.reset({ index: 1, routes: [{ name: "MainTabs" }, { name: "OrderTracking", params: { orderId: r.order.id } }] });
     } catch (e) {
       setError(errorText(e)); // the cart is kept so the customer can retry
+      refreshMerchants(); // e.g. the stall paused orders a moment ago: show it straight away
     } finally {
       setPlacing(false);
     }
@@ -131,6 +148,8 @@ export default function CheckoutScreen({ navigation }: any) {
           {discount > 0 && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Voucher</Text><Text style={[type.body, styles.summaryValue, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
           <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel]}>Total</Text><Text style={[type.h3, styles.summaryValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
         </View>
+        {/* Sprint 3 weekly budget: warns before this order takes the customer over their limit */}
+        <BudgetWarning adding={total} />
 
         {hasDelivery && (
           <>
@@ -176,17 +195,18 @@ export default function CheckoutScreen({ navigation }: any) {
             <Text style={[type.body, { flex: 1 }]}>No voucher</Text>
             <View style={[styles.radio, !voucherId && styles.radioOn]} />
           </Pressable>
-          {eligible.map((v) => (
-            <Pressable key={v.id} onPress={() => setVoucherId(v.id)} style={[styles.option, voucherId === v.id && styles.optionOn]} testID={`voucher-${v.id}`}>
-              <Ionicons name="pricetag" size={16} color={colors.turmericDeep} />
+          {offers.map(({ v, reason }) => (
+            <Pressable key={v.id} onPress={() => { if (!reason) setVoucherId(v.id); }} disabled={!!reason} accessibilityState={{ disabled: !!reason }}
+              style={[styles.option, voucherId === v.id && styles.optionOn, !!reason && styles.optionOff]} testID={`voucher-${v.id}`}>
+              <Ionicons name="pricetag" size={16} color={reason ? colors.stone : colors.turmericDeep} />
               <View style={{ flex: 1 }}>
                 <Text style={type.body}>{v.title}</Text>
-                <Text style={type.small}>{v.description}</Text>
+                <Text style={type.small}>{reason && !v.used ? reason : v.description}</Text>
               </View>
-              <View style={[styles.radio, voucherId === v.id && styles.radioOn]} />
+              {v.used ? <View style={styles.usedPill} testID={`voucher-used-${v.id}`}><Text style={styles.usedText}>Used</Text></View> : reason ? <Ionicons name="alert-circle-outline" size={18} color={colors.stone} /> : <View style={[styles.radio, voucherId === v.id && styles.radioOn]} />}
             </Pressable>
           ))}
-          {eligible.length === 0 && <Text style={type.small}>No voucher applies to this order yet.</Text>}
+          {eligible.length === 0 && <Text style={type.small}>{offers.length ? "No voucher can be used on this order yet." : "No voucher applies to this order yet."}</Text>}
         </View>
 
         <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>How it works</Text>
@@ -195,6 +215,8 @@ export default function CheckoutScreen({ navigation }: any) {
           <Text style={type.body}>2. Once they confirm, you pay by card. You are not charged before that.</Text>
           <Text style={type.small}>You can chat or call the restaurant from the order screen while you wait. If they decline or don't reply, nothing is charged.</Text>
         </View>
+
+        {live ? <BusyNotice merchant={live} accepted={acceptWait} onAccept={setAcceptWait} /> : null}
 
         {error ? (
           <View style={styles.errorBox} testID="checkout-error">
@@ -205,8 +227,8 @@ export default function CheckoutScreen({ navigation }: any) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Pressable style={[ui.buttonAccent, (placing || needsPinOk) && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing || needsPinOk} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk }}>
-          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
+        <Pressable style={[ui.buttonAccent, (placing || needsPinOk || busyBlocked) && { opacity: 0.6 }]} onPress={placeOrder} disabled={placing || needsPinOk || busyBlocked} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk || busyBlocked }}>
+          <Text style={ui.buttonAccentText}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : live?.ordersPaused ? "Orders paused · try again in a few minutes" : busyBlocked ? "Tick \"I'm OK waiting\" to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
         </Pressable>
       </View>
     </View>
@@ -225,6 +247,9 @@ const styles = StyleSheet.create({
   summaryValue: { flexShrink: 0, textAlign: "right" },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
   option: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  optionOff: { opacity: 0.45 },
+  usedPill: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.pill, backgroundColor: colors.border },
+  usedText: { fontFamily: fonts.displayBold, fontSize: 11.5, color: colors.ink },
   optionOn: { borderColor: colors.turmeric, backgroundColor: colors.amberTint },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.turmeric, backgroundColor: colors.turmeric },

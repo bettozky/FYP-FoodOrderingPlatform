@@ -18,6 +18,8 @@ import PhotoField from "../../../shared/components/PhotoField";
 import { form, LocalFile } from "../../../shared/util/files";
 import { colors, spacing, type } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
+import { ALLERGENS } from "../../onboarding/signup/types";
+import DealControl, { type Deal } from "../DealControl";
 
 export interface ExtendedDish {
   id: string;
@@ -31,8 +33,10 @@ export interface ExtendedDish {
   quantity: number; // stock count (999 = no limit)
   cost: number; // ingredient cost (RM)
   dietary: string[];
+  allergens: string[];
   style?: "dry" | "wet";
   customisations: string[];
+  deal?: Deal; // Sprint 3 last-hour deal
 }
 
 const NO_LIMIT = 999;
@@ -46,7 +50,8 @@ const DIETARY = [
 const fromApi = (d: any): ExtendedDish => ({
   id: d.id, name: d.name, price: d.price, image: d.image, description: d.description, category: d.category,
   calories: d.calories, soldOut: d.soldOut, quantity: d.stock ?? NO_LIMIT, cost: d.cost ?? 0,
-  dietary: d.dietary ?? [], style: d.style, customisations: d.customisations ?? [],
+  dietary: d.dietary ?? [], allergens: d.allergens ?? [], style: d.style, customisations: d.customisations ?? [],
+  deal: d.deal,
 });
 
 export default function MerchantMenuScreen() {
@@ -83,6 +88,7 @@ export default function MerchantMenuScreen() {
   const [dishFile, setDishFile] = useState<LocalFile | null>(null); // a new photo chosen on this phone, uploaded on save
   const [saving, setSaving] = useState(false);
   const [dishDietary, setDishDietary] = useState<string[]>([]);
+  const [dishAllergens, setDishAllergens] = useState<string[]>([]);
   const [dishStyle, setDishStyle] = useState<"" | "dry" | "wet">("");
   const [dishCustom, setDishCustom] = useState("");
 
@@ -114,6 +120,7 @@ export default function MerchantMenuScreen() {
     setDishPhoto("");
     setDishFile(null);
     setDishDietary([]);
+    setDishAllergens([]);
     setDishStyle("");
     setDishCustom("");
     setIsModalOpen(true);
@@ -130,6 +137,7 @@ export default function MerchantMenuScreen() {
     setDishPhoto(dish.image || "");
     setDishFile(null);
     setDishDietary(dish.dietary);
+    setDishAllergens(dish.allergens);
     setDishStyle(dish.style ?? "");
     setDishCustom(dish.customisations.join(", "));
     setIsModalOpen(true);
@@ -151,7 +159,9 @@ export default function MerchantMenuScreen() {
       stock: qty,
       soldOut: qty === 0,
       category: dishCategory.trim() || "General",
-      dietary: dishDietary,
+      // A dish with allergens cannot also be tagged "Allergy-free" (the server drops that tag too).
+      dietary: dishAllergens.length ? dishDietary.filter((x) => x !== "allergy_free") : dishDietary,
+      allergens: dishAllergens,
       style: dishStyle,
       customisations: dishCustom.split(",").map((x) => x.trim()).filter(Boolean),
     };
@@ -280,6 +290,13 @@ export default function MerchantMenuScreen() {
                       Profit: RM {profit.toFixed(2)}
                     </Text>
                   </View>
+
+                  {item.allergens.length ? (
+                    <Text style={styles.costLabel}>Contains: {item.allergens.join(", ")}</Text>
+                  ) : null}
+
+                  {/* Sprint 3: last-hour deal (not for sold-out dishes) */}
+                  {!isUnavailable || item.deal ? <DealControl dishId={item.id} price={item.price} deal={item.deal} onChanged={load} /> : null}
 
                   {/* Quantity Display Badge */}
                   <View style={{ flexDirection: "row", marginTop: 2 }}>
@@ -471,6 +488,22 @@ export default function MerchantMenuScreen() {
                   );
                 })}
               </View>
+              {/* Allergens: customers see "Contains: ..." on the dish page. */}
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Allergens in this dish</Text>
+              <View style={styles.quickCategoryRow}>
+                {ALLERGENS.map(({ name }) => {
+                  const on = dishAllergens.includes(name);
+                  return (
+                    <Pressable key={name} style={[styles.quickCatChip, on && styles.quickCatChipActive]} onPress={() => setDishAllergens((p) => (on ? p.filter((x) => x !== name) : [...p, name]))} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`dish-allergen-${name}`}>
+                      <Text style={[styles.quickCatText, on && styles.quickCatTextActive]}>{name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
+                Hidden ones count: kicap has soy and gluten, belacan and oyster sauce are shellfish.
+              </Text>
+
               <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Dry or wet</Text>
               <View style={styles.quickCategoryRow}>
                 {([["", "Not set"], ["dry", "Dry"], ["wet", "Wet / soup"]] as const).map(([k, label]) => (

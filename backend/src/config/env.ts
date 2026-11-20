@@ -52,6 +52,12 @@ export const env = {
   resetCodeInResponse: flag(process.env.RESET_CODE_IN_RESPONSE, false) && process.env.NODE_ENV !== "production",
   resetCodeMinutes: num(process.env.RESET_CODE_MINUTES, 15),
 
+  // ---- Google sign-in (customer app). Without GOOGLE_CLIENT_IDS the server answers "not set up yet". ----
+  /** The OAuth client IDs allowed to sign in, comma separated (web, Android, iOS). Created in Google Cloud Console. */
+  googleClientIds: (process.env.GOOGLE_CLIENT_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+  /** Where Google publishes the keys that sign its ID tokens. Only changed by the tests. */
+  googleCertsUrl: text(process.env.GOOGLE_CERTS_URL) ?? "https://www.googleapis.com/oauth2/v3/certs",
+
   // ---- AI assistant ----
   openaiApiKey: process.env.OPENAI_API_KEY,
   aiModel: process.env.AI_MODEL ?? "gpt-6-luna",

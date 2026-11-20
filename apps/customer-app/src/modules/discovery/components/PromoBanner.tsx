@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius, spacing, ui } from "../../../shared/theme/theme";
 import DishImage from "../../../shared/components/DishImage";
+import PressableScale from "../../../shared/motion/PressableScale";
 
 // Amber "How it works" card under the search bar on Home (Badrul's mock-up, Oct 2026).
 // It explains the order-first, pay-after-the-stall-confirms flow; "Browse stalls" scrolls to the stall list.
@@ -13,9 +14,9 @@ export default function PromoBanner({ onBrowse }: { onBrowse?: () => void }) {
         <Text style={styles.kicker}>HOW IT WORKS</Text>
         <Text style={styles.title}>Order first. Pay only after the stall says yes.</Text>
         {onBrowse ? (
-          <Pressable style={[ui.buttonDark, styles.button]} onPress={onBrowse} accessibilityRole="button" testID="browse-stalls">
+          <PressableScale style={[ui.buttonDark, styles.button]} onPress={onBrowse} accessibilityRole="button" testID="browse-stalls">
             <Text style={[ui.buttonDarkText, { fontSize: 12.5 }]}>Browse stalls</Text>
-          </Pressable>
+          </PressableScale>
         ) : null}
       </View>
       <DishImage image="/media/dishes/d1.jpg" size={64} shape="circle" tint={colors.paper} />

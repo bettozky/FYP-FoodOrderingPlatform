@@ -12,6 +12,7 @@ import { mmss, useCountdown } from "../../../shared/util/format";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
+import ArrivingBadge from "../../arrival/ArrivingBadge";
 
 type Tone = "primary" | "warning" | "success" | "neutral";
 const ORDER_BADGE: Record<Order["status"], { label: string; tone: Tone }> = {
@@ -46,6 +47,7 @@ function PayTimer({ deadline }: { deadline: number }) {
 function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [buzzed, setBuzzed] = useState("");
   const b = ORDER_BADGE[order.status];
   const modes = (["dine_in", "takeaway", "delivery"] as Mode[]).filter((m) => order.items.some((i) => i.mode === m));
 
@@ -74,6 +76,8 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
         <Badge label={b.label} tone={b.tone} />
       </View>
       <Text style={type.bodyMuted}>{order.customerName} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+      {/* Feature 2 (Nathan): customer tapped "I'm 5 min away" */}
+      <ArrivingBadge arrivingAt={order.arrivingAt} active={order.status === "awaiting_payment" || order.status === "preparing"} />
       {order.status === "awaiting_merchant" && <Timer deadline={order.respondBy} />}
       {order.status === "awaiting_payment" && order.payBy && <PayTimer deadline={order.payBy} />}
       {order.decision === "pending" && <Text style={styles.warn}>Waiting for the customer to decide about the out-of-stock item…</Text>}
@@ -85,6 +89,19 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
             {order.status === "preparing" && m !== "delivery" && order.items.some((i) => i.mode === m && i.status === "preparing") && (
               <Pressable style={styles.smallBtn} disabled={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/ready`, { mode: m }))} testID={`ready-${m}`}>
                 <Text style={styles.smallBtnText}>Mark {MODE_LABEL[m].toLowerCase()} ready</Text>
+              </Pressable>
+            )}
+            {/* Sprint 3 pickup buzzer: ring the customer's phone again if they have not come to collect */}
+            {m !== "delivery" && order.items.some((i) => i.mode === m && i.status === "ready") && (
+              <Pressable
+                style={[styles.smallBtn, styles.buzzBtn]}
+                disabled={busy}
+                onPress={() => act(async () => { const r = await api<{ buzzCount: number }>("POST", `/merchant/orders/${order.id}/buzz`, { mode: m }); setBuzzed(`Buzzed ${r.buzzCount}x`); })}
+                accessibilityLabel={`Buzz the customer's phone again for the ${MODE_LABEL[m].toLowerCase()} food`}
+                testID={`buzz-${m}`}
+              >
+                <Ionicons name="notifications" size={13} color={colors.ink} />
+                <Text style={[styles.smallBtnText, { color: colors.ink }]}>{buzzed || "Buzz again"}</Text>
               </Pressable>
             )}
             {order.status === "preparing" && m === "delivery" && order.items.some((i) => i.mode === m && i.status === "preparing") && (
@@ -181,6 +198,7 @@ const styles = StyleSheet.create({
   itemRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   smallBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill },
   smallBtnText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 12 },
+  buzzBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.turmeric },
   oosBtn: { paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.chili },
   oosText: { color: colors.chili, fontFamily: fonts.displayBold, fontSize: 11 },
   timer: { fontFamily: fonts.displayBold, color: colors.turmericDeep },

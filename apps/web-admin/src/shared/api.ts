@@ -1,6 +1,9 @@
 // Talks to the ScootMeal backend. Set VITE_API_URL to change the server (default: local backend).
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
 
+/** Makes a file link from the backend openable here (local uploads come back as "/media/..." paths). */
+export const fileUrl = (u: string) => (u.startsWith("/") ? BASE + u : u);
+
 let token = "";
 let onUnauthorized: () => void = () => {};
 

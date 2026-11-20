@@ -30,9 +30,21 @@ export const DAYS: { key: DayKey; label: string }[] = [
 ];
 export type DayHours = { day: DayKey; open: string; close: string; closed: boolean };
 
-export const ALLERGENS = ["Peanuts", "Tree nuts", "Shellfish", "Fish", "Egg", "Milk", "Gluten", "Soy", "Sesame"] as const;
+// The 9 common allergens (same names as backend/src/lib/allergens.ts), with local foods where they hide,
+// so a stall owner recognises e.g. that kicap has soy and gluten, or that belacan counts as shellfish.
+export const ALLERGENS = [
+  { name: "Peanuts", examples: "kacang, satay sauce, rojak, peanut oil" },
+  { name: "Tree nuts", examples: "cashew, almond, candlenut (buah keras)" },
+  { name: "Shellfish", examples: "udang, crab, sotong, belacan, oyster sauce" },
+  { name: "Fish", examples: "ikan bilis, fish sauce, fish ball, keropok" },
+  { name: "Egg", examples: "telur, mayonnaise, egg noodles, kuih" },
+  { name: "Milk", examples: "susu, condensed milk, butter, cheese, ghee" },
+  { name: "Gluten", examples: "wheat flour, mee, roti, kicap, batter" },
+  { name: "Soy", examples: "tauhu, tempeh, kicap, taucu, soy milk" },
+  { name: "Sesame", examples: "bijan, sesame oil, sesame seeds" },
+] as const;
 
-export type MenuItemDraft = { name: string; price: string; description: string; photo: PickedFile | null };
+export type MenuItemDraft = { name: string; price: string; description: string; photo: PickedFile | null; allergens: string[] };
 
 export type ShopApplication = {
   // 1. Account
@@ -68,6 +80,7 @@ export type ShopApplication = {
   minOrder: string;
   // 6. Allergens and hygiene
   allergens: string[];
+  noAllergens: boolean; // ticked "None of these" (so an empty list is a real answer, not a skipped question)
   licenceNo: string;
   // 7. Pictures
   logo: PickedFile | null;
@@ -77,7 +90,7 @@ export type ShopApplication = {
   agreedTerms: boolean;
 };
 
-export const emptyMenuItem = (): MenuItemDraft => ({ name: "", price: "", description: "", photo: null });
+export const emptyMenuItem = (): MenuItemDraft => ({ name: "", price: "", description: "", photo: null, allergens: [] });
 
 export const emptyApplication = (): ShopApplication => ({
   ownerName: "", email: "", phone: "", password: "", passwordConfirm: "",
@@ -86,7 +99,7 @@ export const emptyApplication = (): ShopApplication => ({
   cuisine: "", priceRange: null, vegetarianOptions: false, halal: null, halalCertificate: null,
   hours: DAYS.map((d) => ({ day: d.key, open: "09:00", close: "21:00", closed: d.key === "sun" })),
   delivery: false, pickup: true, dineIn: false, seats: "", prepMinutes: "15", minOrder: "",
-  allergens: [], licenceNo: "",
+  allergens: [], noAllergens: false, licenceNo: "",
   logo: null, cover: null, menuItems: [emptyMenuItem(), emptyMenuItem(), emptyMenuItem()],
   agreedTerms: false,
 });
@@ -97,7 +110,7 @@ export const STEPS = [
   { key: "location", title: "Location", description: "Where customers can find you." },
   { key: "food", title: "Food", description: "What you serve and how much it costs." },
   { key: "service", title: "Hours and service", description: "When you are open and how customers get their food." },
-  { key: "hygiene", title: "Allergens and hygiene", description: "Shown on your shop page so customers can check before ordering." },
+  { key: "hygiene", title: "Allergens and hygiene", description: "Customers with allergies see this on your shop page and dish pages." },
   { key: "pictures", title: "Pictures", description: "Real photos help customers choose. JPG or PNG, up to 2 MB each." },
   { key: "review", title: "Review and agree", description: "Check your answers, then send your shop for approval." },
 ] as const;
@@ -155,8 +168,12 @@ export function toSignupRequest(a: ShopApplication, filesPending = false) {
         prepMinutes: Number(a.prepMinutes),
         minOrder: a.minOrder.trim() ? Number(a.minOrder) : 0,
       },
-      hygiene: { allergens: a.allergens, licenceNo: a.licenceNo.trim() },
-      menuItems: a.menuItems.map((m) => ({ name: m.name.trim(), price: Number(m.price), description: m.description.trim(), photo: meta(m.photo) })),
+      hygiene: { allergens: a.noAllergens ? [] : a.allergens, noneUsed: a.noAllergens, licenceNo: a.licenceNo.trim() },
+      // A dish can only contain allergens the kitchen uses (a shop allergen unticked later drops off its dishes too).
+      menuItems: a.menuItems.map((m) => ({
+        name: m.name.trim(), price: Number(m.price), description: m.description.trim(), photo: meta(m.photo),
+        allergens: a.noAllergens ? [] : m.allergens.filter((x) => a.allergens.includes(x)),
+      })),
       files: {
         ssmCertificate: meta(a.ssmCertificate),
         halalCertificate: a.halal ? meta(a.halalCertificate) : null,

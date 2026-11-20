@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { cleanAllergens } from "../../lib/allergens.js";
 import { HttpError, int, money, str } from "../../lib/http.js";
 import { uid } from "../../lib/ids.js";
 import { approvedMerchant, auth, currentUser } from "../../middleware/auth.js";
@@ -32,10 +33,23 @@ portalRouter.patch("/me", (req, res) => {
     delete m.weeklyHours; // one pair of times now applies to every day
   }
   if (Array.isArray(b.weeklyHours)) {
-    const rows = (b.weeklyHours as any[]).filter((h) => Number.isInteger(h?.day) && h.day >= 0 && h.day <= 6 && TIME.test(String(h.open)) && TIME.test(String(h.close)))
-      .map((h) => ({ day: h.day as number, open: String(h.open), close: String(h.close) }));
-    m.weeklyHours = rows;
-    if (rows[0]) m.hours = { open: rows[0].open, close: rows[0].close };
+    // One row per open day (0 = Sunday ... 6 = Saturday); a day without a row is closed.
+    const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const byDay = new Map<number, { day: number; open: string; close: string }>();
+    for (const h of b.weeklyHours as any[]) {
+      if (!Number.isInteger(h?.day) || h.day < 0 || h.day > 6) throw new HttpError(400, "day must be 0 (Sunday) to 6 (Saturday)");
+      const open = String(h.open), close = String(h.close);
+      if (!TIME.test(open) || !TIME.test(close)) throw new HttpError(400, `${NAMES[h.day]}: times must look like 09:00`);
+      if (open === close) throw new HttpError(400, `${NAMES[h.day]}: opening and closing time cannot be the same`);
+      byDay.set(h.day, { day: h.day, open, close });
+    }
+    // An empty list clears the per-day hours, so `hours` applies every day again. It never means "closed every day":
+    // the app blocks that and points to the Offline store status instead.
+    const rows = [...byDay.values()].sort((x, y) => ((x.day + 6) % 7) - ((y.day + 6) % 7)); // Monday first
+    if (rows.length) {
+      m.weeklyHours = rows;
+      m.hours = { open: rows[0]!.open, close: rows[0]!.close }; // kept for older app versions
+    } else delete m.weeklyHours;
   }
   if (b.prepMinutes !== undefined) m.prepMinutes = int(b.prepMinutes, "Prep time", 1, 180);
   res.json({ merchant: merchantView(m) });
@@ -65,7 +79,9 @@ function dishImage(v: unknown): string {
 function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | "merchantId"> {
   const price = Number(b.price ?? base?.price);
   if (!Number.isFinite(price) || price <= 0 || price > 500) throw new HttpError(400, "Price must be above 0");
-  const dietary = Array.isArray(b.dietary) ? (b.dietary as unknown[]).map(String).slice(0, 6) : base?.dietary ?? [];
+  const allergens = cleanAllergens(b.allergens) ?? base?.allergens;
+  let dietary = Array.isArray(b.dietary) ? (b.dietary as unknown[]).map(String).slice(0, 6) : base?.dietary ?? [];
+  if (allergens?.length) dietary = dietary.filter((t) => t !== "allergy_free"); // a dish with allergens cannot be "allergy-free"
   const style = b.style === "dry" || b.style === "wet" ? b.style : b.style === "" ? undefined : base?.style;
   return {
     name: str(b.name ?? base?.name, "Name", { max: 80 }),
@@ -79,6 +95,7 @@ function dishFields(b: Record<string, unknown>, base?: Dish): Omit<Dish, "id" | 
     stock: b.stock === undefined ? base?.stock : Math.max(0, Math.floor(Number(b.stock) || 0)),
     spicy: dietary.includes("spicy"),
     dietary, style,
+    ...(allergens ? { allergens } : {}),
     customisations: Array.isArray(b.customisations)
       ? (b.customisations as unknown[]).map((x) => String(x).trim()).filter(Boolean).slice(0, 12)
       : base?.customisations ?? [],

@@ -11,26 +11,28 @@ import { useCart } from "../../ordering/CartContext";
 import { useCatalog } from "../CatalogContext";
 import DishCard from "../components/DishCard";
 import StallCard from "../components/StallCard";
+import CategoryGrid, { lookFor, type GridItem } from "../components/CategoryGrid";
+import HazeBackground from "../components/HazeBackground";
+import WavyGreeting from "../components/WavyGreeting";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
 import { useLive } from "../../ordering/LiveDataContext";
 import AddressPicker from "../components/AddressPicker";
 import PromoBanner from "../components/PromoBanner";
+import CanteenMapCard from "../components/CanteenMapCard";
+import LastHourDeals from "../components/LastHourDeals";
 import { categoriesFromDishes } from "../categories";
 import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../shared/theme/theme";
+import PressableScale from "../../../shared/motion/PressableScale";
+import FadeInView from "../../../shared/motion/FadeInView";
+import { DishRowSkeleton, DishTileSkeleton } from "../../../shared/motion/Skeleton";
 
 // Home, from Badrul's mock-up (Oct 2026):
 // "Deliver to" + cart → "Hi <name>, what are you craving?" → search + filter button
-// → amber "How it works" card → venue tiles (Trending, Buffet, …) → "Popular near you" row → stalls near you.
+// → amber "How it works" card → colourful icon grid (venues, live map, food types, shortcuts) → "Popular near you" row → stalls near you.
 // Typing a search, using the filter sheet or "See all" switches the list to a 2-column grid of dishes.
 // Search and filters are answered by the server (FR-1.3, FR-1.4).
 const VENUE_ORDER = ["Trending", "Buffet", "Luxury", "Aesthetic Cafe"];
-const VENUE_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Trending: "trending-up",
-  Buffet: "restaurant-outline",
-  Luxury: "diamond-outline",
-  "Aesthetic Cafe": "cafe-outline",
-};
 
 type Row = { kind: "stall"; merchant: Merchant } | { kind: "dish"; dish: Dish };
 
@@ -46,6 +48,7 @@ export default function HomeScreen({ navigation }: any) {
   const [diet, setDiet] = useState<string[]>([]);
   const [style, setStyle] = useState<"" | "dry" | "wet">("");
   const [venue, setVenue] = useState("");
+  const [halalOnly, setHalalOnly] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [allDishes, setAllDishes] = useState<Dish[]>([]);
@@ -56,8 +59,12 @@ export default function HomeScreen({ navigation }: any) {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // The full menu: categories, stall pictures and "Popular near you" come from it.
+  const [menuLoaded, setMenuLoaded] = useState(false);
   useEffect(() => {
-    api<{ dishes: Dish[] }>("GET", "/dishes").then((r) => setAllDishes(r.dishes)).catch(() => {});
+    api<{ dishes: Dish[] }>("GET", "/dishes")
+      .then((r) => setAllDishes(r.dishes))
+      .catch(() => {})
+      .finally(() => setMenuLoaded(true));
   }, []);
   const categories = useMemo(() => categoriesFromDishes(allDishes), [allDishes]);
   useEffect(() => {
@@ -95,7 +102,9 @@ export default function HomeScreen({ navigation }: any) {
     return () => clearTimeout(t);
   }, [query, diet, style]);
 
-  const inVenue = (merchantId: string) => !venue || merchantById[merchantId]?.venueCategory === venue;
+  // "Halal" tile: stalls that put the Halal-friendly tag on themselves (we never decide halal status ourselves).
+  const isHalal = (m?: Merchant) => !!m?.tags?.includes("Halal-friendly");
+  const inVenue = (merchantId: string) => (!venue || merchantById[merchantId]?.venueCategory === venue) && (!halalOnly || isHalal(merchantById[merchantId]));
   const byOpenThenNear = (a?: Merchant, b?: Merchant) =>
     Number(!!b?.openNow) - Number(!!a?.openNow) || (a?.distanceKm ?? 99) - (b?.distanceKm ?? 99);
 
@@ -105,8 +114,8 @@ export default function HomeScreen({ navigation }: any) {
   }, [merchants]);
 
   const stalls = useMemo(
-    () => merchants.filter((m) => !venue || m.venueCategory === venue).sort(byOpenThenNear),
-    [merchants, venue] // eslint-disable-line react-hooks/exhaustive-deps
+    () => merchants.filter((m) => (!venue || m.venueCategory === venue) && (!halalOnly || isHalal(m))).sort(byOpenThenNear),
+    [merchants, venue, halalOnly] // eslint-disable-line react-hooks/exhaustive-deps
   );
   const stallImage = useMemo(() => {
     const out: Record<string, string> = {};
@@ -124,7 +133,7 @@ export default function HomeScreen({ navigation }: any) {
           return (mb?.rating ?? 0) - (ma?.rating ?? 0) || (ma?.distanceKm ?? 99) - (mb?.distanceKm ?? 99);
         })
         .slice(0, 10),
-    [allDishes, merchantById, venue] // eslint-disable-line react-hooks/exhaustive-deps
+    [allDishes, merchantById, venue, halalOnly] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Grid results: open stalls first, then nearest; sold-out dishes last.
@@ -138,6 +147,7 @@ export default function HomeScreen({ navigation }: any) {
   const toggleDiet = (k: string) => setDiet((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const clearFilters = () => { setCategory("All"); setDiet([]); setStyle(""); };
   const firstName = (name || "there").split(" ")[0];
+  const hasMap = !!navigation.getState?.()?.routeNames?.includes("CanteenMap");
 
   function browseStalls() {
     setShowAll(false);
@@ -155,8 +165,27 @@ export default function HomeScreen({ navigation }: any) {
     return m ? addToCart(d, m) : false;
   };
 
+  const venueItems = venues.slice(0, 4).map((v): GridItem => ({
+    key: `venue-${v}`, label: v === "Aesthetic Cafe" ? "Cafe" : v, ...lookFor(v), hot: v === "Trending", selected: venue === v, onPress: () => setVenue(venue === v ? "" : v),
+  }));
+  const halalItem: GridItem | null = merchants.some(isHalal)
+    ? { key: "halal", label: "Halal", kind: "halal", badge: "NEW", hint: "Halal-friendly stalls", selected: halalOnly, onPress: () => setHalalOnly((on) => !on) }
+    : null;
+  const gridItems: GridItem[] = [
+    ...venueItems.slice(0, 1),
+    ...(halalItem ? [halalItem] : []),
+    ...venueItems.slice(1),
+    // "Live map" appears once the Live Canteen Map branch is merged (route "CanteenMap"); "Jobs" is always there.
+    ...(hasMap ? [{ key: "map", label: "Live map", kind: "map", onPress: () => navigation.navigate("CanteenMap") } as GridItem] : []),
+    ...categories.filter((c) => c !== "All").slice(0, 8).map((c): GridItem => ({ key: `cat-${c}`, label: c, ...lookFor(c), onPress: () => setCategory(c) })),
+    { key: "book", label: "Book table", kind: "book", onPress: () => navigation.navigate("MainTabs", { tab: "book", nonce: Date.now() }) },
+    { key: "jobs", label: "Jobs", kind: "jobs", onPress: () => navigation.navigate("Jobs") },
+    { key: "saved", label: "Saved", kind: "saved", onPress: () => navigation.navigate("Favourites") },
+  ];
+
   const header = (
     <View>
+      <HazeBackground />
       <View style={[styles.topRow, { paddingTop: insets.top + spacing.md }]}>
         <MenuButton badge={unread} />
         <Pressable style={styles.addr} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
@@ -183,9 +212,7 @@ export default function HomeScreen({ navigation }: any) {
         </Animated.View>
       </View>
 
-      <Text style={[type.h1, styles.greeting]} accessibilityRole="header">
-        Hi {firstName},{"\n"}what are you craving?
-      </Text>
+      <WavyGreeting name={firstName} />
 
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
@@ -218,20 +245,13 @@ export default function HomeScreen({ navigation }: any) {
 
       {!gridMode ? <AnnouncementStrip onOpen={() => navigation.navigate("Announcements")} /> : null}
       {!gridMode ? <PromoBanner onBrowse={browseStalls} /> : null}
+      {!gridMode ? <CanteenMapCard merchants={merchants} onPress={() => navigation.navigate("CanteenMap")} /> : null}
 
-      {venues.length ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.venueRow}>
-          {venues.map((v) => {
-            const on = venue === v;
-            return (
-              <Pressable key={v} onPress={() => setVenue(on ? "" : v)} style={[styles.venueTile, on && styles.venueTileOn]} accessibilityRole="button" accessibilityState={{ selected: on }} testID={`venue-${v}`}>
-                <Ionicons name={VENUE_ICON[v] ?? "storefront-outline"} size={18} color={on ? colors.turmeric : colors.ink} />
-                <Text style={[styles.venueText, on && { color: colors.white }]} numberOfLines={1}>{v}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      ) : null}
+      {/* Category panel: cute icons in two rows you swipe sideways (venue types, Halal, live map, food types, shortcuts). */}
+      {!gridMode ? <CategoryGrid items={gridItems} /> : null}
+
+      {/* Sprint 3: leftovers at a discount before closing (hidden when no deal is on) */}
+      {!gridMode ? <LastHourDeals onOpen={openDish} onAdd={(d, m) => addToCart(d, m)} /> : null}
 
       {error || loadError ? <Text style={styles.errorText}>{error || loadError}</Text> : null}
 
@@ -252,10 +272,14 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={ui.link}>See all</Text>
             </Pressable>
           </View>
-          {popular.length ? (
+          {!menuLoaded ? (
+            <DishTileSkeleton />
+          ) : popular.length ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularRow}>
-              {popular.map((d) => (
-                <DishCard key={d.id} variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+              {popular.map((d, i) => (
+                <FadeInView key={d.id} index={i} from="right">
+                  <DishCard variant="grid" width={150} dish={d} merchant={merchantById[d.merchantId]} onPress={() => openDish(d)} onAdd={() => addDish(d)} />
+                </FadeInView>
               ))}
             </ScrollView>
           ) : (
@@ -286,19 +310,27 @@ export default function HomeScreen({ navigation }: any) {
         ListEmptyComponent={
           gridMode ? (
             <EmptyState icon="search-outline" title="No dishes match your search" hint="Try a different search or remove a filter." />
+          ) : merchants.length === 0 && !loadError ? (
+            <View style={{ paddingHorizontal: spacing.lg }}>
+              <DishRowSkeleton count={3} />
+            </View>
           ) : (
             <EmptyState icon="storefront-outline" title="No stalls here yet" hint={venue ? "Try another category." : "Stalls appear here once they are approved."} />
           )
         }
         renderItem={({ item, index }) => {
           if (item.kind === "stall") {
-            return <StallCard merchant={item.merchant} image={stallImage[item.merchant.id]} onPress={() => navigation.navigate("Stall", { merchantId: item.merchant.id })} />;
+            return (
+              <FadeInView index={index}>
+                <StallCard merchant={item.merchant} image={stallImage[item.merchant.id]} onPress={() => navigation.navigate("Stall", { merchantId: item.merchant.id })} />
+              </FadeInView>
+            );
           }
           const lastAlone = index === rows.length - 1 && rows.length % 2 === 1;
           return (
-            <View style={lastAlone ? styles.gridCellAlone : styles.gridCell}>
+            <FadeInView index={index} style={lastAlone ? styles.gridCellAlone : styles.gridCell}>
               <DishCard variant="grid" dish={item.dish} merchant={merchantById[item.dish.merchantId]} onPress={() => openDish(item.dish)} onAdd={() => addDish(item.dish)} />
-            </View>
+            </FadeInView>
           );
         }}
       />
@@ -403,7 +435,6 @@ const styles = StyleSheet.create({
   addrText: { fontFamily: fonts.displayBold, fontSize: 13.5, color: colors.ink },
   cartBadge: { position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.paper },
   cartBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
-  greeting: { paddingHorizontal: spacing.lg, marginTop: spacing.lg, lineHeight: 32 },
   searchRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginHorizontal: spacing.lg, marginTop: spacing.lg },
   searchBar: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.stoneLine, paddingHorizontal: spacing.lg, minHeight: 46 },
   // On web the browser draws its own focus box inside the pill; the pill itself is the visible field.
@@ -411,10 +442,6 @@ const styles = StyleSheet.create({
   filterBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
   filterBadge: { position: "absolute", top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   filterBadgeText: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.ink },
-  venueRow: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.lg },
-  venueTile: { width: 100, minHeight: 64, borderRadius: radius.md, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: spacing.xs },
-  venueTileOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  venueText: { fontFamily: fonts.displayBold, fontSize: 11.5, color: colors.ink },
   sectionRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: spacing.md, paddingHorizontal: spacing.lg, marginTop: spacing.xl, marginBottom: spacing.md },
   popularRow: { paddingHorizontal: spacing.lg, gap: GAP, paddingBottom: spacing.xs },
   gridRow: { paddingHorizontal: spacing.lg, gap: GAP, marginBottom: GAP },

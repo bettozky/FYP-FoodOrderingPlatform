@@ -82,6 +82,7 @@ export function validateStep(step: number, a: ShopApplication, filesRequired = t
       if (a.minOrder.trim() && !money(a.minOrder)) e.minOrder = "Enter an amount like 5.00, or leave it empty.";
       break;
     case 5:
+      if (!a.noAllergens && a.allergens.length === 0) e.allergens = "Tick the allergens used in your kitchen, or tick \"None of these\".";
       if (!a.licenceNo.trim()) e.licenceNo = "Enter your food hygiene or business licence number.";
       break;
     case 6:

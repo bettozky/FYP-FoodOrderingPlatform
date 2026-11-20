@@ -13,7 +13,14 @@ export interface User {
   passwordHash: string;
   merchantId?: string;
   avatar?: string; // emoji or image link
+  googleSub?: string; // Google account id, set when the customer signs in with Google
+  noPassword?: boolean; // created through Google: no password until they use "Forgot password" to choose one
   suspended?: boolean; // set by an admin: the user can no longer log in or use the API
+  // Week task 3 "Rate the app" (customers): their rating, when they were last asked, and "Don't ask again".
+  appRating?: { rating: number; comment?: string; at: number; orderId?: string };
+  appRatingAskedAt?: number;
+  appRatingNever?: boolean;
+  weeklyBudget?: number; // Sprint 3 spending tracker: the customer's weekly limit in RM (none when unset)
 }
 
 export interface Merchant {
@@ -36,6 +43,8 @@ export interface Merchant {
   application?: Record<string, any>; // the sign-up answers (FR-5.1), shown to the admin
   logo?: string; // shop profile photo (public link), set from the merchant app
   cover?: string; // shop banner photo (public link)
+  allergens?: string[]; // allergens used in the kitchen, from sign-up (undefined = never answered, [] = none of the 9)
+  busyMode?: { on: boolean; limitMinutes: number; action: "warn" | "pause" }; // Sprint 3: warn or pause when the wait passes a limit
 }
 
 export interface Dish {
@@ -50,6 +59,8 @@ export interface Dish {
   soldOut: boolean;
   spicy?: boolean;
   dietary: string[]; // spicy | vegetarian | plant_based | allergy_free
+  allergens?: string[]; // allergens the shop says this dish contains (names from lib/allergens.ts)
+  deal?: { percent: number; startedAt: number; endsAt: number }; // Sprint 3 last-hour deal (see merchants/deals.ts)
   style?: "dry" | "wet";
   customisations: string[];
   cost?: number; // ingredient cost, for the merchant's profit report (FR-5.12)
@@ -113,6 +124,7 @@ export interface Order {
   cancelReason?: "not_paid" | "no_reply" | "customer";
   acceptedAt?: number;
   completedAt?: number;
+  arrivingAt?: number; // epoch ms: when the customer said they will reach the stall ("I'm 5 min away")
   reviewedDishIds: string[];
 }
 

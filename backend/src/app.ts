@@ -10,20 +10,25 @@ import { adminRouter } from "./modules/admin/admin.routes.js";
 import { addressesRouter } from "./modules/account/addresses.routes.js";
 import { favouritesRouter } from "./modules/account/favourites.routes.js";
 import { loyaltyRouter } from "./modules/account/loyalty.routes.js";
+import { budgetRouter } from "./modules/account/budget.routes.js";
 import { aiAssistantRouter } from "./modules/ai-assistant/ai-assistant.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { callsRouter } from "./modules/calls/calls.routes.js";
 import { chatRouter } from "./modules/chat/chat.routes.js";
 import { deliveryRouter } from "./modules/delivery/delivery.routes.js";
 import { merchantReservationsRouter, reservationsRouter } from "./modules/dine-in/reservations.routes.js";
+import { busyModeRouter } from "./modules/merchants/busyMode.routes.js";
 import { analyticsRouter } from "./modules/merchants/analytics.routes.js";
 import { catalogRouter } from "./modules/merchants/catalog.routes.js";
+import { dealsRouter, merchantDealsRouter } from "./modules/merchants/deals.routes.js";
 import { portalRouter } from "./modules/merchants/portal.routes.js";
 import { notificationsRouter } from "./modules/notifications/notifications.routes.js";
 import { merchantOrdersRouter, ordersRouter } from "./modules/ordering/ordering.routes.js";
+import { forecastRouter } from "./modules/merchants/forecast.routes.js";
 import { merchantReviewsRouter, reviewsRouter } from "./modules/reviews/reviews.routes.js";
 import { applicationsRouter, jobsRouter, merchantApplicationsRouter } from "./modules/jobs/jobs.routes.js";
 import { geoRouter } from "./modules/geo/geo.routes.js";
+import { adminFeedbackRouter, feedbackRouter } from "./modules/feedback/feedback.routes.js";
 import { filesRouter } from "./modules/jobs/files.routes.js";
 import { adminAnnouncementsRouter, announcementsRouter, merchantAnnouncementsRouter } from "./modules/announcements/announcements.routes.js";
 import { avatarRouter, uploadsRouter } from "./modules/uploads/uploads.routes.js";
@@ -67,17 +72,24 @@ app.use("/api/addresses", addressesRouter);
 app.use("/api/geo", geoRouter);
 app.use("/api/favourites", favouritesRouter);
 app.use("/api/loyalty", loyaltyRouter);
+app.use("/api/budget", budgetRouter); // Sprint 3: weekly spending budget
 app.use("/api/reviews", reviewsRouter);
+app.use("/api/feedback", feedbackRouter); // "Rate the app" after an order
 app.use("/api/merchant/orders", merchantOrdersRouter);
+app.use("/api/merchant/busy-mode", busyModeRouter); // Sprint 3: busy mode / auto-pause
 app.use("/api/merchant/reservations", merchantReservationsRouter);
 app.use("/api/announcements", announcementsRouter);
 app.use("/api/merchant/announcements", merchantAnnouncementsRouter);
 app.use("/api/merchant/reviews", merchantReviewsRouter);
+app.use("/api/merchant/deals", merchantDealsRouter); // Sprint 3: last-hour deals
+app.use("/api/deals", dealsRouter);
 app.use("/api/merchant/applications", merchantApplicationsRouter);
 app.use("/api/merchant", uploadsRouter);
 app.use("/api/merchant", analyticsRouter);
+app.use("/api/merchant", forecastRouter); // Sprint 3: prep forecast
 app.use("/api/merchant", portalRouter);
 app.use("/api/admin/announcements", adminAnnouncementsRouter);
+app.use("/api/admin/app-ratings", adminFeedbackRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/ai", rateLimit(env.aiRatePerMin, "ai"), aiAssistantRouter);
 

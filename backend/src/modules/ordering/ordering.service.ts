@@ -5,8 +5,11 @@ import { isOpenNow } from "../../lib/time.js";
 import { db } from "../../store/db.js";
 import type { FulfilmentMode, Order, OrderItem } from "../../store/types.js";
 import { startDelivery } from "../delivery/delivery.service.js";
+import { busyRefusal } from "../merchants/busyMode.js";
+import { estimateWait } from "../merchants/waitTime.js";
 import { screenReview } from "../admin/moderation.js";
 import { notify, notifyMerchant } from "../notifications/notifications.service.js";
+import { priceNow } from "../merchants/deals.js";
 import { charge, chargeFpx, refund } from "../payment/payment.service.js";
 
 const MODES: FulfilmentMode[] = ["delivery", "dine_in", "takeaway"];
@@ -18,6 +21,7 @@ export interface NewOrderInput {
   items: { dishId: string; mode: FulfilmentMode; qty: number; options?: string[] }[];
   address?: { label: string; line: string; lat: number; lng: number };
   voucherId?: string;
+  acceptLongWait?: boolean; // Sprint 3 busy mode: the customer ticked "I'm OK waiting"
 }
 
 /** Portions of a dish already promised to other customers: orders the restaurant confirmed that are still inside their payment window. */
@@ -49,6 +53,9 @@ export function placeOrder(inp: NewOrderInput): Order {
   const m = db.merchants.get(inp.merchantId);
   if (!m || m.approval !== "approved") throw new HttpError(404, "Restaurant not found");
   if (m.storeMode === "offline" || !isOpenNow(m)) throw new HttpError(409, `${m.name} is closed right now`);
+  // Sprint 3 busy mode: refuse (paused) or ask the customer to accept the long wait first.
+  const busyReason = busyRefusal(m.name, m.busyMode, estimateWait(m.prepMinutes, db.orders.values(), m.id, true).waitMinutes, inp.acceptLongWait === true);
+  if (busyReason) throw new HttpError(409, busyReason);
   if (!Array.isArray(inp.items) || !inp.items.length) throw new HttpError(400, "Your cart is empty");
   if (inp.items.length > 40) throw new HttpError(400, "Too many items");
 
@@ -62,7 +69,8 @@ export function placeOrder(inp: NewOrderInput): Order {
     const qty = Number(line.qty);
     if (!Number.isInteger(qty) || qty < 1 || qty > 20) throw new HttpError(400, "Quantity must be 1-20");
     const options = (line.options ?? []).filter((o) => dish.customisations.includes(o));
-    items.push({ id: uid("i"), dishId: dish.id, name: dish.name, price: dish.price, qty, mode: line.mode, options, status: "preparing" });
+    // Sprint 3 last-hour deals: the deal price if one is on right now.
+    items.push({ id: uid("i"), dishId: dish.id, name: dish.name, price: priceNow(dish), qty, mode: line.mode, options, status: "preparing" });
   }
 
   assertStock({ items });
@@ -93,6 +101,15 @@ export function placeOrder(inp: NewOrderInput): Order {
   return order;
 }
 
+/** The vouchers this customer has already used (a declined, expired or cancelled request gives its voucher back). */
+export function usedVoucherIds(customerId: string, exceptOrderId?: string): Set<string> {
+  const FREED = ["rejected", "expired", "cancelled"];
+  const used = new Set<string>();
+  for (const o of db.orders.values())
+    if (o.customerId === customerId && o.voucherId && o.id !== exceptOrderId && !FREED.includes(o.status)) used.add(o.voucherId);
+  return used;
+}
+
 /** Checks a voucher against a basket and returns the discount in RM. Throws when it cannot be used. */
 function voucherDiscount(voucherId: string | undefined, merchantId: string, items: OrderItem[], subtotal: number, customerId: string, exceptOrderId?: string): number {
   if (!voucherId) return 0;
@@ -104,10 +121,8 @@ function voucherDiscount(voucherId: string | undefined, merchantId: string, item
   if (!v.active || (v.expiryDate && v.expiryDate < new Date().toISOString().slice(0, 10)) || (v.totalLimit !== undefined && v.claimed >= v.totalLimit))
     throw new HttpError(400, "That voucher is no longer available");
   // One use per customer. Requests that were declined, expired or cancelled give the voucher back.
-  const FREED = ["rejected", "expired", "cancelled"];
-  for (const other of db.orders.values())
-    if (other.customerId === customerId && other.voucherId === voucherId && other.id !== exceptOrderId && !FREED.includes(other.status))
-      throw new HttpError(409, "You already used this voucher. Each voucher can be used once per customer.");
+  if (usedVoucherIds(customerId, exceptOrderId).has(voucherId))
+    throw new HttpError(409, "You already used this voucher. Each voucher can be used once per customer.");
   return money(Math.min(v.kind === "percent" ? (subtotal * v.amount) / 100 : v.amount, subtotal));
 }
 
@@ -259,7 +274,29 @@ export function markReady(o: Order, mode: "dine_in" | "takeaway") {
   if (!items.length) throw new HttpError(409, `No ${mode.replace("_", "-")} items waiting`);
   items.forEach((i) => (i.status = "ready"));
   const label = mode === "dine_in" ? "dine-in" : "takeaway";
-  notify(o.customerId, "food_ready", "Your food is ready!", `Your ${label} food from ${o.merchantName} is ready - please collect.`, { orderId: o.id, mode, persistent: true });
+  const m = db.merchants.get(o.merchantId);
+  // Sprint 3 "phone as a pickup buzzer": the customer's phone shows the order number, stall and counter full screen.
+  notify(o.customerId, "food_ready", "Your food is ready!", `Your ${label} food from ${o.merchantName} is ready - please collect.`, {
+    orderId: o.id, mode, persistent: true, merchantId: o.merchantId, merchantName: o.merchantName, stallNo: m?.stallNo, buzzCount: 1, buzzedAt: Date.now(),
+  });
+}
+
+/** How long a stall must wait between two buzzes for the same food, so a customer is not spammed (tests shorten it). */
+export const BUZZ_GAP_MS = Number(process.env.BUZZ_GAP_MS ?? 10000);
+
+/**
+ * "Buzz again": the stall nudges a customer who has not collected yet. The open food-ready notice gets a new
+ * buzzedAt, and the customer's phone (which polls notices) chimes and vibrates again.
+ */
+export function buzzAgain(o: Order, mode: "dine_in" | "takeaway", now = Date.now()) {
+  const n = [...db.notifications.values()].find(
+    (x) => x.userId === o.customerId && x.type === "food_ready" && x.data?.orderId === o.id && x.data?.mode === mode && !x.ackedAt
+  );
+  if (!n) throw new HttpError(409, "Nothing to buzz: the customer has already collected this food");
+  const last = Number(n.data?.buzzedAt ?? 0);
+  if (now - last < BUZZ_GAP_MS) throw new HttpError(429, `Wait ${Math.ceil((BUZZ_GAP_MS - (now - last)) / 1000)} s before buzzing again`);
+  n.data = { ...n.data, buzzedAt: now, buzzCount: Number(n.data?.buzzCount ?? 1) + 1 };
+  return { buzzCount: n.data.buzzCount as number, buzzedAt: now };
 }
 
 export function confirmCollected(o: Order, mode: "dine_in" | "takeaway") {

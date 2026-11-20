@@ -1,18 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, Platform, StyleSheet, Text, Vibration, View } from "react-native";
+import { Modal, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import PrimaryButton from "../../shared/components/PrimaryButton";
 import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
 import { navRef } from "../../navigation/navRef";
 import { useLive } from "../ordering/LiveDataContext";
+import OrderFeedbackFlow from "../feedback/OrderFeedbackFlow";
+import PickupBuzzer, { BuzzerMiniBar } from "../pickup/PickupBuzzer";
 
 // App-wide pop-ups, shown on top of whatever screen the customer is on:
-//  1. "Your food is ready - please collect" (FR-2.7): phone vibrates and the pop-up stays until collection is confirmed.
+//  1. "Your food is ready - please collect" (FR-2.7): the full-screen pickup buzzer (Sprint 3, ../pickup/PickupBuzzer).
+//     It rings until collection is confirmed; "Show me where" shrinks it to a bar while the map is open.
 //  2. Out-of-stock decision (FR-2.5): continue with a partial order, or cancel for a full refund.
 //  3. Everything else (order accepted / rejected / expired, reservation results, reminders ...).
 // "order_accepted" has no pop-up any more: the top banner and the Pay bar show it (they read the order itself).
-const SILENT_TYPES = ["out_of_stock", "order_accepted"];
+// "order_completed" opens "Review your order" and then "Rate the app" instead (../feedback/OrderFeedbackFlow).
+const SILENT_TYPES = ["out_of_stock", "order_accepted", "order_completed"];
 
 export default function GlobalPopups() {
   const { notifications, orders, ack, refresh, setBookingsView } = useLive();
@@ -38,12 +42,15 @@ export default function GlobalPopups() {
     }
   }, [notifications]);
 
-  // Buzz until the customer confirms collection. (No-op in a browser.)
-  useEffect(() => {
-    if (!foodReady || Platform.OS === "web") return;
-    Vibration.vibrate([0, 700, 500], true);
-    return () => Vibration.cancel();
-  }, [foodReady?.id]);
+  // "Show me where" hides the buzzer (keyed by notice + buzz time, so a new buzz from the stall opens it again).
+  const [minimised, setMinimised] = useState("");
+  const buzzKey = foodReady ? `${foodReady.id}:${foodReady.data?.buzzedAt ?? ""}` : "";
+  const buzzerOpen = !!foodReady && minimised !== buzzKey;
+
+  function showWhere(merchantId?: string) {
+    setMinimised(buzzKey);
+    if (navRef.isReady()) navRef.navigate("CanteenMap", { merchantId });
+  }
 
   async function confirmCollected() {
     if (!foodReady) return;
@@ -80,20 +87,11 @@ export default function GlobalPopups() {
 
   return (
     <>
-      <Modal visible={!!foodReady} transparent animationType="fade" onRequestClose={() => {}}>
-        <View style={styles.backdrop}>
-          <View style={styles.card} testID="food-ready-popup">
-            <View style={[styles.icon, { backgroundColor: colors.herbLight }]}>
-              <Ionicons name="restaurant" size={30} color={colors.herb} />
-            </View>
-            <Text style={styles.title}>Your food is ready!</Text>
-            <Text style={styles.body}>{foodReady?.body ?? "Please collect it from the counter."}</Text>
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <PrimaryButton label="I've collected my food" onPress={confirmCollected} loading={busy} style={{ alignSelf: "stretch" }} />
-            <Text style={styles.hint}>This stays on screen until you confirm.</Text>
-          </View>
-        </View>
-      </Modal>
+      <OrderFeedbackFlow blocked={!!foodReady || !!decisionOrder} />
+      {foodReady && buzzerOpen ? (
+        <PickupBuzzer notice={foodReady} busy={busy} error={error} onCollected={confirmCollected} onShowWhere={showWhere} />
+      ) : null}
+      {foodReady && !buzzerOpen ? <BuzzerMiniBar notice={foodReady} onOpen={() => setMinimised("")} /> : null}
 
       <Modal visible={!foodReady && !!decisionOrder} transparent animationType="fade" onRequestClose={() => {}}>
         <View style={styles.backdrop}>
