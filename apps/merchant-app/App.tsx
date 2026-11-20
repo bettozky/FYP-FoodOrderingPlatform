@@ -22,6 +22,7 @@ import AppDrawer from "./src/navigation/AppDrawer";
 import { navRef } from "./src/navigation/navRef";
 import { DrawerProvider } from "./src/shared/components/SideDrawer";
 import { colors } from "./src/shared/theme/theme";
+import AssistantBubble from "./src/modules/ai-assistant/AssistantBubble";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -57,6 +58,7 @@ export default function App() {
                   <RootNavigator />
                   <AppDrawer />
                   <PopupHost />
+                  <AssistantBubble />
                 </ChatProvider>
               </CallProvider>
             </View>

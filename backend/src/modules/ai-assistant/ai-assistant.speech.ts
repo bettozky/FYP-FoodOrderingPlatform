@@ -1,10 +1,35 @@
-// Speech-to-text for the AI assistant's microphone button.
+// Speech-to-text for the AI assistants' microphone buttons (customer and merchant).
 // The app records a short voice message and uploads it; OpenAI turns it into text here on the server,
-// so the API key never leaves the backend. The text goes back to the app, where the customer can check it
-// before sending it to /api/ai/chat like a typed message.
+// so the API key never leaves the backend. The text goes back to the app, where the user can check it
+// before sending it to the chat like a typed message.
+import type { RequestHandler } from "express";
+import multer from "multer";
 import OpenAI, { toFile } from "openai";
 
 import { env } from "../../config/env.js";
+import { HttpError } from "../../lib/http.js";
+
+// One voice recording in the "audio" field, kept in memory (it is never saved).
+const singleAudio = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: env.sttMaxMb * 1024 * 1024, files: 1 },
+}).single("audio");
+
+/** Route step that reads the uploaded recording into req.file, with friendly errors for bad uploads. */
+export const readAudio: RequestHandler = (req, res, next) =>
+  singleAudio(req, res, (err: unknown) => {
+    if (err instanceof multer.MulterError) {
+      return next(
+        new HttpError(
+          400,
+          err.code === "LIMIT_FILE_SIZE"
+            ? "That voice message is too long. Please keep it under a minute."
+            : 'Send one recording in the "audio" field.'
+        )
+      );
+    }
+    next(err);
+  });
 
 // Created on first use so the backend still starts without an OPENAI_API_KEY.
 let client: OpenAI | undefined;
@@ -86,4 +111,39 @@ export async function transcribeAudio(input: {
   });
 
   return (transcription.text ?? "").trim();
+}
+
+
+/**
+ * Checks an uploaded recording and turns it into text, with friendly errors.
+ * Shared by POST /api/ai/transcribe (customers) and POST /api/ai/merchant/transcribe (merchants).
+ */
+export async function transcribeUpload(
+  file: { buffer: Buffer; size: number } | undefined,
+  keywords: string[]
+): Promise<string> {
+  if (!file || file.size === 0) {
+    throw new HttpError(400, "No recording was received. Please try again.");
+  }
+
+  const ext = audioExt(file.buffer);
+
+  if (!ext) {
+    throw new HttpError(400, "This recording format is not supported.");
+  }
+
+  let text: string;
+
+  try {
+    text = await transcribeAudio({ audio: file.buffer, ext, keywords });
+  } catch (err) {
+    console.warn("[AI Assistant] Transcription failed:", err instanceof Error ? err.message : err);
+    throw new HttpError(503, "Voice input is unavailable right now. Please type your message instead.");
+  }
+
+  if (!text) {
+    throw new HttpError(422, "I couldn't hear anything. Please try again.");
+  }
+
+  return text.slice(0, 2000);
 }
