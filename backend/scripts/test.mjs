@@ -28,9 +28,7 @@ async function runFile(file) {
   // Runs node with tsx directly (not "npx tsx"): npx is npx.cmd on Windows, which spawn cannot start, and it would add a second process to stop.
   const win = process.platform === "win32";
   // A server left over from the previous file (slow to close on Windows) would answer instead of the fresh one, with the wrong settings.
-  if (!(await portFree(PORT))) { console.error(`Something is already answering on port ${PORT}. Close other node/npm test windows, or run with TEST_PORT=4999 npm test`); return 1; }
-  // Runs node with tsx directly (not "npx tsx"): npx is npx.cmd on Windows, which spawn cannot start, and it would add a second process to stop.
-  const win = process.platform === "win32";
+  if (!(await portFree(10000))) { console.error(`Something is already answering on port ${PORT}. Close other node/npm test windows, or run with TEST_PORT=4999 npm test`); return 1; }
   const server = spawn(process.execPath, ["--import", "tsx", "src/server.ts"], { cwd: root, env, stdio: ["ignore", "pipe", "pipe"], detached: !win });
   let log = "";
   let exited = false;
