@@ -1,5 +1,6 @@
-// CHAT mode: the typing chat (step 4), now without the edge glow.
-// The dark background fades; the white sheet slides up/down. A mic button comes in step 6.
+// CHAT mode: the typing chat, without the edge glow, plus a mic button for speech-to-text.
+// The dark background fades; the white sheet slides up/down.
+// Speaking fills the message box so the merchant can check it; nothing is sent until they press send.
 import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -15,11 +16,13 @@ import {
   View,
   useWindowDimensions,
   type ScrollViewInstance,
+  type TextInputInstance,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, fonts } from "../../shared/theme/theme";
 import type { MerchantChat } from "./useMerchantChat";
+import { MAX_RECORDING_SECONDS, useSpeechToText } from "./useSpeechToText";
 
 type Props = { active: boolean; chat: MerchantChat; onClose: () => void };
 
@@ -41,6 +44,16 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
   const { messages, loading, send, clear } = chat;
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<ScrollViewInstance>(null);
+  const inputRef = useRef<TextInputInstance>(null);
+
+  // Voice input: the spoken words land in the message box (added to anything already typed).
+  const speech = useSpeechToText((text) => {
+    setDraft((previous) => (previous.trim() ? `${previous.trim()} ${text}` : text));
+    requestAnimationFrame(() => inputRef.current?.focus());
+  });
+  const listening = speech.phase === "recording";
+  const transcribing = speech.phase === "transcribing";
+  const clock = `${Math.floor(speech.seconds / 60)}:${String(speech.seconds % 60).padStart(2, "0")}`;
 
   async function submit(text: string) {
     if (!text.trim() || loading) return;
@@ -58,6 +71,8 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
       duration: active ? OPEN_MS : CLOSE_MS,
       useNativeDriver: useNative,
     }).start();
+    // Closing the chat while recording: throw the recording away and free the microphone.
+    if (!active) void speech.cancel();
   }, [active]);
 
   const sheetSlide = progress.interpolate({ inputRange: [0, 1], outputRange: [sheetHeight, 0] });
@@ -145,30 +160,85 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
             )}
           </ScrollView>
 
+          {speech.error ? (
+            <View style={styles.voiceErrorRow}>
+              <Ionicons name="alert-circle-outline" size={15} color={colors.chiliText} />
+              <Text style={styles.voiceErrorText} accessibilityLiveRegion="polite">
+                {speech.error}
+              </Text>
+              <Pressable onPress={speech.clearError} hitSlop={8} accessibilityRole="button" accessibilityLabel="Dismiss">
+                <Ionicons name="close" size={15} color={colors.stoneText} />
+              </Pressable>
+            </View>
+          ) : null}
+
           <View style={styles.inputRow}>
-            <TextInput
-              value={draft}
-              onChangeText={setDraft}
-              placeholder="Ask about your stall…"
-              placeholderTextColor={colors.textFaint}
-              style={styles.input}
-              maxLength={2000}
-              multiline
-              onSubmitEditing={() => submit(draft)}
-              submitBehavior="submit"
-              returnKeyType="send"
-              accessibilityLabel="Message to the assistant"
-            />
+            {listening || transcribing ? (
+              // While recording or turning speech into text, a status pill takes the text box's place.
+              <View style={[styles.input, styles.voicePill]} accessibilityLiveRegion="polite">
+                {listening ? (
+                  <>
+                    <View style={styles.recDot} />
+                    <Text style={styles.voicePillText} numberOfLines={1}>
+                      Listening… {clock}
+                      <Text style={styles.voicePillHint}>
+                        {speech.seconds >= MAX_RECORDING_SECONDS - 10 ? "  (stops at 1:00)" : "  Tap ■ when done"}
+                      </Text>
+                    </Text>
+                    <Pressable onPress={() => void speech.cancel()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel recording">
+                      <Ionicons name="close-circle" size={20} color={colors.stone} />
+                    </Pressable>
+                  </>
+                ) : (
+                  <>
+                    <ActivityIndicator size="small" color={colors.turmericDeep} />
+                    <Text style={styles.voicePillText}>Turning speech into text…</Text>
+                  </>
+                )}
+              </View>
+            ) : (
+              <TextInput
+                ref={inputRef}
+                value={draft}
+                onChangeText={(text) => {
+                  setDraft(text);
+                  if (speech.error) speech.clearError();
+                }}
+                placeholder="Ask or tap the mic…"
+                placeholderTextColor={colors.textFaint}
+                style={styles.input}
+                maxLength={2000}
+                multiline
+                onSubmitEditing={() => submit(draft)}
+                submitBehavior="submit"
+                returnKeyType="send"
+                accessibilityLabel="Message to the assistant"
+              />
+            )}
+
             <Pressable
-              onPress={() => submit(draft)}
-              disabled={!canSend}
-              style={[styles.send, !canSend && styles.sendOff]}
+              onPress={() => void (listening ? speech.stop() : speech.start())}
+              disabled={transcribing}
+              style={[styles.mic, listening && styles.micOn, transcribing && styles.micBusy]}
               accessibilityRole="button"
-              accessibilityLabel="Send"
-              accessibilityState={{ disabled: !canSend }}
+              accessibilityLabel={listening ? "Stop recording and use what I said" : "Speak your message"}
+              accessibilityState={{ disabled: transcribing }}
             >
-              <Ionicons name="arrow-up" size={20} color={colors.white} />
+              <Ionicons name={listening ? "stop" : "mic"} size={19} color={listening ? colors.white : colors.ink} />
             </Pressable>
+
+            {!listening && !transcribing && (
+              <Pressable
+                onPress={() => submit(draft)}
+                disabled={!canSend}
+                style={[styles.send, !canSend && styles.sendOff]}
+                accessibilityRole="button"
+                accessibilityLabel="Send"
+                accessibilityState={{ disabled: !canSend }}
+              >
+                <Ionicons name="arrow-up" size={20} color={colors.white} />
+              </Pressable>
+            )}
           </View>
         </Animated.View>
       </KeyboardAvoidingView>
@@ -247,4 +317,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sendOff: { backgroundColor: colors.stoneSoft },
+  mic: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.stoneLine,
+    backgroundColor: colors.paper,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  micOn: { backgroundColor: colors.chili, borderColor: colors.chili },
+  micBusy: { opacity: 0.4 },
+  voicePill: { flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 0, paddingBottom: 0 },
+  recDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.chili },
+  voicePillText: { flex: 1, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.ink },
+  voicePillHint: { fontFamily: fonts.serif, fontSize: 12.5, color: colors.stoneText },
+  voiceErrorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 6,
+    borderRadius: 12,
+    backgroundColor: colors.chiliSoft,
+  },
+  voiceErrorText: { flex: 1, fontFamily: fonts.serif, fontSize: 12.5, lineHeight: 17, color: colors.chiliText },
 });
