@@ -39,14 +39,15 @@ const MOTION: Record<GlowMode, { wobble: number; speed: number; size: number }> 
   speaking: { wobble: 1.5, speed: 1.8, size: 1.12 },
 };
 
-export type OrbViewProps = { mode: GlowMode };
+export type OrbViewProps = { mode: GlowMode; level?: number }; // level: 0 = quiet, 1 = loud
 
-export default function OrbCanvas({ mode }: OrbViewProps) {
+export default function OrbCanvas({ mode, level = 0 }: OrbViewProps) {
   const reduceMotion = useReducedMotion();
   const phase = useSharedValue(0); // moves forward every frame; drives turning and wobbling
   const wobble = useSharedValue(1);
   const speed = useSharedValue(1);
   const size = useSharedValue(1);
+  const loudness = useSharedValue(0); // follows the merchant's voice while listening
 
   // Glide smoothly to the new mode's settings instead of jumping.
   useEffect(() => {
@@ -57,17 +58,22 @@ export default function OrbCanvas({ mode }: OrbViewProps) {
     size.value = withTiming(m.size, ease);
   }, [mode, reduceMotion]);
 
+  // Grow a little with the merchant's voice (smoothed so it doesn't jitter).
+  useEffect(() => {
+    loudness.value = withTiming(reduceMotion ? 0 : level, { duration: 120 });
+  }, [level, reduceMotion]);
+
   useFrameCallback((frame) => {
     phase.value += ((frame.timeSincePreviousFrame ?? 16) / 1000) * speed.value;
   });
 
-  const shape0 = useDerivedValue(() => blobPath(0, phase.value, wobble.value, size.value));
-  const shape1 = useDerivedValue(() => blobPath(1, phase.value, wobble.value, size.value));
-  const shape2 = useDerivedValue(() => blobPath(2, phase.value, wobble.value, size.value));
+  const shape0 = useDerivedValue(() => blobPath(0, phase.value, wobble.value, size.value * (1 + loudness.value * 0.22)));
+  const shape1 = useDerivedValue(() => blobPath(1, phase.value, wobble.value, size.value * (1 + loudness.value * 0.18)));
+  const shape2 = useDerivedValue(() => blobPath(2, phase.value, wobble.value, size.value * (1 + loudness.value * 0.14)));
 
   return (
     <Canvas style={{ width: ORB_SIZE, height: ORB_SIZE }}>
-            {/* Normal see-through layers: each one covers the one behind it, so red stays at the back */}
+      {/* Normal see-through layers: each one covers the one behind it, so red stays at the back */}
       <Group opacity={LAYER_OPACITY}>
         <Path path={shape0} color={LAYERS[0].color} />
       </Group>
