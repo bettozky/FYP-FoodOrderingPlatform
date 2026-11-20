@@ -18,7 +18,7 @@ export type GlowMode = "idle" | "listening" | "thinking" | "speaking";
 export type GlowProps = { mode: GlowMode };
 
 // Theme colours. The list ends with the first colour again so the loop has no visible seam.
-const GLOW_COLORS = [colors.turmericLight, colors.turmeric, colors.chili, colors.turmericDeep, colors.turmericLight];
+export const GLOW_COLORS = [colors.turmericLight, colors.turmeric, colors.chili, colors.turmericDeep, colors.turmericLight];
 
 // How long one full turn of the colours takes in each mode (milliseconds).
 const SPIN_MS: Record<GlowMode, number> = { idle: 4000, listening: 3000, thinking: 1200, speaking: 2000 };

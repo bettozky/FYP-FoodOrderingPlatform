@@ -72,16 +72,19 @@ export default function AssistantBubble() {
 
   return (
     <>
-      <Animated.View
-        {...pan.panHandlers}
-        style={[styles.bubble, { transform: pos.getTranslateTransform() }]}
-        accessible
-        accessibilityRole="button"
-        accessibilityLabel="Open ScootMeal assistant"
-        onAccessibilityTap={() => setOpen(true)}
-      >
-        <Ionicons name="sparkles" size={26} color={colors.turmeric} />
-      </Animated.View>
+      {/* Hidden while the assistant is open, so it never shows on top of voice mode */}
+      {!open && (
+        <Animated.View
+          {...pan.panHandlers}
+          style={[styles.bubble, { transform: pos.getTranslateTransform() }]}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Open ScootMeal assistant"
+          onAccessibilityTap={() => setOpen(true)}
+        >
+          <Ionicons name="sparkles" size={26} color={colors.turmeric} />
+        </Animated.View>
+      )}
       <AssistantPanel visible={open} onClose={() => setOpen(false)} />
     </>
   );

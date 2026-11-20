@@ -45,3 +45,5 @@ export function useMerchantChat() {
 
   return { messages, loading, send, clear };
 }
+
+export type MerchantChat = ReturnType<typeof useMerchantChat>;
