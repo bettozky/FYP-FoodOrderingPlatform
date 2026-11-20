@@ -7,7 +7,7 @@ import { MODE_LABEL } from "../../../shared/api/types";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { mmss, rm, useCountdown } from "../../../shared/util/format";
-import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import { OrderSteps } from "../components/OrderSteps";
 import { PayMethod } from "../payments";
@@ -118,7 +118,7 @@ export default function PayScreen({ route, navigation }: any) {
 
         <View style={[styles.timer, urgent && styles.timerUrgent]} testID="pay-timer" accessibilityLiveRegion="polite">
           <Ionicons name="time-outline" size={18} color={urgent ? colors.chili : colors.herb} />
-          <Text style={[styles.timerText, urgent && { color: colors.chili }]}>Pay within {mmss(left)} or the order is cancelled</Text>
+          <Text style={[styles.timerText, urgent && { color: colors.chiliText }]}>Pay within {mmss(left)} or the order is cancelled</Text>
         </View>
 
         <View style={styles.card}>
@@ -154,7 +154,7 @@ export default function PayScreen({ route, navigation }: any) {
                 <Text style={styles.methodTitle}>{m.title}</Text>
                 <Text style={type.small}>{disabled ? "Not available when the order has delivery" : m.sub}</Text>
               </View>
-              <Ionicons name={on ? "radio-button-on" : "radio-button-off"} size={20} color={on ? colors.herb : colors.stone} />
+              <Ionicons name={on ? "checkmark-circle" : "ellipse-outline"} size={22} color={on ? colors.ink : colors.stoneSoft} />
             </Pressable>
           );
         })}
@@ -195,20 +195,20 @@ export default function PayScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: 140, gap: spacing.md },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingBottom: 140, gap: spacing.md },
   note: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", padding: spacing.lg, borderRadius: radius.lg },
-  timer: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.herbLight, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  timer: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.amberTint, borderWidth: 1, borderColor: colors.amberBorder, borderRadius: radius.md, minHeight: 44, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   timerUrgent: { backgroundColor: colors.chiliSoft },
-  timerText: { flex: 1, ...font.displayBold, fontSize: 14, color: colors.herb },
+  timerText: { flex: 1, ...font.displayBold, fontSize: 14, color: colors.amberText, fontVariant: ["tabular-nums"] },
   card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: 6 },
   line: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
-  totalLine: { marginTop: 4, paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border },
-  method: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg },
-  methodOn: { borderColor: colors.herb, backgroundColor: colors.herbLight },
+  totalLine: { marginTop: 4, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
+  method: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg, borderRadius: radius.md, minHeight: 64 },
+  methodOn: { borderColor: colors.ink, borderWidth: 1.5 },
   methodTitle: { ...font.displayBold, fontSize: 15, color: colors.ink },
   detail: { gap: spacing.sm, paddingHorizontal: 2 },
   bankWrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  input: { backgroundColor: colors.paper, borderRadius: radius.md, padding: spacing.md, ...font.serif, fontSize: 16, borderWidth: 1, borderColor: colors.border },
-  error: { color: colors.chili, ...font.display },
-  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.border },
+  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.lg, minHeight: 50, ...font.serif, fontSize: 16, borderWidth: 1, borderColor: colors.stoneLine, fontVariant: ["tabular-nums"] },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14 },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: layout.gutter, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
 });

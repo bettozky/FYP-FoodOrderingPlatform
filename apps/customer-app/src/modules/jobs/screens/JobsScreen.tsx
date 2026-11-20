@@ -7,7 +7,8 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import { api, errorText } from "../../../shared/api/client";
 import { Job } from "../../../shared/api/types";
-import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
+import SearchField from "../../../shared/components/SearchField";
+import { colors, layout, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 
 // FR-4.1: F&B job listings posted by merchants. Tap one to read it and apply.
 export default function JobsScreen({ navigation }: any) {
@@ -37,10 +38,7 @@ export default function JobsScreen({ navigation }: any) {
         subtitle="Part-time F&B work near campus"
         right={<Pressable onPress={() => navigation.navigate("MyApplications")} hitSlop={8} style={styles.mine} accessibilityRole="button" testID="my-applications"><Text style={styles.mineText}>My applications</Text></Pressable>}
       />
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={16} color={colors.stone} />
-        <TextInput style={styles.searchInput} value={q} onChangeText={setQ} placeholder="Search jobs or shops" placeholderTextColor={colors.textFaint} accessibilityLabel="Search jobs" testID="job-search" />
-      </View>
+      <SearchField value={q} onChangeText={setQ} placeholder="Search jobs or shops" style={styles.search} testID="job-search" />
       {types.length > 1 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.chips}>
           {["", ...types].map((t) => (
@@ -50,25 +48,28 @@ export default function JobsScreen({ navigation }: any) {
           ))}
         </ScrollView>
       ) : null}
-      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chili }]}>{error}</Text> : null}
+      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {jobs === null && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
           data={shown}
           keyExtractor={(j) => j.id}
-          contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
+          contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingTop: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} tintColor={colors.ink} colors={[colors.ink]} />}
           ListEmptyComponent={<EmptyState icon="briefcase-outline" title="No vacancies found" hint={q || kind ? "Try a different search." : "Check back soon. New openings appear here."} />}
           renderItem={({ item }) => (
-            <Pressable style={styles.card} onPress={() => navigation.navigate("JobDetail", { jobId: item.id })} accessibilityRole="button" accessibilityLabel={`${item.title} at ${item.merchantName}`} testID={`job-${item.id}`}>
+            <Pressable style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("JobDetail", { jobId: item.id })} accessibilityRole="button" accessibilityLabel={`${item.title} at ${item.merchantName}`} testID={`job-${item.id}`}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.sm }}>
-                <Text style={[type.h3, { flex: 1 }]}>{item.title}</Text>
+                <Text style={[type.h3, { flex: 1 }]} numberOfLines={2}>{item.title}</Text>
                 {item.applied ? <Badge label="Applied" tone="success" /> : <Badge label={item.type} tone="primary" />}
               </View>
               <Text style={type.bodyMuted}>{item.merchantName}</Text>
               {item.description ? <Text style={type.body} numberOfLines={2}>{item.description}</Text> : null}
               <View style={styles.foot}>
                 <Text style={type.price}>{item.pay}</Text>
-                <Text style={styles.more}>View and apply</Text>
+                <View style={styles.moreRow}>
+                  <Text style={styles.more}>View and apply</Text>
+                  <Ionicons name="chevron-forward" size={14} color={colors.amberText} />
+                </View>
               </View>
             </Pressable>
           )}
@@ -79,12 +80,12 @@ export default function JobsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border, gap: 4 },
-  foot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2 },
-  more: { fontSize: 13, color: colors.amberText, fontWeight: "700" },
-  mine: { minHeight: 34, paddingHorizontal: 12, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
-  mineText: { fontSize: 13, color: colors.ink, fontWeight: "700" },
-  searchBar: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: spacing.lg, paddingHorizontal: spacing.md, minHeight: 44, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine },
-  searchInput: { flex: 1, color: colors.ink, minHeight: 44 },
-  chips: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  card: { ...ui.card, padding: spacing.lg, gap: 6 },
+  foot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 },
+  moreRow: { flexDirection: "row", alignItems: "center", gap: 2 },
+  more: { ...font.displayBold, fontSize: 14, color: colors.amberText },
+  mine: { minHeight: 36, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneSoft, justifyContent: "center" },
+  mineText: { ...font.displayBold, fontSize: 14, color: colors.ink },
+  search: { marginHorizontal: layout.gutter },
+  chips: { gap: spacing.sm, paddingHorizontal: layout.gutter, paddingTop: spacing.md },
 });

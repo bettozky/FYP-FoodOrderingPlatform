@@ -6,7 +6,7 @@ import ScreenHeader from "../../shared/components/ScreenHeader";
 import PrimaryButton from "../../shared/components/PrimaryButton";
 import { errorText } from "../../shared/api/client";
 import { PopOnChange } from "../../shared/motion/PulseRing";
-import { colors, radius, spacing, type, ui, font } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../shared/theme/theme";
 import { ALLERGENS, DIET_PREFS, EMPTY_DIET, type DietProfile } from "./diet";
 import { useDiet } from "./useDiet";
 
@@ -121,7 +121,7 @@ export default function DietScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
+  body: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.md },
   hero: { flexDirection: "row", gap: spacing.md, alignItems: "center", backgroundColor: colors.herbLight, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.herbBorder },
   heroIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
   section: { ...font.displayBold, fontSize: 13, color: colors.stoneText, marginTop: spacing.md },
@@ -130,6 +130,6 @@ const styles = StyleSheet.create({
   prefRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   prefRowOn: { borderColor: colors.herb, backgroundColor: colors.herbLight },
   note: { ...type.small, marginTop: spacing.sm },
-  error: { ...font.displayBold, color: colors.chili },
+  error: { ...font.displayBold, color: colors.chiliText },
   saved: { flexDirection: "row", gap: spacing.sm, alignItems: "center" },
 });

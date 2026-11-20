@@ -7,7 +7,7 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import { errorText } from "../../shared/api/client";
 import { rm } from "../../shared/util/format";
 import { useReducedMotion } from "../../shared/motion/useReducedMotion";
-import { colors, radius, spacing, type, ui, font } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../shared/theme/theme";
 import { useLive } from "../ordering/LiveDataContext";
 import { budgetState, spendingSummary, type BudgetState } from "./spending";
 import { useBudget } from "./useBudget";
@@ -209,7 +209,7 @@ function GrowBar({ height, color, delay }: { height: number; color: string; dela
 }
 
 const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
+  body: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.md },
   hero: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.sm },
   heroLabel: { ...font.display, fontSize: 13, color: colors.stoneSoft },
   heroAmount: { ...font.displayExtraBold, fontSize: 40, color: colors.white, letterSpacing: -0.5 },
@@ -225,14 +225,14 @@ const styles = StyleSheet.create({
   quick: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   customRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   input: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 10, ...font.display, color: colors.ink, backgroundColor: colors.paper },
-  error: { ...font.displayBold, color: colors.chili },
+  error: { ...font.displayBold, color: colors.chiliText },
   chart: { flexDirection: "row", alignItems: "flex-end", height: CHART_H + 40, gap: 6, position: "relative" },
   barCol: { flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 3 },
   bar: { width: "70%", borderTopLeftRadius: 6, borderTopRightRadius: 6, minHeight: 2 },
-  barValue: { ...font.displayBold, fontSize: 10, color: colors.stoneText },
-  barLabel: { ...font.display, fontSize: 10, color: colors.stoneText },
+  barValue: { ...font.displayBold, fontSize: 11, color: colors.stoneText },
+  barLabel: { ...font.display, fontSize: 11, color: colors.stoneText },
   budgetLine: { position: "absolute", left: 0, right: 0, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: colors.chili },
-  budgetLineText: { position: "absolute", right: 0, top: -15, ...font.displayBold, fontSize: 10, color: colors.chiliText },
+  budgetLineText: { position: "absolute", right: 0, top: -15, ...font.displayBold, fontSize: 11, color: colors.chiliText },
   days: { flexDirection: "row", gap: 6 },
   dayCol: { flex: 1, alignItems: "center", gap: 4 },
   dayTrack: { width: 18, height: 70, borderRadius: 9, backgroundColor: colors.paperDim, justifyContent: "flex-end", overflow: "hidden" },

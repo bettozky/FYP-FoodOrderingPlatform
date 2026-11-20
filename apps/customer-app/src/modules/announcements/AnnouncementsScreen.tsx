@@ -30,7 +30,7 @@ export default function AnnouncementsScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title="Announcements" subtitle="News and offers from ScootMeal and shops" />
-      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chili }]}>{error}</Text> : null}
+      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {items === null && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
           data={items ?? []}

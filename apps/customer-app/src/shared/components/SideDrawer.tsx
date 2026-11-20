@@ -66,7 +66,7 @@ export function SideDrawer({ header, items }: { header: React.ReactNode; items: 
             ) : (
               <Pressable key={it.key} style={({ pressed }) => [styles.item, pressed && { backgroundColor: colors.paperDim }]} onPress={() => { close(); it.onPress(); }} accessibilityRole="button" accessibilityLabel={it.label} testID={`drawer-${it.key}`}>
                 <Ionicons name={it.icon} size={21} color={it.danger ? colors.chili : colors.ink} />
-                <Text style={[styles.itemText, it.danger && { color: colors.chili }]}>{it.label}</Text>
+                <Text style={[styles.itemText, it.danger && { color: colors.chiliText }]}>{it.label}</Text>
                 {it.badge ? <View style={styles.badge}><Text style={styles.badgeText}>{it.badge > 99 ? "99+" : it.badge}</Text></View> : null}
               </Pressable>
             ),

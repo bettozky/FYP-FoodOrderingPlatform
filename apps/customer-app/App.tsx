@@ -17,6 +17,7 @@ import { navRef } from "./src/navigation/navRef";
 import { DrawerProvider } from "./src/shared/components/SideDrawer";
 import AppDrawer from "./src/navigation/AppDrawer";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { ConfirmHost } from "./src/shared/components/ConfirmDialog";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -43,6 +44,7 @@ export default function App() {
                       <GlobalPopups />
                       <PayBanner />
                       <AppDrawer />
+                      <ConfirmHost />
                     </ChatProvider>
                   </CallProvider>
                 </View>

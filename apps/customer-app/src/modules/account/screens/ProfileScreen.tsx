@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
 import Avatar from "../../../shared/components/Avatar";
@@ -95,10 +95,10 @@ export default function ProfileScreen() {
             <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap", justifyContent: "center" }}>
               <Pressable onPress={() => changePhoto("library")} style={styles.photoBtn} accessibilityRole="button" testID="photo-library"><Text style={styles.photoBtnText}>Choose photo</Text></Pressable>
               {Platform.OS !== "web" ? <Pressable onPress={() => changePhoto("camera")} style={styles.photoBtn} accessibilityRole="button" testID="photo-camera"><Text style={styles.photoBtnText}>Take photo</Text></Pressable> : null}
-              {user?.avatar ? <Pressable onPress={() => changePhoto("remove")} style={styles.photoBtn} accessibilityRole="button" testID="photo-remove"><Text style={[styles.photoBtnText, { color: colors.danger }]}>Remove</Text></Pressable> : null}
+              {user?.avatar ? <Pressable onPress={() => changePhoto("remove")} style={styles.photoBtn} accessibilityRole="button" testID="photo-remove"><Text style={[styles.photoBtnText, { color: colors.chiliText }]}>Remove</Text></Pressable> : null}
             </View>
           )}
-          {photoMsg ? <Text style={{ color: colors.danger, fontSize: 13, textAlign: "center" }}>{photoMsg}</Text> : null}
+          {photoMsg ? <Text style={{ color: colors.chiliText, fontSize: 13, textAlign: "center" }}>{photoMsg}</Text> : null}
         </View>
 
         <View style={styles.card}>
@@ -119,13 +119,13 @@ export default function ProfileScreen() {
           <TextInput style={styles.input} value={current} onChangeText={setCurrent} placeholder="Current password" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-current" />
           <TextInput style={styles.input} value={next} onChangeText={setNext} placeholder="New password (at least 6 characters)" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-new" />
           <Msg m={pwMsg} />
-          <Pressable style={styles.btn} onPress={savePassword} disabled={savingPw} accessibilityRole="button" testID="save-password">
-            {savingPw ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>Change password</Text>}
+          <Pressable style={[styles.btn, { backgroundColor: colors.ink }]} onPress={savePassword} disabled={savingPw} accessibilityRole="button" testID="save-password">
+            {savingPw ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.btnText, { color: colors.white }]}>Change password</Text>}
           </Pressable>
         </View>
 
         <View style={styles.card}>
-          <Text style={[type.h3, { color: colors.danger }]}>Delete account</Text>
+          <Text style={[type.h3, { color: colors.chiliText }]}>Delete account</Text>
           <Text style={type.bodyMuted}>Removes your account and personal data. You cannot do this while an order or table booking is still open.</Text>
           <TextInput style={styles.input} value={delPw} onChangeText={setDelPw} placeholder="Your password" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="delete-password" />
           <Msg m={delMsg} />
@@ -139,11 +139,11 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl * 3 },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 3 },
   card: { gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   input: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.bg },
-  btn: { minHeight: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.turmeric, marginTop: spacing.xs },
+  btn: { minHeight: 50, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", backgroundColor: colors.turmeric, marginTop: spacing.xs },
   photoBtn: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
   photoBtnText: { ...font.displayBold, fontSize: 13, color: colors.ink },
-  btnText: { ...font.displayBold, color: colors.ink },
+  btnText: { ...font.displayBold, fontSize: 16, color: colors.ink },
 });

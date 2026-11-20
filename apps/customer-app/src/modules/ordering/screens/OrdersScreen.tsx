@@ -1,6 +1,6 @@
 import React from "react";
 import EmptyState from "../../../shared/components/EmptyState";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, RefreshControl } from "react-native";
 import Badge from "../../../shared/components/Badge";
 import { MODE_LABEL } from "../../../shared/api/types";
 import { useCountdown, mmss } from "../../../shared/util/format";
@@ -17,7 +17,13 @@ function Countdown({ deadline }: { deadline: number }) {
 }
 
 export default function OrdersScreen({ navigation }: any) {
-  const { orders } = useLive();
+  const { orders, refresh } = useLive();
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refresh().catch(() => {});
+    setRefreshing(false);
+  };
   const { reorder, busyId } = useReorder(navigation);
   const insets = useSafeAreaInsets();
 
@@ -31,6 +37,7 @@ export default function OrdersScreen({ navigation }: any) {
         data={orders}
         keyExtractor={(o) => o.id}
         contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} progressBackgroundColor={colors.paper} />}
         ListEmptyComponent={
           <EmptyState icon="receipt-outline" title="No orders yet" hint="Your orders and their live status show up here." action="Find something to eat" onAction={() => navigation.navigate("MainTabs", { tab: "home", nonce: Date.now() })} />
         }

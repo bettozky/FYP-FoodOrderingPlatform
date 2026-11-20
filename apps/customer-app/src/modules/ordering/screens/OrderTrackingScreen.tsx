@@ -39,7 +39,7 @@ function PayCard({ order, onPay }: { order: Order; onPay: () => void }) {
         <Ionicons name="checkmark-circle" size={20} color={colors.herb} />
         <View style={{ flex: 1 }}>
           <Text style={type.h3}>{order.merchantName} confirmed your order</Text>
-          <Text style={[type.bodyMuted, s < 60 && { color: colors.chili }]}>Pay within {mmss(s)} or the order is cancelled.</Text>
+          <Text style={[type.bodyMuted, s < 60 && { color: colors.chiliText }]}>Pay within {mmss(s)} or the order is cancelled.</Text>
         </View>
       </View>
       <PrimaryButton label={`Pay RM ${order.total.toFixed(2)}`} onPress={onPay} testID="open-pay" style={{ alignSelf: "stretch" }} />

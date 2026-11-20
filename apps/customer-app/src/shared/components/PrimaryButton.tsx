@@ -37,14 +37,16 @@ export default function PrimaryButton({
         isOutline && styles.outline,
         isSecondary && styles.secondary,
         !isOutline && !isSecondary && styles.primary,
-        (disabled || loading) && styles.disabled,
+        // Disabled (not loading): a flat grey pill with grey text, so it never looks tappable.
+        disabled && !loading && (isOutline ? styles.disabledOutline : styles.disabled),
+        loading && { opacity: 0.7 },
         style,
       ]}
     >
       {loading ? (
         <ActivityIndicator color={isSecondary ? colors.white : colors.ink} />
       ) : (
-        <Text style={[type.h3, { color: isSecondary ? colors.white : colors.ink, textAlign: "center", flexShrink: 1 }]}>
+        <Text style={[type.h3, { color: disabled ? colors.stoneText : isSecondary ? colors.white : colors.ink, textAlign: "center", flexShrink: 1 }]}>
           {label}
         </Text>
       )}
@@ -69,5 +71,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.stoneSoft,
   },
-  disabled: { opacity: 0.45 },
+  disabled: { backgroundColor: colors.paperDim, borderColor: colors.paperDim },
+  disabledOutline: { borderColor: colors.stoneLine },
 });

@@ -100,8 +100,8 @@ export default function OnMyWayCard({ order, onChange }: { order: Order; onChang
               );
             })}
           </View>
-          <Pressable style={[ui.buttonAccent, busy && { opacity: 0.6 }]} onPress={send} disabled={busy} accessibilityRole="button" testID="im-on-my-way">
-            <Text style={ui.buttonAccentText}>{busy ? "Telling the stall…" : `I'm ${minutes} min away`}</Text>
+          <Pressable style={[ui.buttonDark, { minHeight: 48 }, busy && { opacity: 0.6 }]} onPress={send} disabled={busy} accessibilityRole="button" testID="im-on-my-way">
+            <Text style={ui.buttonDarkText}>{busy ? "Telling the stall…" : `I'm ${minutes} min away`}</Text>
           </Pressable>
         </>
       )}

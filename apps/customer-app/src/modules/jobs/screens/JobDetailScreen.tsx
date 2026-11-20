@@ -8,7 +8,7 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { api, errorText } from "../../../shared/api/client";
 import { Job, JobApplication } from "../../../shared/api/types";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, font, radius, spacing, type, layout } from "../../../shared/theme/theme";
 import { STATUS_HELP, STATUS_LABEL, STATUS_TONE } from "../status";
 
 // One vacancy: what the job is, what it pays, and the Apply button (or the state of my application).
@@ -28,13 +28,13 @@ export default function JobDetailScreen({ navigation, route }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title="Job details" />
-      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chili }]}>{error}</Text> : null}
+      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {!job && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : null}
       {job ? (
         <>
           <ScrollView contentContainerStyle={styles.wrap}>
             <Text style={type.h1}>{job.title}</Text>
-            <Pressable onPress={() => navigation.navigate("Stall", { merchantId: job.merchantId })} accessibilityRole="button"><Text style={[type.bodyMuted, { textDecorationLine: "underline" }]}>{job.merchantName}</Text></Pressable>
+            <Pressable onPress={() => navigation.navigate("Stall", { merchantId: job.merchantId })} hitSlop={6} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 2, alignSelf: "flex-start", minHeight: 28 }, pressed && { opacity: 0.6 }]} accessibilityRole="link"><Text style={{ ...font.displayBold, fontSize: 15, color: colors.amberText }}>{job.merchantName}</Text><Ionicons name="chevron-forward" size={14} color={colors.amberText} /></Pressable>
             <View style={styles.chips}>
               <Badge label={job.type} tone="primary" />
               {job.role ? <Badge label={job.role} tone="neutral" /> : null}
@@ -72,10 +72,10 @@ export default function JobDetailScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl * 3 },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl * 3 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginTop: spacing.xs },
   pay: { flexDirection: "row", alignItems: "center", gap: 8, marginVertical: spacing.xs },
-  h: { fontSize: 13, fontWeight: "700", color: colors.stoneText, marginTop: spacing.md },
+  h: { ...font.displayBold, fontSize: 17, color: colors.ink, marginTop: spacing.md },
   status: { marginTop: spacing.lg, backgroundColor: colors.paper, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine, padding: spacing.md, gap: 4 },
-  footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
+  footer: { paddingHorizontal: layout.gutter, paddingTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft, backgroundColor: colors.bg },
 });

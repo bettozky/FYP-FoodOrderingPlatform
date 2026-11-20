@@ -7,7 +7,7 @@ import { confirmAsync } from "../../shared/util/confirm";
 import DishImage from "../../shared/components/DishImage";
 import EmptyState from "../../shared/components/EmptyState";
 import ScreenHeader from "../../shared/components/ScreenHeader";
-import { colors, radius, spacing, type, ui, font } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../shared/theme/theme";
 import ReviewCard from "./ReviewCard";
 import ReviewEditor from "./ReviewEditor";
 import type { PendingItem, ReviewItem } from "./types";
@@ -135,12 +135,12 @@ export default function MyReviewsScreen({ navigation, route }: any) {
 
 const styles = StyleSheet.create({
   tabs: { flexDirection: "row", gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  wrap: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 3 },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 3 },
   row: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, marginBottom: spacing.sm },
   rateBtn: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.turmeric },
   rateText: { ...font.displayBold, fontSize: 13, color: colors.ink },
   actions: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.sm, alignItems: "center" },
   action: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 32 },
   actionText: { fontSize: 13, color: colors.ink, ...font.display },
-  error: { color: colors.danger, fontSize: 13, marginBottom: spacing.sm },
+  error: { color: colors.chiliText, fontSize: 13, marginBottom: spacing.sm },
 });

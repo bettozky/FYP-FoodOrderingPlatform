@@ -379,13 +379,13 @@ async function addRecommendation(
 
         {!listening && !transcribing && (
           <Pressable
-            style={[styles.sendBtn, !input.trim() && { opacity: 0.4 }]}
+            style={[styles.sendBtn, !input.trim() && { backgroundColor: colors.paperDim }]}
             disabled={!input.trim()}
             onPress={() => send(input)}
             accessibilityRole="button"
             accessibilityLabel="Send"
           >
-            <Ionicons name="arrow-up" size={20} color={colors.ink} />
+            <Ionicons name="arrow-up" size={20} color={input.trim() ? colors.ink : colors.stoneSoft} />
           </Pressable>
         )}
       </View>

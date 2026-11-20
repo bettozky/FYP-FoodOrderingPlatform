@@ -140,5 +140,5 @@ const styles = StyleSheet.create({
   title: { ...type.h2, textAlign: "center" },
   body: { ...type.body, textAlign: "center", color: colors.stone },
   hint: { ...font.serif, fontSize: 12, color: colors.stone },
-  error: { ...font.display, color: colors.chili, textAlign: "center" },
+  error: { ...font.display, color: colors.chiliText, textAlign: "center" },
 });

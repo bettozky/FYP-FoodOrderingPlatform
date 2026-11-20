@@ -198,7 +198,7 @@ components:
 
 ScootMeal looks like a good stall front, refined: clean cream and white surfaces, confident near-black lettering, and one turmeric sign that tells you where to go next. The palette comes straight from the food it sells: turmeric, chili, banana-leaf herb green, and kopi-dark ink. The premium pass (Nov 2026) keeps that palette and sets it in the phone's own typeface, so the app feels native on iPhone first and at home on Android.
 
-Density is medium and phone-first. Screens are built from white cards and inset grouped lists on a warm off-white page, pill-shaped chips and buttons, round icon buttons, grey iOS-style search fields and segmented controls, and food photography that bleeds to the card edge. Hierarchy comes from size and weight in one family. Motion is small and physical: presses shrink slightly and spring back, lists fade up in a short stagger, the active tab icon pops, the cart count pops when it grows. All of it collapses to instant when the OS asks for reduced motion.
+Density is medium and phone-first. Screens are built from white cards and inset grouped lists on a warm off-white page, pill-shaped chips and buttons, round icon buttons, grey iOS-style search fields and segmented controls, and food photography that bleeds to the card edge. Hierarchy comes from size and weight in one family. Motion is small and physical: presses shrink slightly and spring back, lists fade up in a short stagger, photos fade in as they load, the active tab icon pops, the cart count pops when it grows, and lists refresh with a pull. All of it collapses to instant when the OS asks for reduced motion.
 
 The customer app wears turmeric (its icon and splash are turmeric); the merchant app wears ink (its icon is ink, and it leans on dark surfaces for counter-side alerts). Both apps share one palette. The web admin is a plain staff tool that borrows the same ink, cream, line and amber values as CSS variables.
 
@@ -312,7 +312,7 @@ Confident pills with a physical press (`PrimaryButton`, or the `ui.button*` toke
 - **Secondary / dark:** ink fill, white label, 44px, for actions like "Call", "Browse stalls" or an empty state's next step.
 - **Outline:** paper fill, 1px `stone-soft` border, ink label, 44px, for "Chat", "Order again", "Add address".
 - **Press:** buttons and tappable cards scale to 0.96 (0.98 for large cards) and spring back; plain rows dim instead. No scaling under reduced motion.
-- **Disabled:** the turmeric fill drops to `paper-dim` with `stone-text` text, so a disabled action never looks available.
+- **Disabled:** the fill drops to `paper-dim` with `stone-text` text (outline buttons keep a `stone-line` border), so a disabled action never looks available. Busy (loading) buttons keep their colour with a spinner.
 
 ### Chips and segmented controls
 - **Filter chip:** paper fill, 1px `stone-line` border, ink 14px label, 36px tall. **Selected:** ink fill, white label.
@@ -346,6 +346,15 @@ Small status pills with a text label (colour is never the only cue). Success = `
 ### Section header
 `SectionHeader`: a 20px bold title with either a "See all" style link in `amber-text` or a quiet 13px note ("3 open now"), 28px above and 12px below.
 
+### Bottom sheet
+`BottomSheet`: slides up over the dimmed page with a 36px grab handle, a 21px title and a round close button, a scrolling body on the 20px gutter, an optional pinned footer for actions, and room for the home indicator. Tap outside or press back to close. Used for Home's filters and the "Deliver to" picker.
+
+### Confirmation dialog
+Phones use the native alert for yes/no questions (`confirmAsync`, `alertAsync`). The web build shows `ConfirmDialog` instead: a 28px-cornered paper card with a 19px title, a 15px message and two pill buttons (outline "Not now" and an ink action, or `chili-text` for destructive actions).
+
+### Search results
+Results switch Home to a two-column grid with a row of sort chips (Recommended, Nearest, Top rated, Lowest price) and a red-outlined "Clear filters" chip when filters are on. While the search field is focused and empty, a white card offers real categories and open stalls as suggestions.
+
 ### Empty states
 `EmptyState`: a 64px `paper-dim` circle with an ink icon (a `chili-soft` circle for errors), an 18px title, a 15px hint, and an optional dark button for the next step ("Browse dishes", "See venues").
 
@@ -371,6 +380,8 @@ Loyalty points on an ink card: the tier in `stone-soft`, the number at 28 to 40p
 - **Do** pair every status colour with a text label.
 - **Do** use `ListGroup` for settings-shaped lists and `SearchField` for search instead of one-off styles.
 - **Do** keep tap targets at least 44px, respect the safe area on every top-level screen, and route every animation through the shared motion helpers so reduced motion is respected.
+- **Do** use `BottomSheet` for slide-up choices and `confirmAsync` for yes/no questions instead of building new modals.
+- **Do** give lists that show live data pull-to-refresh (Home, Orders, Jobs) with an ink spinner.
 - **Do** reference tokens from `theme.ts` (`colors.*`, `font.*`, `layout.*`, `radius.*`, `spacing.*`, `ui.*`) instead of raw hex or numbers. Only Nathan edits `theme.ts`; ask before adding tokens.
 
 ### Don't:

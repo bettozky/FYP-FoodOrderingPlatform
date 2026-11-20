@@ -6,7 +6,7 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { api, errorText } from "../../../shared/api/client";
 import { Dish, Reservation } from "../../../shared/api/types";
 import { prettyDate } from "../../../shared/util/format";
-import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout } from "../../../shared/theme/theme";
 import DishImage from "../../../shared/components/DishImage";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
@@ -165,7 +165,7 @@ export default function BookTableScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: 140 },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingBottom: 140 },
   row: { flexDirection: "row", gap: spacing.sm, paddingVertical: spacing.sm },
   chip: { paddingHorizontal: spacing.md, paddingVertical: 9, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.border },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
@@ -180,6 +180,6 @@ const styles = StyleSheet.create({
   optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.border },
   radioOn: { borderColor: colors.primary, backgroundColor: colors.primary },
-  error: { color: colors.chili, ...font.display, marginTop: spacing.md },
-  footer: { position: "absolute", bottom: 0, left: 0, right: 0, padding: spacing.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
+  error: { color: colors.chiliText, ...font.display, marginTop: spacing.md },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: layout.gutter, paddingTop: spacing.md, backgroundColor: colors.bg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
 });

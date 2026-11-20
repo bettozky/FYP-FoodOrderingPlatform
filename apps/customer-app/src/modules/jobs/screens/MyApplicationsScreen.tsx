@@ -37,7 +37,7 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title="My applications" subtitle="Track the jobs you applied for" />
       {route?.params?.justApplied ? <View style={styles.thanks}><Ionicons name="checkmark-circle" size={18} color={colors.herb} /><Text style={[type.body, { flex: 1 }]}>Application sent! The shop will see it in their app. We will notify you when they reply.</Text></View> : null}
-      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chili }]}>{error}</Text> : null}
+      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {apps === null && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
           data={apps ?? []}
@@ -83,7 +83,7 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
                 <View style={styles.actions}>
                   <Pressable onPress={() => navigation.navigate("JobDetail", { jobId: a.jobId })} style={styles.action} accessibilityRole="button"><Text style={styles.actionText}>View job</Text></Pressable>
                   {!["hired", "withdrawn", "rejected"].includes(a.status) ? (
-                    <Pressable onPress={() => withdraw(a)} style={styles.action} accessibilityRole="button" testID={`withdraw-${a.id}`}><Text style={[styles.actionText, { color: colors.danger }]}>Withdraw</Text></Pressable>
+                    <Pressable onPress={() => withdraw(a)} style={styles.action} accessibilityRole="button" testID={`withdraw-${a.id}`}><Text style={[styles.actionText, { color: colors.chiliText }]}>Withdraw</Text></Pressable>
                   ) : null}
                 </View>
               </View>

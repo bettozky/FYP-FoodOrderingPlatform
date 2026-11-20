@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { Address, useCatalog } from "../../discovery/CatalogContext";
@@ -69,7 +69,7 @@ export default function AddressesScreen() {
           </View>
           {on ? (
             <View style={styles.selected}>
-              <Ionicons name="checkmark" size={14} color={colors.herb} />
+              <Ionicons name="checkmark-circle" size={16} color={colors.ink} />
               <Text style={styles.selectedText}>Selected</Text>
             </View>
           ) : null}
@@ -144,14 +144,14 @@ export default function AddressesScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl * 3 },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl * 3 },
   section: { ...font.displayBold, fontSize: 13, color: colors.stone, marginTop: spacing.xs },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 64, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   rowOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   rowMain: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: spacing.md },
   actions: { flexDirection: "row", gap: spacing.md },
   selected: { flexDirection: "row", alignItems: "center", gap: 4 },
-  selectedText: { color: colors.herb, fontSize: 12, ...font.displayBold },
+  selectedText: { color: colors.ink, fontSize: 13, ...font.displayBold },
   add: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderStyle: "dashed", borderColor: colors.border },
   addText: { ...font.displayBold, fontSize: 14, color: colors.ink },
   form: { gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.turmeric, borderColor: colors.turmeric },
   chipText: { fontSize: 13, color: colors.stone, ...font.displayBold },
   check: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 36 },
-  error: { color: colors.danger ?? "#B3261E", fontSize: 13 },
+  error: { color: colors.chiliText, fontSize: 13 },
   buttons: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
   btn: { flex: 1, minHeight: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
   btnGhost: { borderWidth: 1, borderColor: colors.border },

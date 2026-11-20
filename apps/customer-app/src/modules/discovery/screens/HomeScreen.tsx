@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable, Animated, Modal, ScrollView } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, Animated, ScrollView, RefreshControl } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import EmptyState from "../../../shared/components/EmptyState";
@@ -15,6 +15,7 @@ import CategoryGrid, { lookFor, type GridItem } from "../components/CategoryGrid
 import HazeBackground from "../components/HazeBackground";
 import WavyGreeting from "../components/WavyGreeting";
 import SearchField from "../../../shared/components/SearchField";
+import BottomSheet from "../../../shared/components/BottomSheet";
 import SectionHeader from "../../../shared/components/SectionHeader";
 import { MenuButton } from "../../../shared/components/SideDrawer";
 import AnnouncementStrip from "../../announcements/AnnouncementStrip";
@@ -37,10 +38,19 @@ const VENUE_ORDER = ["Trending", "Buffet", "Luxury", "Aesthetic Cafe"];
 
 type Row = { kind: "stall"; merchant: Merchant } | { kind: "dish"; dish: Dish };
 
+// Ways to order the dish results. "Recommended" keeps the old order: open stalls first, then nearest.
+type Sort = "recommended" | "nearest" | "rating" | "price";
+const SORTS: { key: Sort; label: string }[] = [
+  { key: "recommended", label: "Recommended" },
+  { key: "nearest", label: "Nearest" },
+  { key: "rating", label: "Top rated" },
+  { key: "price", label: "Lowest price" },
+];
+
 export default function HomeScreen({ navigation }: any) {
   const { name } = useAuth();
   const { addToCart, itemCount } = useCart();
-  const { merchants, merchantById, addresses, address, setAddress, loadError } = useCatalog();
+  const { merchants, merchantById, addresses, address, setAddress, loadError, refreshMerchants } = useCatalog();
   const liveOn = address.label === "My location";
   const insets = useSafeAreaInsets();
   const list = useRef<FlatList<Row>>(null);
@@ -58,15 +68,27 @@ export default function HomeScreen({ navigation }: any) {
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const unread = useLive().notifications.length;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sort, setSort] = useState<Sort>("recommended");
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // The full menu: categories, stall pictures and "Popular near you" come from it.
   const [menuLoaded, setMenuLoaded] = useState(false);
-  useEffect(() => {
+  const loadMenu = () =>
     api<{ dishes: Dish[] }>("GET", "/dishes")
       .then((r) => setAllDishes(r.dishes))
       .catch(() => {})
       .finally(() => setMenuLoaded(true));
-  }, []);
+  useEffect(() => {
+    loadMenu();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pull to refresh: stalls (open / busy / wait times) and the menu, from the server.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refreshMerchants(), loadMenu()]).catch(() => {});
+    setRefreshing(false);
+  };
   const categories = useMemo(() => categoriesFromDishes(allDishes), [allDishes]);
   useEffect(() => {
     if (!categories.includes(category)) setCategory("All");
@@ -140,13 +162,31 @@ export default function HomeScreen({ navigation }: any) {
   // Grid results: open stalls first, then nearest; sold-out dishes last.
   const results = dishes
     .filter((d) => (category === "All" || d.category === category) && inVenue(d.merchantId))
-    .sort((a, b) => byOpenThenNear(merchantById[a.merchantId], merchantById[b.merchantId]) || Number(a.soldOut) - Number(b.soldOut));
+    .sort((a, b) => {
+      const ma = merchantById[a.merchantId], mb = merchantById[b.merchantId];
+      // Sold-out dishes always go last, whatever the sort.
+      const sold = Number(a.soldOut) - Number(b.soldOut);
+      if (sold) return sold;
+      if (sort === "nearest") return (ma?.distanceKm ?? 99) - (mb?.distanceKm ?? 99);
+      if (sort === "rating") return (mb?.rating ?? 0) - (ma?.rating ?? 0);
+      if (sort === "price") return a.price - b.price;
+      return byOpenThenNear(ma, mb);
+    });
+
+  // Search suggestions (shown while the search field is focused and empty): real categories, then open stalls.
+  const suggestions = useMemo(
+    () => [
+      ...categories.filter((c) => c !== "All").slice(0, 6).map((c) => ({ key: `c-${c}`, label: c, icon: "pricetag-outline" as const, onPress: () => setCategory(c) })),
+      ...merchants.filter((m) => m.openNow).slice(0, 4).map((m) => ({ key: `m-${m.id}`, label: m.name, icon: "storefront-outline" as const, onPress: () => setQuery(m.name) })),
+    ],
+    [categories, merchants]
+  );
 
   const filterCount = (category !== "All" ? 1 : 0) + diet.length + (style ? 1 : 0);
   const gridMode = showAll || !!query.trim() || filterCount > 0;
   const rows: Row[] = gridMode ? results.map((dish) => ({ kind: "dish", dish })) : stalls.map((merchant) => ({ kind: "stall", merchant }));
   const toggleDiet = (k: string) => setDiet((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
-  const clearFilters = () => { setCategory("All"); setDiet([]); setStyle(""); };
+  const clearFilters = () => { setCategory("All"); setDiet([]); setStyle(""); setSort("recommended"); };
   const firstName = (name || "there").split(" ")[0];
   const hasMap = !!navigation.getState?.()?.routeNames?.includes("CanteenMap");
 
@@ -221,6 +261,8 @@ export default function HomeScreen({ navigation }: any) {
           onChangeText={setQuery}
           placeholder="Search dishes or stalls"
           testID="search-input"
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
         />
         <Pressable style={({ pressed }) => [styles.filterBtn, filterCount ? styles.filterBtnOn : null, pressed && { opacity: 0.7 }]} onPress={() => setFiltersOpen(true)} accessibilityRole="button" accessibilityLabel={filterCount ? `Filters, ${filterCount} on` : "Filters"} testID="filters-button">
           <Ionicons name="options-outline" size={20} color={filterCount ? colors.white : colors.ink} />
@@ -231,6 +273,20 @@ export default function HomeScreen({ navigation }: any) {
           ) : null}
         </Pressable>
       </View>
+
+      {searchFocused && !query.trim() && suggestions.length ? (
+        <FadeInView distance={8} duration={180} style={styles.suggest}>
+          <Text style={styles.suggestTitle}>Try searching for</Text>
+          <View style={styles.wrap}>
+            {suggestions.map((sg) => (
+              <Pressable key={sg.key} onPress={sg.onPress} style={({ pressed }) => [ui.chip, pressed && { backgroundColor: colors.paperDim }]} accessibilityRole="button">
+                <Ionicons name={sg.icon} size={14} color={colors.stoneText} />
+                <Text style={ui.chipText} numberOfLines={1}>{sg.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </FadeInView>
+      ) : null}
 
       {!gridMode ? <AnnouncementStrip onOpen={() => navigation.navigate("Announcements")} /> : null}
       {!gridMode ? <PromoBanner onBrowse={browseStalls} /> : null}
@@ -250,6 +306,24 @@ export default function HomeScreen({ navigation }: any) {
           action="Done"
           onAction={() => { setShowAll(false); setQuery(""); clearFilters(); }}
         />
+      ) : null}
+      {gridMode ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.sortRow} accessibilityLabel="Sort dishes">
+          {SORTS.map((o) => {
+            const on = sort === o.key;
+            return (
+              <Pressable key={o.key} onPress={() => setSort(o.key)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`sort-${o.key}`}>
+                <Text style={[ui.chipText, on && ui.chipTextOn]}>{o.label}</Text>
+              </Pressable>
+            );
+          })}
+          {filterCount > 0 ? (
+            <Pressable onPress={clearFilters} style={[ui.chip, { borderColor: colors.chiliBorder }]} accessibilityRole="button" testID="clear-filters">
+              <Ionicons name="close" size={14} color={colors.chiliText} />
+              <Text style={[ui.chipText, { color: colors.chiliText }]}>Clear filters</Text>
+            </Pressable>
+          ) : null}
+        </ScrollView>
       ) : (
         <>
           <SectionHeader title="Popular near you" action="See all" onAction={() => setShowAll(true)} actionTestID="see-all" />
@@ -283,6 +357,7 @@ export default function HomeScreen({ navigation }: any) {
         columnWrapperStyle={gridMode ? styles.gridRow : undefined}
         contentContainerStyle={styles.list}
         keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} progressBackgroundColor={colors.paper} />}
         ListHeaderComponent={header}
         onScrollToIndexFailed={() => {}}
         ListEmptyComponent={
@@ -314,86 +389,92 @@ export default function HomeScreen({ navigation }: any) {
       />
 
       {/* Filter sheet: category, diet and dry / wet (FR-1.4). */}
-      <Modal visible={filtersOpen} transparent animationType="slide" onRequestClose={() => setFiltersOpen(false)}>
-        <Pressable style={styles.sheetBackdrop} onPress={() => setFiltersOpen(false)}>
-          <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]} onPress={() => {}}>
-            <View style={styles.sheetHandle} />
-            <Text style={type.h2}>Filters</Text>
-
-            <Text style={styles.sheetLabel}>Category</Text>
-            <View style={styles.wrap}>
-              {categories.map((c) => {
-                const on = c === category;
-                return (
-                  <Pressable key={c} onPress={() => setCategory(c)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`category-${c}`}>
-                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{c}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <Text style={styles.sheetLabel}>Diet</Text>
-            <View style={styles.wrap}>
-              {DIETARY_FILTERS.map((f) => {
-                const on = diet.includes(f.key);
-                return (
-                  <Pressable key={f.key} onPress={() => toggleDiet(f.key)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`filter-${f.key}`}>
-                    <Ionicons name={f.icon as any} size={13} color={on ? colors.white : colors.ink} />
-                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{f.label}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <Text style={styles.sheetLabel}>Dry or soup</Text>
-            <View style={styles.wrap}>
-              {(["dry", "wet"] as const).map((s) => {
-                const on = style === s;
-                return (
-                  <Pressable key={s} onPress={() => setStyle(on ? "" : s)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`filter-${s}`}>
-                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{s === "dry" ? "Dry" : "Wet / soup"}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.sheetButtons}>
-              <Pressable style={[ui.buttonOutline, { flex: 1 }]} onPress={clearFilters} accessibilityRole="button">
-                <Text style={ui.buttonOutlineText}>Clear all</Text>
+      <BottomSheet
+        visible={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Filters"
+        footer={
+          <>
+            <Pressable style={({ pressed }) => [ui.buttonOutline, { flex: 1, minHeight: 50 }, pressed && { opacity: 0.8 }]} onPress={clearFilters} accessibilityRole="button">
+              <Text style={ui.buttonOutlineText}>Clear all</Text>
+            </Pressable>
+            <Pressable style={({ pressed }) => [ui.buttonAccent, { flex: 1.4, minHeight: 50 }, pressed && { opacity: 0.9 }]} onPress={() => setFiltersOpen(false)} accessibilityRole="button" testID="filters-done">
+              <Text style={ui.buttonAccentText}>Show {results.length} {results.length === 1 ? "dish" : "dishes"}</Text>
+            </Pressable>
+          </>
+        }
+      >
+        <Text style={styles.sheetLabel}>Sort by</Text>
+        <View style={styles.wrap}>
+          {SORTS.map((o) => {
+            const on = sort === o.key;
+            return (
+              <Pressable key={o.key} onPress={() => setSort(o.key)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`sheet-sort-${o.key}`}>
+                <Text style={[ui.chipText, on && ui.chipTextOn]}>{o.label}</Text>
               </Pressable>
-              <Pressable style={[ui.buttonAccent, { flex: 1, minHeight: 44 }]} onPress={() => setFiltersOpen(false)} accessibilityRole="button" testID="filters-done">
-                <Text style={ui.buttonAccentText}>Show {results.length} {results.length === 1 ? "dish" : "dishes"}</Text>
+            );
+          })}
+        </View>
+
+        <Text style={styles.sheetLabel}>Category</Text>
+        <View style={styles.wrap}>
+          {categories.map((c) => {
+            const on = c === category;
+            return (
+              <Pressable key={c} onPress={() => setCategory(c)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`category-${c}`}>
+                <Text style={[ui.chipText, on && ui.chipTextOn]}>{c}</Text>
               </Pressable>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+            );
+          })}
+        </View>
+
+        <Text style={styles.sheetLabel}>Diet</Text>
+        <View style={styles.wrap}>
+          {DIETARY_FILTERS.map((f) => {
+            const on = diet.includes(f.key);
+            return (
+              <Pressable key={f.key} onPress={() => toggleDiet(f.key)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`filter-${f.key}`}>
+                <Ionicons name={f.icon as any} size={14} color={on ? colors.white : colors.ink} />
+                <Text style={[ui.chipText, on && ui.chipTextOn]}>{f.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Text style={styles.sheetLabel}>Dry or soup</Text>
+        <View style={styles.wrap}>
+          {(["dry", "wet"] as const).map((st) => {
+            const on = style === st;
+            return (
+              <Pressable key={st} onPress={() => setStyle(on ? "" : st)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`filter-${st}`}>
+                <Text style={[ui.chipText, on && ui.chipTextOn]}>{st === "dry" ? "Dry" : "Wet / soup"}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </BottomSheet>
 
       <AddressPicker visible={mapPickerOpen} initial={address} onClose={() => setMapPickerOpen(false)} onConfirm={(a) => { setAddress(a); setMapPickerOpen(false); }} />
 
-      <Modal visible={pickAddress} transparent animationType="fade" onRequestClose={() => setPickAddress(false)}>
-        <Pressable style={styles.modalBackdrop} onPress={() => setPickAddress(false)}>
-          <View style={styles.modalCard}>
-            <Text style={type.h2}>Deliver to</Text>
-            <Text style={[type.bodyMuted, { marginBottom: spacing.sm }]}>Distances to stalls are measured from here.</Text>
-            <Pressable style={styles.mapPickBtn} onPress={() => { setPickAddress(false); setMapPickerOpen(true); }} accessibilityRole="button" testID="home-choose-on-map">
-              <Ionicons name="map" size={16} color={colors.paper} />
-              <Text style={styles.mapPickText}>Add address</Text>
+      {/* "Deliver to" picker. Distances to stalls are measured from the chosen place. */}
+      <BottomSheet visible={pickAddress} onClose={() => setPickAddress(false)} title="Deliver to">
+        <Text style={[type.bodyMuted, { marginBottom: spacing.xs }]}>Distances to stalls are measured from here.</Text>
+        {addresses.length === 0 ? <Text style={type.bodyMuted}>Loading places…</Text> : null}
+        {(address.pinned && !addresses.some((x) => x.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
+          const on = a.line === address.line;
+          return (
+            <Pressable key={a.line} style={({ pressed }) => [styles.addrOption, on && styles.addrOptionOn, pressed && { opacity: 0.8 }]} onPress={() => { setAddress(a); setPickAddress(false); }} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`address-${a.label}`}>
+              <Ionicons name="location-outline" size={18} color={on ? colors.ink : colors.stone} />
+              <Text style={[type.body, { flex: 1 }]} numberOfLines={2}>{a.line}</Text>
+              {on && <Ionicons name="checkmark-circle" size={20} color={colors.ink} />}
             </Pressable>
-            {addresses.length === 0 ? <Text style={type.bodyMuted}>Loading places…</Text> : null}
-            {(address.pinned && !addresses.some((x) => x.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
-              const on = a.line === address.line;
-              return (
-                <Pressable key={a.line} style={[styles.addrOption, on && styles.addrOptionOn]} onPress={() => { setAddress(a); setPickAddress(false); }} testID={`address-${a.label}`}>
-                  <Ionicons name="location" size={16} color={on ? colors.turmericDeep : colors.stone} />
-                  <Text style={[type.body, { flex: 1 }]}>{a.line}</Text>
-                  {on && <Ionicons name="checkmark" size={16} color={colors.turmericDeep} />}
-                </Pressable>
-              );
-            })}
-          </View>
+          );
+        })}
+        <Pressable style={({ pressed }) => [styles.mapPickBtn, pressed && { opacity: 0.85 }]} onPress={() => { setPickAddress(false); setMapPickerOpen(true); }} accessibilityRole="button" testID="home-choose-on-map">
+          <Ionicons name="add" size={18} color={colors.ink} />
+          <Text style={styles.mapPickText}>Add address</Text>
         </Pressable>
-      </Modal>
+      </BottomSheet>
     </View>
   );
 }
@@ -409,8 +490,8 @@ const styles = StyleSheet.create({
   liveChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.herbLight, borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1 },
   liveChipText: { ...font.displayBold, fontSize: 11, color: colors.herb },
   liveDotSm: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.herb },
-  mapPickBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.ink, marginBottom: spacing.sm },
-  mapPickText: { ...font.displayBold, fontSize: 15, color: colors.paper },
+  mapPickBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneSoft, marginTop: spacing.xs },
+  mapPickText: { ...font.displayBold, fontSize: 15, color: colors.ink },
   addrText: { ...font.displayBold, fontSize: 15, color: colors.ink, flexShrink: 1 },
   cartBadge: { position: "absolute", top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   cartBadgeText: { ...font.displayBold, fontSize: 11, color: colors.ink, fontVariant: ["tabular-nums"] },
@@ -427,14 +508,11 @@ const styles = StyleSheet.create({
   gridCellAlone: { flex: 0, width: "50%", paddingRight: GAP / 2 },
   errorText: { color: colors.chiliText, ...font.display, fontSize: 14, paddingHorizontal: layout.gutter, marginTop: spacing.md },
   list: { paddingBottom: layout.tabBarClearance },
-  sheetBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" },
-  sheet: { backgroundColor: colors.paper, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.xl, paddingTop: spacing.md, gap: spacing.sm, ...shadow.sheet },
-  sheetHandle: { alignSelf: "center", width: 36, height: 5, borderRadius: 3, backgroundColor: colors.stoneSoft, marginBottom: spacing.md },
-  sheetLabel: { ...font.displayBold, fontSize: 15, color: colors.ink, marginTop: spacing.lg },
+  sheetLabel: { ...font.displayBold, fontSize: 15, color: colors.ink, marginTop: spacing.md },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  sheetButtons: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xl },
-  modalBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: "center", alignItems: "center", padding: spacing.xl },
-  modalCard: { width: "100%", maxWidth: 400, backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, gap: spacing.sm },
+  sortRow: { paddingHorizontal: layout.gutter, gap: spacing.sm, paddingBottom: spacing.md },
+  suggest: { marginHorizontal: layout.gutter, marginTop: spacing.md, padding: spacing.lg, borderRadius: radius.md, backgroundColor: colors.paper, gap: spacing.md, ...shadow.card },
+  suggestTitle: { ...font.displayBold, fontSize: 14, color: colors.stoneText },
   addrOption: { flexDirection: "row", alignItems: "center", gap: spacing.md, minHeight: 52, paddingHorizontal: spacing.lg, borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine },
   addrOptionOn: { borderColor: colors.ink, backgroundColor: colors.paperDim },
 });

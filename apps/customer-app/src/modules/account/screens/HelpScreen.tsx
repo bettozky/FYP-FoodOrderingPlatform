@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, font, radius, spacing, type, layout, ui } from "../../../shared/theme/theme";
 
 // Answers describe how the app really behaves (taken from the order/tracking screens). No contact
 // details are listed because the app has no support channel to point to.
@@ -23,25 +23,29 @@ export default function HelpScreen() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title="Help & support" subtitle="Quick answers about ordering." />
       <ScrollView contentContainerStyle={styles.wrap}>
-        {FAQ.map((f, i) => {
-          const on = open === i;
-          return (
-            <Pressable key={f.q} onPress={() => setOpen(on ? null : i)} style={styles.card} accessibilityRole="button" accessibilityState={{ expanded: on }} accessibilityLabel={f.q}>
-              <View style={styles.row}>
-                <Text style={[type.h3, { flex: 1 }]}>{f.q}</Text>
-                <Ionicons name={on ? "chevron-up" : "chevron-down"} size={18} color={colors.ink} />
-              </View>
-              {on ? <Text style={[type.bodyMuted, { marginTop: spacing.sm }]}>{f.a}</Text> : null}
-            </Pressable>
-          );
-        })}
+        <View style={styles.group}>
+          {FAQ.map((f, i) => {
+            const on = open === i;
+            return (
+              <Pressable key={f.q} onPress={() => setOpen(on ? null : i)} style={({ pressed }) => [styles.card, i > 0 && styles.line, pressed && { backgroundColor: colors.paperDim }]} accessibilityRole="button" accessibilityState={{ expanded: on }} accessibilityLabel={f.q}>
+                <View style={styles.row}>
+                  <Text style={[type.body, { flex: 1, ...font.displayBold }]}>{f.q}</Text>
+                  <Ionicons name={on ? "chevron-up" : "chevron-down"} size={17} color={colors.stoneText} />
+                </View>
+                {on ? <Text style={[type.bodyMuted, { marginTop: spacing.sm, fontSize: 15, lineHeight: 21 }]}>{f.a}</Text> : null}
+              </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl },
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, minHeight: 52, justifyContent: "center" },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl },
+  group: { ...ui.group },
+  card: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, minHeight: 56, justifyContent: "center" },
+  line: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md },
 });

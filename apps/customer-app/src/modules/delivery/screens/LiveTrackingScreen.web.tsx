@@ -12,7 +12,7 @@ import {
   Tracking,
   DeliveryStatus,
 } from "../api";
-import { colors, radius, spacing, type, shadow, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, shadow, font, layout } from "../../../shared/theme/theme";
 
 // react-native-maps has no web renderer, so the browser build of this screen
 // shows the same live status feed (real backend or local simulator, same as
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.turmeric },
   livePillText: { color: colors.paper, ...font.displayBold, fontSize: 12 },
-  wrap: { flex: 1, padding: spacing.lg, marginTop: -20 },
+  wrap: { flex: 1, paddingHorizontal: layout.gutter, paddingVertical: spacing.md, marginTop: -20 },
   sheet: {
     backgroundColor: colors.paper,
     borderTopLeftRadius: radius.xl,

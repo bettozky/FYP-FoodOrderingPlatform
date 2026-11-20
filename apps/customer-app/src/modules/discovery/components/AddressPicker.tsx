@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import PinMap from "../../../shared/location/PinMap";
 import { api, errorText } from "../../../shared/api/client";
-import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../../shared/theme/theme";
 import { useCatalog } from "../CatalogContext";
 import type { Address } from "../places";
 
@@ -400,7 +400,7 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
         </ScrollView>
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-          <Pressable style={[ui.buttonAccent, (busy || resolving || !line.trim()) && { opacity: 0.6 }]} onPress={confirm} disabled={busy || resolving || !line.trim()} accessibilityRole="button" testID="picker-confirm">
+          <Pressable style={[ui.buttonAccent, !line.trim() ? { backgroundColor: colors.paperDim } : (busy || resolving) && { opacity: 0.7 }]} onPress={confirm} disabled={busy || resolving || !line.trim()} accessibilityRole="button" testID="picker-confirm">
             <Text style={ui.buttonAccentText}>{busy ? "Saving…" : resolving ? "Finding the address…" : "Confirm location"}</Text>
           </Pressable>
         </View>
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
   title: { ...font.displayBold, fontSize: 20, color: colors.ink },
-  body: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 140, gap: spacing.md },
+  body: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingTop: spacing.sm, paddingBottom: 140, gap: spacing.md },
   searchBox: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.lg, minHeight: 48 },
   searchInput: { flex: 1, fontSize: 15, ...font.serif, color: colors.ink, paddingVertical: 10 },
   results: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: "hidden" },

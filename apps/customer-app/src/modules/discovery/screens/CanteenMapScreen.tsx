@@ -7,7 +7,7 @@ import EmptyState from "../../../shared/components/EmptyState";
 import type { BusyLevel, Merchant } from "../../../shared/api/types";
 import { useCatalog } from "../CatalogContext";
 import { BUSY_STYLE, buildCanteens, busyOf, waitOf, type Slot } from "../canteenMap";
-import { colors, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../../shared/theme/theme";
 
 // Live Canteen Map (feature 1, Nov 2026). Route: navigation.navigate("CanteenMap").
 // A floor plan of each canteen: counters along two walls, seating in the middle.
@@ -205,7 +205,7 @@ function StallSheet({ merchant, bottom, onClose, onOpen }: { merchant: Merchant;
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: spacing.lg, alignItems: "center" },
+  body: { paddingHorizontal: layout.gutter, alignItems: "center" },
   chipRow: { gap: spacing.sm, paddingBottom: spacing.md },
   legend: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: spacing.md, marginBottom: spacing.md },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   emptyText: { ...font.display, fontSize: 11, color: colors.stoneSoft },
   tileTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  slotNo: { ...font.display, fontSize: 10, color: colors.stoneText },
+  slotNo: { ...font.display, fontSize: 11, color: colors.stoneText },
   tileName: { ...font.displayBold, fontSize: 11, lineHeight: 13, color: colors.ink },
   tileWait: { ...font.displayExtraBold, fontSize: 13, marginTop: "auto" },
   seating: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.lg, borderRadius: radius.md, backgroundColor: colors.bg },

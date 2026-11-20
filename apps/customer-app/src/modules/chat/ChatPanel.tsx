@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   theirs: { alignSelf: "flex-start", backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 4 },
   msgText: { fontSize: 15, ...font.serifMedium, color: colors.ink },
   time: { fontSize: 11, ...font.serif, color: colors.textFaint, alignSelf: "flex-end" },
-  error: { color: colors.chili, fontSize: 12, paddingHorizontal: spacing.md, ...font.display },
+  error: { color: colors.chiliText, fontSize: 12, paddingHorizontal: spacing.md, ...font.display },
   inputRow: { flexDirection: "row", gap: 8, padding: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface },
   input: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 9, ...font.serifMedium, fontSize: 15, color: colors.ink },
   send: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
