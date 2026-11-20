@@ -144,7 +144,7 @@ export function useSpeechToText(onText: (text: string) => void) {
           }
         );
 
-        const data = await api<{ text: string }>("POST", "/ai/transcribe", body);
+        const data = await api<{ text: string }>("POST", "/ai/merchant/transcribe", body);
         const text = typeof data.text === "string" ? data.text.trim() : "";
 
         if (!text) throw new Error("I couldn't hear anything. Please try again.");

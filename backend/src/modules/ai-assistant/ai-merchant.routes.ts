@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { HttpError } from "../../lib/http.js";
 import { approvedMerchant, auth } from "../../middleware/auth.js";
+import { db } from "../../store/db.js";
 import type { ChatMessage } from "./ai-assistant.service.js";
+import { readAudio, speechKeywords, transcribeUpload } from "./ai-assistant.speech.js";
 import { getMerchantContext } from "./ai-merchant.data.js";
 import { generateMerchantReply } from "./ai-merchant.service.js";
 
@@ -46,4 +48,15 @@ aiMerchantRouter.post("/chat", async (req, res) => {
   const context = getMerchantContext(merchant);
 
   res.json(await generateMerchantReply({ message, history, context }));
+});
+
+// POST /api/ai/merchant/transcribe  (multipart/form-data, field "audio")
+// Turns the merchant's voice message into text. The stall's own dish names are spelling hints,
+// so "char kuey teow" comes back the way it is written on their menu.
+aiMerchantRouter.post("/transcribe", readAudio, async (req, res) => {
+  const merchant = approvedMerchant(res);
+  const dishNames = [...db.dishes.values()].filter((d) => d.merchantId === merchant.id).map((d) => d.name);
+  const keywords = speechKeywords([merchant.name, ...dishNames]);
+
+  res.json({ text: await transcribeUpload(req.file, keywords) });
 });
