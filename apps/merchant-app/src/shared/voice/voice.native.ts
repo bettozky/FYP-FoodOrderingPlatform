@@ -2,9 +2,11 @@
 // development build (npx expo run:android / run:ios or EAS Build). In Expo Go the import fails; the call
 // screen then still works (ring, answer, timer, hang up) but there is no audio.
 import { PermissionsAndroid, Platform } from "react-native";
+import i18n from "i18next";
 import type { SignalType, VoiceOptions, VoiceSession } from "./voice";
 
 export const voiceNote = "Audio needs a development build of the app (Expo Go cannot carry voice). The call screen still works.";
+export const voiceNoteKey = "calls.needDevBuild" as const;
 const ICE = [{ urls: "stun:stun.l.google.com:19302" }];
 
 let rtc: any = null;
@@ -18,13 +20,13 @@ export async function createVoiceSession(opts: VoiceOptions): Promise<VoiceSessi
   if (!rtc || !rtc.mediaDevices) return { audio: false, async handleSignal() {}, setMuted() {}, close() {} };
   if (Platform.OS === "android") {
     const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
-    if (r !== PermissionsAndroid.RESULTS.GRANTED) throw new Error("Microphone permission was denied.");
+    if (r !== PermissionsAndroid.RESULTS.GRANTED) throw new Error(i18n.t("calls.micDenied"));
   }
   let stream: any;
   try {
     stream = await rtc.mediaDevices.getUserMedia({ audio: true, video: false });
   } catch {
-    throw new Error("Could not open the microphone.");
+    throw new Error(i18n.t("ai.micFailed"));
   }
   const pc = new rtc.RTCPeerConnection({ iceServers: ICE });
   stream.getTracks().forEach((t: any) => pc.addTrack(t, stream));

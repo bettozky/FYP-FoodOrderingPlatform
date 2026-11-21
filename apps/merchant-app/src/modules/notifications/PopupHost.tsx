@@ -11,6 +11,8 @@ import ChatPanel from "../chat/ChatPanel";
 import { useChat } from "../chat/ChatContext";
 import { useCall } from "../calls/CallContext";
 import { useLive } from "../orders/LiveDataContext";
+import i18n from "../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 // Full-screen pop-ups with an alert sound:
 //   FR-5.5  new order request (not paid yet) -> items + fulfilment modes, Confirm / Reject, 10-minute countdown.
@@ -19,6 +21,7 @@ import { useLive } from "../orders/LiveDataContext";
 //   FR-5.9  reservation pop-up has chat and an in-app "Call customer" button
 export default function PopupHost() {
   const { orders, reservations, refresh } = useLive();
+  useTranslation(); // redraw the pop-up when the language changes
   const [skipped, setSkipped] = useState<string[]>([]); // reservations the merchant chose to handle later
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -92,7 +95,7 @@ function Countdown({ deadline, minutes }: { deadline: number; minutes: number })
   return (
     <View style={[styles.timer, urgent && { backgroundColor: colors.chili }]}>
       <Text style={styles.timerNum} testID="popup-countdown">{mmss(s)}</Text>
-      <Text style={styles.timerLabel}>left to answer ({minutes} min limit)</Text>
+      <Text style={styles.timerLabel}>{i18n.t("popup.leftToAnswer", { min: minutes })}</Text>
     </View>
   );
 }
@@ -104,8 +107,8 @@ function ContactBar({ kind, id, name, chatOpen, onToggle }: { kind: "order" | "r
   return (
     <View style={{ gap: spacing.sm }}>
       <View style={{ flexDirection: "row", gap: spacing.sm }}>
-        <PrimaryButton label={chatOpen ? "Hide chat" : `Chat with ${name}${n ? `  (${n})` : ""}`} variant="ghostLight" onPress={onToggle} style={{ flex: 1 }} testID="popup-chat-toggle" />
-        <PrimaryButton label="Call" variant="ghostLight" onPress={() => startCall(kind, id)} disabled={inCall} style={{ flex: 1 }} testID="call-customer" />
+        <PrimaryButton label={chatOpen ? i18n.t("popup.hideChat") : `${i18n.t("popup.chatWith", { name })}${n ? `  (${n})` : ""}`} variant="ghostLight" onPress={onToggle} style={{ flex: 1 }} testID="popup-chat-toggle" />
+        <PrimaryButton label={i18n.t("chat.call")} variant="ghostLight" onPress={() => startCall(kind, id)} disabled={inCall} style={{ flex: 1 }} testID="call-customer" />
       </View>
       {chatOpen && <ChatPanel kind={kind} id={id} height={320} />}
     </View>
@@ -118,7 +121,7 @@ function OrderPopup({ order, busy, error, onAnswer }: { order: Order; busy: bool
   return (
     <View style={styles.screen} testID="order-popup">
       <ScrollView contentContainerStyle={styles.body} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-        <Text style={styles.kicker}>NEW ORDER REQUEST</Text>
+        <Text style={styles.kicker}>{i18n.t("popup.newOrder")}</Text>
         <Text style={styles.title}>#{order.id} · {order.customerName}</Text>
         <Countdown deadline={order.respondBy} minutes={10} />
         {modes.map((m) => (
@@ -129,17 +132,17 @@ function OrderPopup({ order, busy, error, onAnswer }: { order: Order; busy: bool
                 <Text style={styles.lineText}>{i.qty}x {i.name}{i.options.length ? `  (${i.options.join(", ")})` : ""}</Text>
               </View>
             ))}
-            {m === "delivery" && order.deliveryAddress && <Text style={type.small}>Deliver to: {order.deliveryAddress.line}</Text>}
+            {m === "delivery" && order.deliveryAddress && <Text style={type.small}>{i18n.t("popup.deliverTo", { line: order.deliveryAddress.line })}</Text>}
           </View>
         ))}
-        <Text style={styles.total}>Total: RM {order.total.toFixed(2)}</Text>
-        <Text style={type.small}>Not paid yet. The customer pays after you confirm.</Text>
+        <Text style={styles.total}>{i18n.t("popup.total", { amount: order.total.toFixed(2) })}</Text>
+        <Text style={type.small}>{i18n.t("popup.notPaid")}</Text>
         <ContactBar kind="order" id={order.id} name={order.customerName} chatOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
       <View style={styles.actions}>
-        <PrimaryButton label="Reject" variant="danger" onPress={() => onAnswer(false)} disabled={busy} style={{ flex: 1 }} testID="order-reject" />
-        <PrimaryButton label="Confirm order" variant="success" onPress={() => onAnswer(true)} loading={busy} style={{ flex: 2 }} testID="order-accept" />
+        <PrimaryButton label={i18n.t("orders.reject")} variant="danger" onPress={() => onAnswer(false)} disabled={busy} style={{ flex: 1 }} testID="order-reject" />
+        <PrimaryButton label={i18n.t("popup.confirmOrder")} variant="success" onPress={() => onAnswer(true)} loading={busy} style={{ flex: 2 }} testID="order-accept" />
       </View>
     </View>
   );
@@ -155,15 +158,15 @@ function ReservationPopup(props: {
   return (
     <View style={styles.screen} testID="reservation-popup">
       <ScrollView contentContainerStyle={styles.body} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-        <Text style={styles.kicker}>NEW RESERVATION REQUEST</Text>
-        <Text style={styles.title}>{r.customerName} · {r.partySize} guests</Text>
-        <Text style={styles.sub}>{prettyDate(r.date)} at {r.time}</Text>
+        <Text style={styles.kicker}>{i18n.t("popup.newReservation")}</Text>
+        <Text style={styles.title}>{r.customerName} · {i18n.t("popup.guests", { count: r.partySize })}</Text>
+        <Text style={styles.sub}>{i18n.t("resv.dateAt", { date: prettyDate(r.date), time: r.time })}</Text>
         <Countdown deadline={r.respondBy} minutes={30} />
         {r.specialRequest ? <Text style={[type.body, { fontStyle: "italic" }]}>"{r.specialRequest}"</Text> : null}
-        <Text style={type.small}>{!r.payNow ? "Pay later" : r.paid ? `Paid RM ${r.paid.toFixed(2)}` : `Pay online: customer pays RM ${(r.amountDue ?? 0).toFixed(2)} after you confirm`}</Text>
+        <Text style={type.small}>{!r.payNow ? i18n.t("popup.payLater") : r.paid ? i18n.t("popup.paid", { amount: r.paid.toFixed(2) }) : i18n.t("popup.payOnline", { amount: (r.amountDue ?? 0).toFixed(2) })}</Text>
         {r.preorder.length > 0 && (
           <View style={styles.group}>
-            <Text style={styles.groupHead}>Pre-order (approve each dish later in Table reservations)</Text>
+            <Text style={styles.groupHead}>{i18n.t("popup.preorder")}</Text>
             {r.preorder.map((p) => (
               <Text key={p.id} style={styles.lineText}>{p.qty}x {p.name}</Text>
             ))}
@@ -173,13 +176,13 @@ function ReservationPopup(props: {
 
         {pickTable && (
           <View style={styles.group}>
-            <Text style={styles.groupHead}>Choose a table</Text>
+            <Text style={styles.groupHead}>{i18n.t("popup.chooseTable")}</Text>
             {RESTAURANT_TABLES.map((t) => {
               const unavailable = taken.has(t.id) || t.capacity < r.partySize;
               return (
                 <Pressable key={t.id} disabled={unavailable || busy} onPress={() => props.onApprove(t.id)} style={[styles.tableRow, unavailable && { opacity: 0.4 }]} testID={`table-${t.id}`}>
                   <Text style={styles.lineText}>{t.name}</Text>
-                  <Text style={type.small}>{taken.has(t.id) ? "Taken" : t.capacity < r.partySize ? "Too small" : "Select & confirm"}</Text>
+                  <Text style={type.small}>{taken.has(t.id) ? i18n.t("resv.taken") : t.capacity < r.partySize ? i18n.t("resv.tooSmall") : i18n.t("resv.select")}</Text>
                 </Pressable>
               );
             })}
@@ -188,9 +191,9 @@ function ReservationPopup(props: {
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
       <View style={styles.actions}>
-        <PrimaryButton label="Decline" variant="danger" onPress={props.onDecline} disabled={busy} style={{ flex: 1 }} testID="res-decline" />
-        <PrimaryButton label={pickTable ? "Back" : "Approve"} variant="success" onPress={() => setPickTable(!pickTable)} disabled={busy} style={{ flex: 1 }} testID="res-approve" />
-        <PrimaryButton label="Later" variant="ghostLight" onPress={props.onLater} disabled={busy} style={{ flex: 1 }} testID="res-later" />
+        <PrimaryButton label={i18n.t("resv.decline")} variant="danger" onPress={props.onDecline} disabled={busy} style={{ flex: 1 }} testID="res-decline" />
+        <PrimaryButton label={pickTable ? i18n.t("popup.back") : i18n.t("popup.approve")} variant="success" onPress={() => setPickTable(!pickTable)} disabled={busy} style={{ flex: 1 }} testID="res-approve" />
+        <PrimaryButton label={i18n.t("popup.later")} variant="ghostLight" onPress={props.onLater} disabled={busy} style={{ flex: 1 }} testID="res-later" />
       </View>
     </View>
   );

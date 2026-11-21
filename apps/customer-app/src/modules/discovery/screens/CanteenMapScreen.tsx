@@ -8,6 +8,8 @@ import type { BusyLevel, Merchant } from "../../../shared/api/types";
 import { useCatalog } from "../CatalogContext";
 import { BUSY_STYLE, buildCanteens, busyOf, waitOf, type Slot } from "../canteenMap";
 import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
+import i18n, { locale } from "../../../shared/i18n";
 
 // Live Canteen Map (feature 1, Nov 2026). Route: navigation.navigate("CanteenMap").
 // A floor plan of each canteen: counters along two walls, seating in the middle.
@@ -17,6 +19,7 @@ const REFRESH_MS = 10000;
 
 export default function CanteenMapScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const { merchants, refreshMerchants, loadError } = useCatalog();
   const canteens = useMemo(() => buildCanteens(merchants), [merchants]);
@@ -50,7 +53,7 @@ export default function CanteenMapScreen({ navigation, route }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Live canteen map" subtitle="Green is quick, red means a longer wait" />
+      <ScreenHeader title={t("home.liveMap")} subtitle={t("map.subtitle")} />
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: (selected ? 200 : spacing.xxl) + insets.bottom }]}>
         {canteens.length > 1 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
@@ -68,9 +71,9 @@ export default function CanteenMapScreen({ navigation, route }: any) {
         <Legend />
 
         {!canteen ? (
-          <EmptyState icon="map-outline" title="No stalls yet" hint={loadError || "Stalls appear here once they are approved."} />
+          <EmptyState icon="map-outline" title={t("map.noStalls")} hint={loadError || t("home.stallsAppear")} />
         ) : (
-          <View style={[styles.room, { width: roomWidth }]} accessibilityLabel={`${canteen.name} floor plan`}>
+          <View style={[styles.room, { width: roomWidth }]} accessibilityLabel={t("map.floorPlan", { name: canteen.name })}>
             <Text style={styles.roomName}>{canteen.name}</Text>
             <Row slots={canteen.slots.slice(0, canteen.perRow)} tileWidth={tileWidth} selectedId={selectedId} onPick={setSelectedId} />
             <View style={styles.seating} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -79,18 +82,18 @@ export default function CanteenMapScreen({ navigation, route }: any) {
                   <Ionicons name="restaurant-outline" size={13} color={colors.stoneSoft} />
                 </View>
               ))}
-              <Text style={styles.seatingText}>Seating</Text>
+              <Text style={styles.seatingText}>{t("map.seating")}</Text>
             </View>
             <Row slots={canteen.slots.slice(canteen.perRow)} tileWidth={tileWidth} selectedId={selectedId} onPick={setSelectedId} />
             <View style={styles.entrance}>
               <Ionicons name="walk-outline" size={13} color={colors.stoneText} />
-              <Text style={styles.entranceText}>Entrance</Text>
+              <Text style={styles.entranceText}>{t("map.entrance")}</Text>
             </View>
           </View>
         )}
 
         <Text style={[type.small, { textAlign: "center", marginTop: spacing.md }]}>
-          Live · updated {new Date(updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · refreshes every 10 s
+          {t("map.updated", { time: new Date(updatedAt).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" }) })}
         </Text>
       </ScrollView>
 
@@ -101,7 +104,7 @@ export default function CanteenMapScreen({ navigation, route }: any) {
 
 function Legend() {
   const levels: BusyLevel[] = ["quiet", "busy", "very_busy", "closed"];
-  const hint: Record<BusyLevel, string> = { quiet: "≤ 12 min", busy: "13–20 min", very_busy: "20+ min", closed: "" };
+  const hint: Record<BusyLevel, string> = { quiet: `≤ ${i18n.t("deals.min", { m: 12 })}`, busy: i18n.t("deals.min", { m: "13–20" }), very_busy: i18n.t("deals.min", { m: "20+" }), closed: "" };
   return (
     <View style={styles.legend}>
       {levels.map((l) => (
@@ -120,7 +123,7 @@ function Row({ slots, tileWidth, selectedId, onPick }: { slots: Slot[]; tileWidt
       {slots.map((s) => (s.merchant ? (
         <StallTile key={s.slot} merchant={s.merchant} slot={s.slot} width={tileWidth} selected={s.merchant.id === selectedId} onPress={() => onPick(s.merchant!.id)} />
       ) : (
-        <View key={s.slot} style={[styles.tile, styles.emptyTile, { width: tileWidth }]} accessibilityLabel={`Stall ${s.slot}, empty`}>
+        <View key={s.slot} style={[styles.tile, styles.emptyTile, { width: tileWidth }]} accessibilityLabel={i18n.t("map.emptySlot", { slot: s.slot })}>
           <Text style={styles.emptyText}>{s.slot}</Text>
         </View>
       )))}
@@ -152,7 +155,7 @@ function StallTile({ merchant, slot, width, selected, onPress }: { merchant: Mer
       onPress={onPress}
       style={[styles.tile, { width, backgroundColor: style.fill, borderColor: selected ? colors.ink : style.border }, selected && styles.tileSelected]}
       accessibilityRole="button"
-      accessibilityLabel={`${merchant.name}, stall ${slot}. ${level === "closed" ? "Closed" : `${style.label}, about ${wait} minutes`}`}
+      accessibilityLabel={i18n.t("map.tileLabel", { name: merchant.name, slot, state: level === "closed" ? i18n.t("stall.closed") : i18n.t("map.aboutMin", { label: style.label, min: wait }) })}
       testID={`map-stall-${merchant.id}`}
     >
       {level !== "closed" ? (
@@ -163,7 +166,7 @@ function StallTile({ merchant, slot, width, selected, onPress }: { merchant: Mer
         <Text style={styles.slotNo}>{slot}</Text>
       </View>
       <Text style={styles.tileName} numberOfLines={2}>{merchant.name}</Text>
-      <Text style={[styles.tileWait, { color: style.text }]} numberOfLines={1}>{level === "closed" ? "Closed" : `${wait} min`}</Text>
+      <Text style={[styles.tileWait, { color: style.text }]} numberOfLines={1}>{level === "closed" ? i18n.t("stall.closed") : i18n.t("deals.min", { m: wait })}</Text>
     </Pressable>
   );
 }
@@ -179,7 +182,7 @@ function StallSheet({ merchant, bottom, onClose, onOpen }: { merchant: Merchant;
           <Text style={type.h2} numberOfLines={1}>{merchant.name}</Text>
           <Text style={type.small}>{merchant.stallNo}</Text>
         </View>
-        <Pressable onPress={onClose} hitSlop={10} style={ui.iconButton} accessibilityRole="button" accessibilityLabel="Close">
+        <Pressable onPress={onClose} hitSlop={10} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={i18n.t("common.close")}>
           <Ionicons name="close" size={18} color={colors.ink} />
         </Pressable>
       </View>
@@ -189,16 +192,16 @@ function StallSheet({ merchant, bottom, onClose, onOpen }: { merchant: Merchant;
           <Text style={[ui.infoChipText, { color: style.text }]}>{style.label}</Text>
         </View>
         {level === "closed" ? (
-          <View style={ui.infoChip}><Text style={ui.infoChipText}>Opens {merchant.hours.open}</Text></View>
+          <View style={ui.infoChip}><Text style={ui.infoChipText}>{i18n.t("stall.opensAt", { time: merchant.hours.open })}</Text></View>
         ) : (
           <>
-            <View style={ui.infoChip}><Text style={ui.infoChipText}>Ready in about {waitOf(merchant)} min</Text></View>
-            <View style={ui.infoChip}><Text style={ui.infoChipText}>{queue === 0 ? "No orders ahead" : `${queue} ${queue === 1 ? "order" : "orders"} ahead`}</Text></View>
+            <View style={ui.infoChip}><Text style={ui.infoChipText}>{i18n.t("map.readyAbout", { min: waitOf(merchant) })}</Text></View>
+            <View style={ui.infoChip}><Text style={ui.infoChipText}>{queue === 0 ? i18n.t("map.noneAhead") : i18n.t("map.ahead", { count: queue })}</Text></View>
           </>
         )}
       </View>
       <Pressable style={ui.buttonAccent} onPress={onOpen} accessibilityRole="button" testID="map-open-stall">
-        <Text style={ui.buttonAccentText}>View menu</Text>
+        <Text style={ui.buttonAccentText}>{i18n.t("map.viewMenu")}</Text>
       </Pressable>
     </View>
   );

@@ -23,6 +23,8 @@ import DishRecommendationCard, {
   type Recommendation,
 } from "../components/DishRecommendationCard";
 import { MAX_RECORDING_SECONDS, useSpeechToText } from "../useSpeechToText";
+import i18n from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 
 type Message = {
@@ -32,12 +34,13 @@ type Message = {
   recommendations?: Recommendation[];
 };
 
-const SUGGESTIONS = ["Where's my order?", "I want a refund", "Recommend something spicy", "Talk to a human"];
+// Quick questions, sent in the app's language (the assistant answers in the language it is asked in).
+const SUGGESTIONS = ["ai.sugOrder", "ai.sugRefund", "ai.sugSpicy", "ai.sugHuman"] as const;
 
 const INTRO: Message = {
   id: "intro",
   from: "bot",
-  text: "Hi, I'm the ScootMeal Assistant. Ask me about your order, a dish, or an account issue.",
+  text: "", // shown with t("ai.intro") so it follows the language
 };
 
 function getFallbackReply(message: string): string {
@@ -45,9 +48,9 @@ function getFallbackReply(message: string): string {
 
   // Randomly select an introduction to indicate that the AI is temporarily unavailable.
   const introductions = [
-    "Sorry, I'm temporarily unavailable.",
-    "I'm having trouble connecting right now.",
-    "Sorry, I can't provide an AI response right now.",
+    i18n.t("ai.fbIntro1"),
+    i18n.t("ai.fbIntro2"),
+    i18n.t("ai.fbIntro3"),
   ];
 
   const intro =
@@ -61,32 +64,33 @@ function getFallbackReply(message: string): string {
     /opening hours|business hours|what time|open today|closing time|waktu operasi|waktu buka|pukul berapa|营业时间|几点开|几点关/.test(text)
   ) {
     answer =
-      "Opening hours vary by restaurant. I can't confirm them right now, so please check with the restaurant.";
+      i18n.t("ai.fbHours");
   } else if (
     /pay|payment|bayar|pembayaran|付款|支付/.test(text)
   ) {
     answer =
-      "Once the restaurant confirms your order, open the order and follow the payment instructions.";
+      i18n.t("ai.fbPay");
   } else if (
     /where.*order|order status|track.*order|status pesanan|pesanan.*mana|订单状态|订单.*哪|追踪订单/.test(text)
   ) {
     answer =
-      "You can check your order in the app's Orders section. I can't confirm its current status right now.";
+      i18n.t("ai.fbStatus");
   } else if (
     /how.*order|place.*order|how.*cart|add.*cart|cara.*pesan|cara.*order|cara.*tempah|怎么下单|如何下单|怎么点餐|购物车/.test(text)
   ) {
     answer =
-      "Browse the menu, select a dish, add it to your cart, then review your order before submitting it.";
+      i18n.t("ai.fbHowOrder");
   } else {
     answer =
-      "You can still browse the menu and manage your orders in the app. For quick help, ask about opening hours, how to order, or how to pay.";
+      i18n.t("ai.fbOther");
   }
 
-  return `${intro}\n\n${answer}\n\nPlease try chatting again shortly.`;
+  return `${intro}\n\n${answer}\n\n${i18n.t("ai.fbRetry")}`;
 }
 
 export default function AIAssistantScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([INTRO]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
@@ -206,15 +210,15 @@ async function addRecommendation(
 
     if (fresh.dish.price !== recommendation.dish.price) {
       const accepted = await confirmAsync(
-        "Price changed",
-        `The current price is RM${fresh.dish.price.toFixed(2)}. Add at this price?`,
-        "Add to cart"
+        i18n.t("ai.priceChanged"),
+        i18n.t("ai.priceNow", { price: fresh.dish.price.toFixed(2) }),
+        i18n.t("ai.addToCart")
       );
 
       if (!accepted) {
         setCardStatus((previous) => ({
           ...previous,
-          [cardKey]: "Not added. Your cart is unchanged.",
+          [cardKey]: i18n.t("ai.notAdded"),
         }));
         return;
       }
@@ -230,15 +234,14 @@ async function addRecommendation(
     setCardStatus((previous) => ({
       ...previous,
       [cardKey]: added
-        ? `Added 1 × ${fresh.dish.name} to cart.`
-        : "Not added. Your cart is unchanged.",
+        ? i18n.t("ai.added", { name: fresh.dish.name })
+        : i18n.t("ai.notAdded"),
     }));
   } catch {
     setCardStatus((previous) => ({
       ...previous,
       [cardKey]:
-        "Couldn't add this dish. It may be unavailable, " +
-        "or the server couldn't be reached. Please try again.",
+        i18n.t("ai.addFailed"),
     }));
   } finally {
     cartLock.current = false;
@@ -256,8 +259,8 @@ async function addRecommendation(
           <Ionicons name="sparkles" size={16} color={colors.white} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={type.h2}>Assistant</Text>
-          <Text style={styles.draftBadgeText}>AI powered by OpenAI</Text>
+          <Text style={type.h2}>{t("tabs.assistant")}</Text>
+          <Text style={styles.draftBadgeText}>{t("ai.poweredBy")}</Text>
         </View>
       </View>
 
@@ -274,7 +277,7 @@ async function addRecommendation(
               </View>
             )}
             <View style={[styles.bubble, m.from === "user" ? styles.bubbleUser : styles.bubbleBot, shadow.soft]}>
-              <Text style={m.from === "user" ? styles.bubbleTextUser : styles.bubbleTextBot}>{m.text}</Text>
+              <Text style={m.from === "user" ? styles.bubbleTextUser : styles.bubbleTextBot}>{m.id === "intro" ? t("ai.intro") : m.text}</Text>
               {m.from === "bot" &&
                 m.recommendations?.map((recommendation) => {
                   const cardKey = `${m.id}:${recommendation.dish.id}`;
@@ -309,8 +312,8 @@ async function addRecommendation(
         {messages.length <= 1 && (
           <View style={styles.suggestions}>
             {SUGGESTIONS.map((s) => (
-              <Pressable key={s} style={styles.suggestionChip} onPress={() => send(s)}>
-                <Text style={styles.suggestionText}>{s}</Text>
+              <Pressable key={s} style={styles.suggestionChip} onPress={() => send(t(s))}>
+                <Text style={styles.suggestionText}>{t(s)}</Text>
               </Pressable>
             ))}
           </View>
@@ -321,7 +324,7 @@ async function addRecommendation(
         <View style={styles.voiceErrorRow}>
           <Ionicons name="alert-circle-outline" size={15} color={colors.chiliText} />
           <Text style={styles.voiceErrorText} accessibilityLiveRegion="polite">{speech.error}</Text>
-          <Pressable onPress={speech.clearError} hitSlop={8} accessibilityLabel="Dismiss" testID="ai-voice-error-close">
+          <Pressable onPress={speech.clearError} hitSlop={8} accessibilityLabel={t("ai.dismiss")} testID="ai-voice-error-close">
             <Ionicons name="close" size={15} color={colors.stoneText} />
           </Pressable>
         </View>
@@ -334,19 +337,19 @@ async function addRecommendation(
               <>
                 <View style={styles.recDot} />
                 <Text style={styles.voicePillText} numberOfLines={1}>
-                  Listening… {clock}
+                  {t("ai.listening", { time: clock })}
                   <Text style={styles.voicePillHint}>
-                    {speech.seconds >= MAX_RECORDING_SECONDS - 10 ? "  (stops at 1:00)" : "  Tap ■ when done"}
+                    {speech.seconds >= MAX_RECORDING_SECONDS - 10 ? `  ${t("ai.stopsAt")}` : `  ${t("ai.tapStop")}`}
                   </Text>
                 </Text>
-                <Pressable onPress={() => void speech.cancel()} hitSlop={8} accessibilityLabel="Cancel recording" testID="ai-mic-cancel">
+                <Pressable onPress={() => void speech.cancel()} hitSlop={8} accessibilityLabel={t("ai.cancelRec")} testID="ai-mic-cancel">
                   <Ionicons name="close-circle" size={20} color={colors.stone} />
                 </Pressable>
               </>
             ) : (
               <>
                 <ActivityIndicator size="small" color={colors.turmericDeep} />
-                <Text style={styles.voicePillText}>Turning speech into text…</Text>
+                <Text style={styles.voicePillText}>{t("ai.transcribing")}</Text>
               </>
             )}
           </View>
@@ -354,7 +357,7 @@ async function addRecommendation(
           <TextInput
             ref={inputRef}
             style={styles.input}
-            placeholder="Ask or tap the mic…"
+            placeholder={t("ai.placeholder")}
             placeholderTextColor={colors.textFaint}
             value={input}
             onChangeText={(text) => {
@@ -371,7 +374,7 @@ async function addRecommendation(
           disabled={transcribing}
           onPress={() => void (listening ? speech.stop() : speech.start())}
           accessibilityRole="button"
-          accessibilityLabel={listening ? "Stop recording and use what I said" : "Speak your message"}
+          accessibilityLabel={listening ? t("ai.stopRec") : t("ai.speak")}
           testID="ai-mic"
         >
           <Ionicons name={listening ? "stop" : "mic"} size={18} color={listening ? colors.white : colors.ink} />
@@ -383,7 +386,7 @@ async function addRecommendation(
             disabled={!input.trim()}
             onPress={() => send(input)}
             accessibilityRole="button"
-            accessibilityLabel="Send"
+            accessibilityLabel={t("chat.send")}
           >
             <Ionicons name="arrow-up" size={18} color={colors.white} />
           </Pressable>

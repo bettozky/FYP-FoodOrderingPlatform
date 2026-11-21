@@ -3,6 +3,7 @@
 //   pickFile.native.ts  -> phone picker (needs expo-image-picker + expo-document-picker, see that file)
 // This file holds the shared types and is the fallback for any other platform.
 import type { PickedFile } from "./types";
+import i18n from "../../../shared/i18n";
 
 export type PickKind = "image" | "document";
 
@@ -12,5 +13,5 @@ export type PickResult = { file: PickedFile } | { cancelled: true } | { unavaila
 export const canPickFiles = false;
 
 export async function pickFile(_kind: PickKind): Promise<PickResult> {
-  return { unavailable: "Choosing files is not supported on this device yet." };
+  return { unavailable: i18n.t("signup.noFilesDevice") };
 }

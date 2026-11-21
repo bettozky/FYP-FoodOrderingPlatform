@@ -1,6 +1,7 @@
 // Layout and colours for the Live Canteen Map (feature 1). No React here, so it is easy to test.
 import type { BusyLevel, Merchant } from "../../shared/api/types";
 import { colors } from "../../shared/theme/theme";
+import i18n from "i18next"; // the same instance src/shared/i18n sets up (no React needed)
 
 export type Slot = { slot: number; merchant?: Merchant };
 export type Canteen = { name: string; slots: Slot[]; perRow: number };
@@ -51,11 +52,12 @@ export function busyOf(m: Merchant): BusyLevel {
 
 export const waitOf = (m: Merchant) => m.waitMinutes ?? m.prepMinutes;
 
-export const BUSY_STYLE: Record<BusyLevel, { label: string; dot: string; fill: string; border: string; text: string }> = {
-  quiet: { label: "Quiet", dot: colors.herb, fill: colors.herbLight, border: colors.herb, text: colors.herb },
-  busy: { label: "Busy", dot: colors.turmeric, fill: colors.amberTint, border: colors.turmeric, text: colors.amberText },
-  very_busy: { label: "Very busy", dot: colors.chili, fill: colors.chiliSoft, border: colors.chili, text: colors.chiliText },
-  closed: { label: "Closed", dot: colors.stone, fill: colors.paperDim, border: colors.stoneLine, text: colors.stoneText },
+// `label` is read in the app's current language each time (i18n getters), so every screen using it is translated.
+export const BUSY_STYLE: Record<BusyLevel, { readonly label: string; dot: string; fill: string; border: string; text: string }> = {
+  quiet: { get label() { return i18n.t("busy.quiet"); }, dot: colors.herb, fill: colors.herbLight, border: colors.herb, text: colors.herb },
+  busy: { get label() { return i18n.t("busy.busy"); }, dot: colors.turmeric, fill: colors.amberTint, border: colors.turmeric, text: colors.amberText },
+  very_busy: { get label() { return i18n.t("busy.veryBusy"); }, dot: colors.chili, fill: colors.chiliSoft, border: colors.chili, text: colors.chiliText },
+  closed: { get label() { return i18n.t("busy.closed"); }, dot: colors.stone, fill: colors.paperDim, border: colors.stoneLine, text: colors.stoneText },
 };
 
 /** "3 quiet · 1 busy" for the Home card. */

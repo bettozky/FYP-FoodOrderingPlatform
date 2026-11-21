@@ -2,6 +2,8 @@
 // The wizard keeps everything in one ShopApplication object, then turns it into
 // the request body with toSignupRequest(). See ../README.md for the field list David maps to tables.
 
+import i18n from "../../../shared/i18n";
+
 export type PickedFile = {
   name: string;
   size: number; // bytes
@@ -12,36 +14,30 @@ export type PickedFile = {
 
 export type BusinessType = "stall" | "cafe" | "restaurant" | "home_kitchen";
 export const BUSINESS_TYPES: { key: BusinessType; label: string }[] = [
-  { key: "stall", label: "Stall" },
-  { key: "cafe", label: "Cafe" },
-  { key: "restaurant", label: "Restaurant" },
-  { key: "home_kitchen", label: "Home kitchen" },
+  { key: "stall", get label() { return i18n.t("signup.typeStall"); } },
+  { key: "cafe", get label() { return i18n.t("signup.typeCafe"); } },
+  { key: "restaurant", get label() { return i18n.t("signup.typeRestaurant"); } },
+  { key: "home_kitchen", get label() { return i18n.t("signup.typeHome"); } },
 ];
 
 export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-export const DAYS: { key: DayKey; label: string }[] = [
-  { key: "mon", label: "Monday" },
-  { key: "tue", label: "Tuesday" },
-  { key: "wed", label: "Wednesday" },
-  { key: "thu", label: "Thursday" },
-  { key: "fri", label: "Friday" },
-  { key: "sat", label: "Saturday" },
-  { key: "sun", label: "Sunday" },
-];
+// Day names follow the app language: label = "Monday" / "Isnin" / "星期一", short = "Mon" / "Isn" / "周一".
+const day = (key: DayKey) => ({ key, get label() { return i18n.t(`days.${key}`); }, get short() { return i18n.t(`days.${key}Short`); } });
+export const DAYS: { key: DayKey; label: string; short: string }[] = (["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as DayKey[]).map(day);
 export type DayHours = { day: DayKey; open: string; close: string; closed: boolean };
 
 // The 9 common allergens (same names as backend/src/lib/allergens.ts), with local foods where they hide,
 // so a stall owner recognises e.g. that kicap has soy and gluten, or that belacan counts as shellfish.
 export const ALLERGENS = [
-  { name: "Peanuts", examples: "kacang, satay sauce, rojak, peanut oil" },
-  { name: "Tree nuts", examples: "cashew, almond, candlenut (buah keras)" },
-  { name: "Shellfish", examples: "udang, crab, sotong, belacan, oyster sauce" },
-  { name: "Fish", examples: "ikan bilis, fish sauce, fish ball, keropok" },
-  { name: "Egg", examples: "telur, mayonnaise, egg noodles, kuih" },
-  { name: "Milk", examples: "susu, condensed milk, butter, cheese, ghee" },
-  { name: "Gluten", examples: "wheat flour, mee, roti, kicap, batter" },
-  { name: "Soy", examples: "tauhu, tempeh, kicap, taucu, soy milk" },
-  { name: "Sesame", examples: "bijan, sesame oil, sesame seeds" },
+  { name: "Peanuts", get examples() { return i18n.t("signup.exPeanuts"); } },
+  { name: "Tree nuts", get examples() { return i18n.t("signup.exTreeNuts"); } },
+  { name: "Shellfish", get examples() { return i18n.t("signup.exShellfish"); } },
+  { name: "Fish", get examples() { return i18n.t("signup.exFish"); } },
+  { name: "Egg", get examples() { return i18n.t("signup.exEgg"); } },
+  { name: "Milk", get examples() { return i18n.t("signup.exMilk"); } },
+  { name: "Gluten", get examples() { return i18n.t("signup.exGluten"); } },
+  { name: "Soy", get examples() { return i18n.t("signup.exSoy"); } },
+  { name: "Sesame", get examples() { return i18n.t("signup.exSesame"); } },
 ] as const;
 
 export type MenuItemDraft = { name: string; price: string; description: string; photo: PickedFile | null; allergens: string[] };
@@ -104,16 +100,13 @@ export const emptyApplication = (): ShopApplication => ({
   agreedTerms: false,
 });
 
-export const STEPS = [
-  { key: "account", title: "Account", description: "Who will manage this merchant account?" },
-  { key: "business", title: "Business", description: "Tell us about your shop. Your SSM certificate is only seen by the admin." },
-  { key: "location", title: "Location", description: "Where customers can find you." },
-  { key: "food", title: "Food", description: "What you serve and how much it costs." },
-  { key: "service", title: "Hours and service", description: "When you are open and how customers get their food." },
-  { key: "hygiene", title: "Allergens and hygiene", description: "Customers with allergies see this on your shop page and dish pages." },
-  { key: "pictures", title: "Pictures", description: "Real photos help customers choose. JPG or PNG, up to 2 MB each." },
-  { key: "review", title: "Review and agree", description: "Check your answers, then send your shop for approval." },
-] as const;
+// Title and description follow the app language (signup.step_<key> / signup.step_<key>Desc).
+const step = <K extends string>(key: K) => ({
+  key,
+  get title() { return i18n.t(`signup.step_${key}` as "signup.step_account"); },
+  get description() { return i18n.t(`signup.step_${key}Desc` as "signup.step_accountDesc"); },
+});
+export const STEPS = [step("account"), step("business"), step("location"), step("food"), step("service"), step("hygiene"), step("pictures"), step("review")];
 
 export type FileMeta = { name: string; size: number; mimeType: string };
 const meta = (f: PickedFile | null): FileMeta | null => (f ? { name: f.name, size: f.size, mimeType: f.mimeType } : null);

@@ -13,38 +13,41 @@ import { colors, radius, spacing, type, fonts } from "../../../shared/theme/them
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
 import ArrivingBadge from "../../arrival/ArrivingBadge";
+import i18n, { locale } from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 type Tone = "primary" | "warning" | "success" | "neutral";
 const ORDER_BADGE: Record<Order["status"], { label: string; tone: Tone }> = {
-  awaiting_merchant: { label: "New - answer now", tone: "warning" },
-  awaiting_payment: { label: "Confirmed - awaiting payment", tone: "warning" },
-  preparing: { label: "Preparing", tone: "primary" },
-  completed: { label: "Completed", tone: "success" },
-  rejected: { label: "Rejected", tone: "neutral" },
-  expired: { label: "Missed / not paid", tone: "neutral" },
-  cancelled: { label: "Cancelled", tone: "neutral" },
+  awaiting_merchant: { get label() { return i18n.t("orders.new"); }, tone: "warning" },
+  awaiting_payment: { get label() { return i18n.t("orders.awaitingPay"); }, tone: "warning" },
+  preparing: { get label() { return i18n.t("orders.preparing"); }, tone: "primary" },
+  completed: { get label() { return i18n.t("orders.completed"); }, tone: "success" },
+  rejected: { get label() { return i18n.t("orders.rejected"); }, tone: "neutral" },
+  expired: { get label() { return i18n.t("orders.expired"); }, tone: "neutral" },
+  cancelled: { get label() { return i18n.t("orders.cancelled"); }, tone: "neutral" },
 };
 const ITEM_BADGE: Record<OrderItem["status"], { label: string; tone: Tone }> = {
-  preparing: { label: "Preparing", tone: "primary" },
-  ready: { label: "Ready - waiting for customer", tone: "success" },
-  collected: { label: "Collected", tone: "success" },
-  handed_over: { label: "With rider", tone: "primary" },
-  delivered: { label: "Delivered", tone: "success" },
-  out_of_stock: { label: "Out of stock", tone: "warning" },
-  cancelled: { label: "Cancelled", tone: "neutral" },
+  preparing: { get label() { return i18n.t("orders.preparing"); }, tone: "primary" },
+  ready: { get label() { return i18n.t("orders.ready"); }, tone: "success" },
+  collected: { get label() { return i18n.t("orders.collected"); }, tone: "success" },
+  handed_over: { get label() { return i18n.t("orders.withRider"); }, tone: "primary" },
+  delivered: { get label() { return i18n.t("orders.delivered"); }, tone: "success" },
+  out_of_stock: { get label() { return i18n.t("orders.outOfStock"); }, tone: "warning" },
+  cancelled: { get label() { return i18n.t("orders.cancelled"); }, tone: "neutral" },
 };
 
 function Timer({ deadline }: { deadline: number }) {
   const s = useCountdown(deadline);
-  return <Text style={styles.timer}><Ionicons name="timer-outline" size={14} /> {mmss(s)} to confirm</Text>;
+  return <Text style={styles.timer}><Ionicons name="timer-outline" size={14} /> {i18n.t("orders.toConfirm", { time: mmss(s) })}</Text>;
 }
 
 function PayTimer({ deadline }: { deadline: number }) {
   const s = useCountdown(deadline);
-  return <Text style={styles.timer}><Ionicons name="card-outline" size={14} /> Waiting for the customer to pay · {mmss(s)} left</Text>;
+  return <Text style={styles.timer}><Ionicons name="card-outline" size={14} /> {i18n.t("orders.waitPay", { time: mmss(s) })}</Text>;
 }
 
 function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [buzzed, setBuzzed] = useState("");
@@ -65,7 +68,7 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
   }
 
   async function outOfStock(i: OrderItem) {
-    const ok = await confirmAsync("Mark out of stock?", `${i.name} will be marked sold out and the customer will be asked to continue without it or cancel for a full refund.`, "Mark out of stock");
+    const ok = await confirmAsync(t("orders.oosTitle"), t("orders.oosBody", { name: i.name }), t("orders.oosOk"));
     if (ok) act(() => api("POST", `/merchant/orders/${order.id}/items/${i.id}/out-of-stock`));
   }
 
@@ -75,12 +78,12 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
         <Text style={type.h3}>#{order.id}</Text>
         <Badge label={b.label} tone={b.tone} />
       </View>
-      <Text style={type.bodyMuted}>{order.customerName} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+      <Text style={type.bodyMuted}>{order.customerName} · {new Date(order.createdAt).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}</Text>
       {/* Feature 2 (Nathan): customer tapped "I'm 5 min away" */}
       <ArrivingBadge arrivingAt={order.arrivingAt} active={order.status === "awaiting_payment" || order.status === "preparing"} />
       {order.status === "awaiting_merchant" && <Timer deadline={order.respondBy} />}
       {order.status === "awaiting_payment" && order.payBy && <PayTimer deadline={order.payBy} />}
-      {order.decision === "pending" && <Text style={styles.warn}>Waiting for the customer to decide about the out-of-stock item…</Text>}
+      {order.decision === "pending" && <Text style={styles.warn}>{t("orders.waitDecision")}</Text>}
 
       {modes.map((m) => (
         <View key={m} style={styles.group}>
@@ -88,7 +91,7 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
             <Text style={styles.groupHead}>{MODE_LABEL[m]}</Text>
             {order.status === "preparing" && m !== "delivery" && order.items.some((i) => i.mode === m && i.status === "preparing") && (
               <Pressable style={styles.smallBtn} disabled={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/ready`, { mode: m }))} testID={`ready-${m}`}>
-                <Text style={styles.smallBtnText}>Mark {MODE_LABEL[m].toLowerCase()} ready</Text>
+                <Text style={styles.smallBtnText}>{t("orders.markReady", { mode: MODE_LABEL[m].toLowerCase() })}</Text>
               </Pressable>
             )}
             {/* Sprint 3 pickup buzzer: ring the customer's phone again if they have not come to collect */}
@@ -96,17 +99,17 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
               <Pressable
                 style={[styles.smallBtn, styles.buzzBtn]}
                 disabled={busy}
-                onPress={() => act(async () => { const r = await api<{ buzzCount: number }>("POST", `/merchant/orders/${order.id}/buzz`, { mode: m }); setBuzzed(`Buzzed ${r.buzzCount}x`); })}
-                accessibilityLabel={`Buzz the customer's phone again for the ${MODE_LABEL[m].toLowerCase()} food`}
+                onPress={() => act(async () => { const r = await api<{ buzzCount: number }>("POST", `/merchant/orders/${order.id}/buzz`, { mode: m }); setBuzzed(t("orders.buzzed", { n: r.buzzCount })); })}
+                accessibilityLabel={t("orders.buzzA11y", { mode: MODE_LABEL[m].toLowerCase() })}
                 testID={`buzz-${m}`}
               >
                 <Ionicons name="notifications" size={13} color={colors.ink} />
-                <Text style={[styles.smallBtnText, { color: colors.ink }]}>{buzzed || "Buzz again"}</Text>
+                <Text style={[styles.smallBtnText, { color: colors.ink }]}>{buzzed || t("orders.buzzAgain")}</Text>
               </Pressable>
             )}
             {order.status === "preparing" && m === "delivery" && order.items.some((i) => i.mode === m && i.status === "preparing") && (
               <Pressable style={styles.smallBtn} disabled={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/handover`))} testID="handover">
-                <Text style={styles.smallBtnText}>Hand over to rider</Text>
+                <Text style={styles.smallBtnText}>{t("orders.handover")}</Text>
               </Pressable>
             )}
           </View>
@@ -121,36 +124,36 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
                 <Badge label={ib.label} tone={ib.tone} />
                 {order.status === "preparing" && i.status === "preparing" && (
                   <Pressable onPress={() => outOfStock(i)} disabled={busy} style={styles.oosBtn} testID={`oos-${i.id}`}>
-                    <Text style={styles.oosText}>Out of stock</Text>
+                    <Text style={styles.oosText}>{t("orders.outOfStock")}</Text>
                   </Pressable>
                 )}
               </View>
             );
           })}
-          {m === "delivery" && order.deliveryAddress && <Text style={type.small}>To: {order.deliveryAddress.line}</Text>}
+          {m === "delivery" && order.deliveryAddress && <Text style={type.small}>{t("orders.to", { line: order.deliveryAddress.line })}</Text>}
         </View>
       ))}
 
       <View style={styles.rowBetween}>
         <Text style={type.h3}>RM {order.total.toFixed(2)}</Text>
-        {order.refunded > 0 && <Text style={type.small}>{order.paymentMethod === "cash" ? "Deducted" : "Refunded"} RM {order.refunded.toFixed(2)}</Text>}
+        {order.refunded > 0 && <Text style={type.small}>{order.paymentMethod === "cash" ? t("orders.deducted", { amount: order.refunded.toFixed(2) }) : t("orders.refunded", { amount: order.refunded.toFixed(2) })}</Text>}
       </View>
 
       {order.paymentMethod && (
         <Text style={type.small} testID="pay-method">
-          {order.paymentMethod === "card" ? "Paid by card" : order.paymentMethod === "fpx" ? "Paid by FPX" : order.cashReceivedAt ? "Cash received" : `Cash order: collect RM ${(order.cashDue ?? order.total).toFixed(2)} at the stall`}
+          {order.paymentMethod === "card" ? t("orders.paidCard") : order.paymentMethod === "fpx" ? t("orders.paidFpx") : order.cashReceivedAt ? t("orders.cashReceived") : t("orders.cashCollect", { amount: (order.cashDue ?? order.total).toFixed(2) })}
         </Text>
       )}
       {order.paymentMethod === "cash" && !order.cashReceivedAt && ["preparing", "completed"].includes(order.status) && (
-        <PrimaryButton label={`Cash received (RM ${(order.cashDue ?? order.total).toFixed(2)})`} variant="success" loading={busy} testID="cash-received" onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/cash-received`))} />
+        <PrimaryButton label={t("orders.cashReceivedBtn", { amount: (order.cashDue ?? order.total).toFixed(2) })} variant="success" loading={busy} testID="cash-received" onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/cash-received`))} />
       )}
 
       {["awaiting_merchant", "awaiting_payment", "preparing"].includes(order.status) && <ChatButtons kind="order" id={order.id} allowCall />}
 
       {order.status === "awaiting_merchant" && (
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
-          <PrimaryButton label="Reject" variant="danger" style={{ flex: 1 }} disabled={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: false }))} />
-          <PrimaryButton label="Confirm" variant="success" style={{ flex: 2 }} loading={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: true }))} />
+          <PrimaryButton label={t("orders.reject")} variant="danger" style={{ flex: 1 }} disabled={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: false }))} />
+          <PrimaryButton label={t("orders.confirm")} variant="success" style={{ flex: 2 }} loading={busy} onPress={() => act(() => api("POST", `/merchant/orders/${order.id}/respond`, { accept: true }))} />
         </View>
       )}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -160,17 +163,18 @@ function OrderCard({ order, onChange }: { order: Order; onChange: () => void }) 
 
 export default function MerchantOrderQueueScreen() {
   const { orders, refresh } = useLive();
+  const { t: tr } = useTranslation();
   const [tab, setTab] = useState<"active" | "done">("active");
   const active = orders.filter((o) => o.status === "awaiting_merchant" || o.status === "awaiting_payment" || o.status === "preparing");
   const shown = tab === "active" ? active : orders.filter((o) => !active.includes(o));
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Incoming orders" subtitle={`${active.length} active`} />
+      <ScreenHeader title={tr("drawer.orders")} subtitle={tr("orders.activeCount", { n: active.length })} />
       <View style={styles.seg}>
         {(["active", "done"] as const).map((t) => (
           <Pressable key={t} style={[styles.segBtn, tab === t && styles.segOn]} onPress={() => setTab(t)}>
-            <Text style={[styles.segText, tab === t && { color: colors.white }]}>{t === "active" ? "Active" : "History"}</Text>
+            <Text style={[styles.segText, tab === t && { color: colors.white }]}>{t === "active" ? tr("orders.active") : tr("orders.history")}</Text>
           </Pressable>
         ))}
       </View>
@@ -178,7 +182,7 @@ export default function MerchantOrderQueueScreen() {
         data={shown}
         keyExtractor={(o) => o.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={<EmptyState icon="receipt-outline" title={tab === "active" ? "No active orders" : "No past orders yet"} hint={tab === "active" ? "New order requests pop up here automatically, with an alert sound." : "Completed orders will be listed here."} />}
+        ListEmptyComponent={<EmptyState icon="receipt-outline" title={tab === "active" ? tr("orders.noActive") : tr("orders.noPast")} hint={tab === "active" ? tr("orders.noActiveHint") : tr("orders.noPastHint")} />}
         renderItem={({ item }) => <OrderCard order={item} onChange={refresh} />}
       />
     </View>

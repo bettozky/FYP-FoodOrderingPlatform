@@ -1,9 +1,14 @@
 import { serverTime } from "../../shared/api/client";
 import { Order } from "../../shared/api/types";
 import { useLive } from "./LiveDataContext";
+import i18n from "i18next";
 
 export type PayMethod = "card" | "fpx" | "cash";
-export const METHOD_LABEL: Record<PayMethod, string> = { card: "Card", fpx: "FPX online banking", cash: "Cash at the stall" };
+export const METHOD_LABEL: Record<PayMethod, string> = {
+  get card() { return i18n.t("pay.card"); },
+  get fpx() { return i18n.t("pay.fpx"); },
+  get cash() { return i18n.t("pay.cash"); },
+};
 
 /** Orders the stall has confirmed that are still waiting for the customer to pay, soonest deadline first. */
 export function usePayableOrders(): Order[] {

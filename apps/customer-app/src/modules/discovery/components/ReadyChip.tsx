@@ -3,10 +3,11 @@ import { StyleSheet, Text, View } from "react-native";
 import type { Merchant } from "../../../shared/api/types";
 import { BUSY_STYLE, busyOf, waitOf } from "../canteenMap";
 import { fonts } from "../../../shared/theme/theme";
+import i18n from "../../../shared/i18n";
 
 // Feature 2: "Ready in 8 min" for a stall, coloured like the canteen map (green / amber / red / grey).
 // "chip" for info rows (Stall menu, Dish detail); "text" for small inline meta lines (cards).
-export const readyText = (m: Merchant) => (m.openNow ? `Ready in ${waitOf(m)} min` : `Opens ${m.hours.open}`);
+export const readyText = (m: Merchant) => (m.openNow ? i18n.t("stall.readyIn", { min: waitOf(m) }) : i18n.t("stall.opensAt", { time: m.hours.open }));
 
 export default function ReadyChip({ merchant, variant = "chip" }: { merchant: Merchant; variant?: "chip" | "text" }) {
   const s = BUSY_STYLE[busyOf(merchant)];

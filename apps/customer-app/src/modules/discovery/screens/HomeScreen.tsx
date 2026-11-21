@@ -26,6 +26,8 @@ import { colors, radius, spacing, type, fonts, shadow, ui } from "../../../share
 import PressableScale from "../../../shared/motion/PressableScale";
 import FadeInView from "../../../shared/motion/FadeInView";
 import { DishRowSkeleton, DishTileSkeleton } from "../../../shared/motion/Skeleton";
+import { useTranslation } from "react-i18next";
+import { venueName } from "../../../shared/i18n/labels";
 
 // Home, from Badrul's mock-up (Oct 2026):
 // "Deliver to" + cart → "Hi <name>, what are you craving?" → search + filter button
@@ -38,6 +40,7 @@ type Row = { kind: "stall"; merchant: Merchant } | { kind: "dish"; dish: Dish };
 
 export default function HomeScreen({ navigation }: any) {
   const { name } = useAuth();
+  const { t } = useTranslation();
   const { addToCart, itemCount } = useCart();
   const { merchants, merchantById, addresses, address, setAddress, loadError } = useCatalog();
   const liveOn = address.label === "My location";
@@ -146,7 +149,7 @@ export default function HomeScreen({ navigation }: any) {
   const rows: Row[] = gridMode ? results.map((dish) => ({ kind: "dish", dish })) : stalls.map((merchant) => ({ kind: "stall", merchant }));
   const toggleDiet = (k: string) => setDiet((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const clearFilters = () => { setCategory("All"); setDiet([]); setStyle(""); };
-  const firstName = (name || "there").split(" ")[0];
+  const firstName = (name || t("home.there")).split(" ")[0];
   const hasMap = !!navigation.getState?.()?.routeNames?.includes("CanteenMap");
 
   function browseStalls() {
@@ -166,21 +169,21 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   const venueItems = venues.slice(0, 4).map((v): GridItem => ({
-    key: `venue-${v}`, label: v === "Aesthetic Cafe" ? "Cafe" : v, ...lookFor(v), hot: v === "Trending", selected: venue === v, onPress: () => setVenue(venue === v ? "" : v),
+    key: `venue-${v}`, ...lookFor(v), label: venueName(v), hot: v === "Trending", selected: venue === v, onPress: () => setVenue(venue === v ? "" : v),
   }));
   const halalItem: GridItem | null = merchants.some(isHalal)
-    ? { key: "halal", label: "Halal", kind: "halal", badge: "NEW", hint: "Halal-friendly stalls", selected: halalOnly, onPress: () => setHalalOnly((on) => !on) }
+    ? { key: "halal", label: t("home.halal"), kind: "halal", badge: t("home.new"), hint: t("home.halalHint"), selected: halalOnly, onPress: () => setHalalOnly((on) => !on) }
     : null;
   const gridItems: GridItem[] = [
     ...venueItems.slice(0, 1),
     ...(halalItem ? [halalItem] : []),
     ...venueItems.slice(1),
     // "Live map" appears once the Live Canteen Map branch is merged (route "CanteenMap"); "Jobs" is always there.
-    ...(hasMap ? [{ key: "map", label: "Live map", kind: "map", onPress: () => navigation.navigate("CanteenMap") } as GridItem] : []),
+    ...(hasMap ? [{ key: "map", label: t("home.liveMapShort"), kind: "map", onPress: () => navigation.navigate("CanteenMap") } as GridItem] : []),
     ...categories.filter((c) => c !== "All").slice(0, 8).map((c): GridItem => ({ key: `cat-${c}`, label: c, ...lookFor(c), onPress: () => setCategory(c) })),
-    { key: "book", label: "Book table", kind: "book", onPress: () => navigation.navigate("MainTabs", { tab: "book", nonce: Date.now() }) },
-    { key: "jobs", label: "Jobs", kind: "jobs", onPress: () => navigation.navigate("Jobs") },
-    { key: "saved", label: "Saved", kind: "saved", onPress: () => navigation.navigate("Favourites") },
+    { key: "book", label: t("home.bookTable"), kind: "book", onPress: () => navigation.navigate("MainTabs", { tab: "book", nonce: Date.now() }) },
+    { key: "jobs", label: t("menu.jobs"), kind: "jobs", onPress: () => navigation.navigate("Jobs") },
+    { key: "saved", label: t("home.saved"), kind: "saved", onPress: () => navigation.navigate("Favourites") },
   ];
 
   const header = (
@@ -188,20 +191,20 @@ export default function HomeScreen({ navigation }: any) {
       <HazeBackground />
       <View style={[styles.topRow, { paddingTop: insets.top + spacing.md }]}>
         <MenuButton badge={unread} />
-        <Pressable style={styles.addr} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={`Deliver to ${address.line}. Change`}>
+        <Pressable style={styles.addr} onPress={() => setPickAddress(true)} testID="address-row" accessibilityRole="button" accessibilityLabel={t("home.deliverToLabel", { address: address.line })}>
           <View style={styles.addrIcon}>
             <Ionicons name="location-outline" size={16} color={colors.amberText} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={styles.addrLabel}>Deliver to</Text>
-              {liveOn ? <View style={styles.liveChip}><View style={styles.liveDotSm} /><Text style={styles.liveChipText}>Live</Text></View> : null}
+              <Text style={styles.addrLabel}>{t("home.deliverTo")}</Text>
+              {liveOn ? <View style={styles.liveChip}><View style={styles.liveDotSm} /><Text style={styles.liveChipText}>{t("home.live")}</Text></View> : null}
             </View>
             <Text style={styles.addrText} numberOfLines={1}>{address.line}</Text>
           </View>
         </Pressable>
         <Animated.View style={{ transform: [{ scale: cartScale }] }}>
-          <Pressable style={ui.iconButton} onPress={() => navigation.navigate("Cart")} testID="cart-pill" accessibilityRole="button" accessibilityLabel={itemCount ? `Cart, ${itemCount} items` : "Cart, empty"}>
+          <Pressable style={ui.iconButton} onPress={() => navigation.navigate("Cart")} testID="cart-pill" accessibilityRole="button" accessibilityLabel={itemCount ? t("home.cartLabel", { count: itemCount }) : t("home.cartEmpty")}>
             <Ionicons name="bag-handle-outline" size={18} color={colors.ink} />
             {itemCount > 0 ? (
               <View style={styles.cartBadge}>
@@ -219,8 +222,8 @@ export default function HomeScreen({ navigation }: any) {
           <Ionicons name="search" size={16} color={colors.stone} />
           <TextInput
             style={styles.searchInput}
-            accessibilityLabel="Search dishes or stalls"
-            placeholder="Search dishes or stalls"
+            accessibilityLabel={t("home.search")}
+            placeholder={t("home.search")}
             placeholderTextColor={colors.textFaint}
             value={query}
             onChangeText={setQuery}
@@ -228,12 +231,12 @@ export default function HomeScreen({ navigation }: any) {
             testID="search-input"
           />
           {query ? (
-            <Pressable onPress={() => setQuery("")} hitSlop={10} accessibilityRole="button" accessibilityLabel="Clear search">
+            <Pressable onPress={() => setQuery("")} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("home.clearSearch")}>
               <Ionicons name="close-circle" size={16} color={colors.stone} />
             </Pressable>
           ) : null}
         </View>
-        <Pressable style={styles.filterBtn} onPress={() => setFiltersOpen(true)} accessibilityRole="button" accessibilityLabel={filterCount ? `Filters, ${filterCount} on` : "Filters"} testID="filters-button">
+        <Pressable style={styles.filterBtn} onPress={() => setFiltersOpen(true)} accessibilityRole="button" accessibilityLabel={filterCount ? t("home.filtersOn", { count: filterCount }) : t("home.filters")} testID="filters-button">
           <Ionicons name="options-outline" size={19} color={colors.white} />
           {filterCount ? (
             <View style={styles.filterBadge}>
@@ -258,18 +261,18 @@ export default function HomeScreen({ navigation }: any) {
       {gridMode ? (
         <View style={styles.sectionRow}>
           <Text style={ui.sectionTitle} numberOfLines={1}>
-            {query.trim() ? `Results for "${query.trim()}"` : category !== "All" ? category : "All dishes"}
+            {query.trim() ? t("home.resultsFor", { query: query.trim() }) : category !== "All" ? category : t("home.allDishes")}
           </Text>
           <Pressable onPress={() => { setShowAll(false); setQuery(""); clearFilters(); }} hitSlop={8} accessibilityRole="button">
-            <Text style={ui.link}>Back to home</Text>
+            <Text style={ui.link}>{t("home.backHome")}</Text>
           </Pressable>
         </View>
       ) : (
         <>
           <View style={styles.sectionRow}>
-            <Text style={ui.sectionTitle}>Popular near you</Text>
+            <Text style={ui.sectionTitle}>{t("home.popular")}</Text>
             <Pressable onPress={() => setShowAll(true)} hitSlop={8} accessibilityRole="button" testID="see-all">
-              <Text style={ui.link}>See all</Text>
+              <Text style={ui.link}>{t("home.seeAll")}</Text>
             </Pressable>
           </View>
           {!menuLoaded ? (
@@ -283,11 +286,11 @@ export default function HomeScreen({ navigation }: any) {
               ))}
             </ScrollView>
           ) : (
-            <Text style={[type.bodyMuted, { paddingHorizontal: spacing.lg }]}>No stalls are open right now.</Text>
+            <Text style={[type.bodyMuted, { paddingHorizontal: spacing.lg }]}>{t("home.noneOpen")}</Text>
           )}
           <View style={styles.sectionRow}>
-            <Text style={ui.sectionTitle}>Stalls near you</Text>
-            <Text style={type.small}>{stalls.filter((m) => m.openNow).length} open now</Text>
+            <Text style={ui.sectionTitle}>{t("home.stallsNear")}</Text>
+            <Text style={type.small}>{t("home.openNowCount", { count: stalls.filter((m) => m.openNow).length })}</Text>
           </View>
         </>
       )}
@@ -309,13 +312,13 @@ export default function HomeScreen({ navigation }: any) {
         onScrollToIndexFailed={() => {}}
         ListEmptyComponent={
           gridMode ? (
-            <EmptyState icon="search-outline" title="No dishes match your search" hint="Try a different search or remove a filter." />
+            <EmptyState icon="search-outline" title={t("home.noMatch")} hint={t("home.noMatchHint")} />
           ) : merchants.length === 0 && !loadError ? (
             <View style={{ paddingHorizontal: spacing.lg }}>
               <DishRowSkeleton count={3} />
             </View>
           ) : (
-            <EmptyState icon="storefront-outline" title="No stalls here yet" hint={venue ? "Try another category." : "Stalls appear here once they are approved."} />
+            <EmptyState icon="storefront-outline" title={t("home.noStalls")} hint={venue ? t("home.tryAnother") : t("home.stallsAppear")} />
           )
         }
         renderItem={({ item, index }) => {
@@ -340,21 +343,21 @@ export default function HomeScreen({ navigation }: any) {
         <Pressable style={styles.sheetBackdrop} onPress={() => setFiltersOpen(false)}>
           <Pressable style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]} onPress={() => {}}>
             <View style={styles.sheetHandle} />
-            <Text style={type.h2}>Filters</Text>
+            <Text style={type.h2}>{t("home.filters")}</Text>
 
-            <Text style={styles.sheetLabel}>Category</Text>
+            <Text style={styles.sheetLabel}>{t("home.category")}</Text>
             <View style={styles.wrap}>
               {categories.map((c) => {
                 const on = c === category;
                 return (
                   <Pressable key={c} onPress={() => setCategory(c)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`category-${c}`}>
-                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{c}</Text>
+                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{c === "All" ? t("home.all") : c}</Text>
                   </Pressable>
                 );
               })}
             </View>
 
-            <Text style={styles.sheetLabel}>Diet</Text>
+            <Text style={styles.sheetLabel}>{t("home.diet")}</Text>
             <View style={styles.wrap}>
               {DIETARY_FILTERS.map((f) => {
                 const on = diet.includes(f.key);
@@ -367,13 +370,13 @@ export default function HomeScreen({ navigation }: any) {
               })}
             </View>
 
-            <Text style={styles.sheetLabel}>Dry or soup</Text>
+            <Text style={styles.sheetLabel}>{t("home.dryOrSoup")}</Text>
             <View style={styles.wrap}>
               {(["dry", "wet"] as const).map((s) => {
                 const on = style === s;
                 return (
                   <Pressable key={s} onPress={() => setStyle(on ? "" : s)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`filter-${s}`}>
-                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{s === "dry" ? "Dry" : "Wet / soup"}</Text>
+                    <Text style={[ui.chipText, on && ui.chipTextOn]}>{s === "dry" ? t("home.dry") : t("home.wet")}</Text>
                   </Pressable>
                 );
               })}
@@ -381,10 +384,10 @@ export default function HomeScreen({ navigation }: any) {
 
             <View style={styles.sheetButtons}>
               <Pressable style={[ui.buttonOutline, { flex: 1 }]} onPress={clearFilters} accessibilityRole="button">
-                <Text style={ui.buttonOutlineText}>Clear all</Text>
+                <Text style={ui.buttonOutlineText}>{t("home.clearAll")}</Text>
               </Pressable>
               <Pressable style={[ui.buttonAccent, { flex: 1, minHeight: 44 }]} onPress={() => setFiltersOpen(false)} accessibilityRole="button" testID="filters-done">
-                <Text style={ui.buttonAccentText}>Show {results.length} {results.length === 1 ? "dish" : "dishes"}</Text>
+                <Text style={ui.buttonAccentText}>{t("home.showDishes", { count: results.length })}</Text>
               </Pressable>
             </View>
           </Pressable>
@@ -396,13 +399,13 @@ export default function HomeScreen({ navigation }: any) {
       <Modal visible={pickAddress} transparent animationType="fade" onRequestClose={() => setPickAddress(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setPickAddress(false)}>
           <View style={styles.modalCard}>
-            <Text style={type.h2}>Deliver to</Text>
-            <Text style={[type.bodyMuted, { marginBottom: spacing.sm }]}>Distances to stalls are measured from here.</Text>
+            <Text style={type.h2}>{t("home.deliverTo")}</Text>
+            <Text style={[type.bodyMuted, { marginBottom: spacing.sm }]}>{t("home.distancesFrom")}</Text>
             <Pressable style={styles.mapPickBtn} onPress={() => { setPickAddress(false); setMapPickerOpen(true); }} accessibilityRole="button" testID="home-choose-on-map">
               <Ionicons name="map" size={16} color={colors.paper} />
-              <Text style={styles.mapPickText}>Add address</Text>
+              <Text style={styles.mapPickText}>{t("home.addAddress")}</Text>
             </Pressable>
-            {addresses.length === 0 ? <Text style={type.bodyMuted}>Loading places…</Text> : null}
+            {addresses.length === 0 ? <Text style={type.bodyMuted}>{t("home.loadingPlaces")}</Text> : null}
             {(address.pinned && !addresses.some((x) => x.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
               const on = a.line === address.line;
               return (

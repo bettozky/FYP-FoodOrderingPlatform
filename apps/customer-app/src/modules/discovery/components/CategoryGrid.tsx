@@ -6,6 +6,7 @@ import { colors, fonts, radius, spacing } from "../../../shared/theme/theme";
 import { useReducedMotion } from "../../../shared/motion/useReducedMotion";
 import CuteIcon, { type IconKind } from "./CuteIcons";
 import Flame from "./Flame";
+import i18n from "../../../shared/i18n";
 
 // Category panel on Home: cute flat food icons in two rows that you swipe sideways (the next column peeks in from the
 // right so people know there is more). Venues come from the stalls, food types from the dishes, plus shortcuts.
@@ -48,7 +49,7 @@ export default function CategoryGrid({ items }: { items: GridItem[] }) {
     setAtEnd(contentOffset.x + layoutMeasurement.width >= contentSize.width - 8);
   };
   return (
-    <View style={styles.wrap} accessibilityLabel="Categories. Swipe sideways for more.">
+    <View style={styles.wrap} accessibilityLabel={i18n.t("home.categoriesLabel")}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

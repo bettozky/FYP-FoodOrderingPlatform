@@ -5,6 +5,7 @@ import { Order } from "../../shared/api/types";
 import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
 import PulseRing, { PopOnChange } from "../../shared/motion/PulseRing";
 import FadeInView from "../../shared/motion/FadeInView";
+import i18n, { locale } from "../../shared/i18n";
 
 // A vertical "where is my order?" timeline (inspired by the wireframes' Order Progress screen).
 // Every step is DERIVED from fields the order already has, so nothing here is invented.
@@ -24,12 +25,12 @@ export function progressSteps(o: Order): Step[] | null {
   const allAhead = items.length > 0 && items.every((i) => LIVE_ITEM.includes(i.status));
 
   const flags: { label: string; done: boolean; time?: number }[] = [
-    { label: "Request sent", done: true, time: o.createdAt },
-    { label: "Restaurant confirmed", done: o.status !== "awaiting_merchant" },
-    { label: o.paymentMethod === "cash" ? "Confirmed, pay at the stall" : "Payment received", done: o.status === "preparing" || completed, time: o.paidAt },
-    { label: "Preparing your food", done: anyAhead || completed },
-    { label: "Ready or on the way", done: allAhead || completed },
-    { label: "Completed", done: completed },
+    { label: i18n.t("progress.sent"), done: true, time: o.createdAt },
+    { label: i18n.t("progress.confirmed"), done: o.status !== "awaiting_merchant" },
+    { label: o.paymentMethod === "cash" ? i18n.t("progress.cash") : i18n.t("progress.paid"), done: o.status === "preparing" || completed, time: o.paidAt },
+    { label: i18n.t("progress.preparing"), done: anyAhead || completed },
+    { label: i18n.t("progress.ready"), done: allAhead || completed },
+    { label: i18n.t("status.completed"), done: completed },
   ];
 
   let currentTaken = false;
@@ -43,7 +44,7 @@ export function progressSteps(o: Order): Step[] | null {
   });
 }
 
-const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const clock = (t: number) => new Date(t).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
 const STATE_TEXT: Record<StepState, string> = { done: "done", current: "in progress", todo: "not yet" };
 
 export default function OrderProgress({ order }: { order: Order }) {
@@ -70,7 +71,7 @@ export default function OrderProgress({ order }: { order: Order }) {
           </View>
           <FadeInView index={i} style={styles.body}>
             <Text style={[styles.label, s.state === "todo" && { color: colors.stoneText, fontFamily: fonts.serifMedium }]}>{s.label}</Text>
-            {s.state === "current" && <Text style={type.small}>In progress</Text>}
+            {s.state === "current" && <Text style={type.small}>{i18n.t("progress.inProgress")}</Text>}
             {s.time ? <Text style={type.small}>{clock(s.time)}</Text> : null}
           </FadeInView>
         </View>

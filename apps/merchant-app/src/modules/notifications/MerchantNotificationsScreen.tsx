@@ -7,14 +7,17 @@ import ScreenHeader from "../../shared/components/ScreenHeader";
 import { api, errorText } from "../../shared/api/client";
 import { isInboxType } from "./inbox";
 import { colors, radius, spacing, type } from "../../shared/theme/theme";
+import { locale } from "../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 type N = { id: string; type: string; title: string; body: string; data?: Record<string, any>; createdAt: number; ackedAt?: number };
 
 const iconFor = (t: string): keyof typeof Ionicons.glyphMap => (t.includes("application") ? "people" : t.includes("review") ? "star" : t.includes("announcement") ? "megaphone" : "notifications");
-const when = (t: number) => new Date(t).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const when = (t: number) => new Date(t).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 // Everything the shop was told: new applicants, reviews, admin notices. Tapping one marks it read and opens the related page.
 export default function MerchantNotificationsScreen({ navigation }: any) {
+  const { t: tr } = useTranslation();
   const [list, setList] = useState<N[] | null>(null);
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -41,8 +44,8 @@ export default function MerchantNotificationsScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Notifications" subtitle={unread ? `${unread} unread` : "All caught up"} />
-      {unread ? <Pressable onPress={readAll} style={styles.readAll} accessibilityRole="button" testID="read-all"><Text style={styles.readAllText}>Mark all as read</Text></Pressable> : null}
+      <ScreenHeader title={tr("drawer.notifications")} subtitle={unread ? tr("notif.unread", { n: unread }) : tr("notif.caughtUp")} />
+      {unread ? <Pressable onPress={readAll} style={styles.readAll} accessibilityRole="button" testID="read-all"><Text style={styles.readAllText}>{tr("notif.readAll")}</Text></Pressable> : null}
       {error ? <Text style={{ color: colors.chiliText, padding: spacing.lg }}>{error}</Text> : null}
       {!list && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
@@ -50,7 +53,7 @@ export default function MerchantNotificationsScreen({ navigation }: any) {
           keyExtractor={(n) => n.id}
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl * 2 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
-          ListEmptyComponent={<EmptyState icon="notifications-outline" title="Nothing yet" hint="New applicants, reviews and notices from ScootMeal will show up here." />}
+          ListEmptyComponent={<EmptyState icon="notifications-outline" title={tr("notif.empty")} hint={tr("notif.emptyHint")} />}
           renderItem={({ item: n }) => (
             <Pressable onPress={() => open(n)} style={[styles.card, !n.ackedAt && styles.unread]} accessibilityRole="button" accessibilityLabel={`${n.title}. ${n.body}`}>
               <Ionicons name={iconFor(n.type)} size={20} color={colors.ink} />

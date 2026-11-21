@@ -4,9 +4,11 @@ import { Ionicons } from "@expo/vector-icons";
 import type { Merchant } from "../../../shared/api/types";
 import { BUSY_STYLE, busySummary } from "../canteenMap";
 import { colors, fonts, radius, spacing, ui } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
 
 // Home entry to the Live Canteen Map: "Live canteen map · 3 quiet · 1 busy". Opens CanteenMapScreen.
 export default function CanteenMapCard({ merchants, onPress }: { merchants: Merchant[]; onPress: () => void }) {
+  const { t } = useTranslation();
   const summary = busySummary(merchants);
   if (!merchants.length) return null;
   return (
@@ -14,7 +16,7 @@ export default function CanteenMapCard({ merchants, onPress }: { merchants: Merc
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}
       accessibilityRole="button"
-      accessibilityLabel={`Live canteen map. ${summary.map((s) => `${s.count} ${BUSY_STYLE[s.level].label.toLowerCase()}`).join(", ")}`}
+      accessibilityLabel={`${t("home.liveMap")}. ${summary.map((s) => `${s.count} ${BUSY_STYLE[s.level].label.toLowerCase()}`).join(", ")}`}
       testID="canteen-map-card"
     >
       <View style={styles.icon}>
@@ -22,10 +24,10 @@ export default function CanteenMapCard({ merchants, onPress }: { merchants: Merc
       </View>
       <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Live canteen map</Text>
+          <Text style={styles.title}>{t("home.liveMap")}</Text>
           <View style={styles.live}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>LIVE</Text>
+            <Text style={styles.liveText}>{t("home.liveBadge")}</Text>
           </View>
         </View>
         <View style={styles.counts}>

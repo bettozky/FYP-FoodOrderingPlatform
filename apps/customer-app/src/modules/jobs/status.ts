@@ -1,24 +1,41 @@
+import i18n from "i18next";
 import type { ApplicationStatus } from "../../shared/api/types";
+import { locale } from "../../shared/i18n";
 
+// Labels are read in the app's current language each time (i18n getters).
 export const STATUS_LABEL: Record<ApplicationStatus, string> = {
-  submitted: "Sent", viewed: "Seen by shop", shortlisted: "Shortlisted", interview: "Interview", hired: "Hired", rejected: "Not successful", withdrawn: "Withdrawn",
+  get submitted() { return i18n.t("jobs.stSubmitted"); },
+  get viewed() { return i18n.t("jobs.stViewed"); },
+  get shortlisted() { return i18n.t("jobs.stShortlisted"); },
+  get interview() { return i18n.t("jobs.stInterview"); },
+  get hired() { return i18n.t("jobs.stHired"); },
+  get rejected() { return i18n.t("jobs.stRejected"); },
+  get withdrawn() { return i18n.t("jobs.stWithdrawn"); },
 };
 export const STATUS_TONE: Record<ApplicationStatus, "primary" | "success" | "warning" | "danger" | "neutral"> = {
   submitted: "neutral", viewed: "primary", shortlisted: "warning", interview: "warning", hired: "success", rejected: "danger", withdrawn: "neutral",
 };
 export const STATUS_HELP: Record<ApplicationStatus, string> = {
-  submitted: "Your application was sent. The shop has not opened it yet.",
-  viewed: "The shop has opened your application.",
-  shortlisted: "Good news: the shop shortlisted you.",
-  interview: "The shop would like to meet you.",
-  hired: "Congratulations! You got the job.",
-  rejected: "The shop chose other candidates this time. Keep trying!",
-  withdrawn: "You withdrew this application.",
+  get submitted() { return i18n.t("jobs.helpSubmitted"); },
+  get viewed() { return i18n.t("jobs.helpViewed"); },
+  get shortlisted() { return i18n.t("jobs.helpShortlisted"); },
+  get interview() { return i18n.t("jobs.helpInterview"); },
+  get hired() { return i18n.t("jobs.helpHired"); },
+  get rejected() { return i18n.t("jobs.helpRejected"); },
+  get withdrawn() { return i18n.t("jobs.helpWithdrawn"); },
 };
-export const DAY_LABEL: Record<string, string> = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
+export const DAY_LABEL: Record<string, string> = {
+  get mon() { return i18n.t("spending.mon"); },
+  get tue() { return i18n.t("spending.tue"); },
+  get wed() { return i18n.t("spending.wed"); },
+  get thu() { return i18n.t("spending.thu"); },
+  get fri() { return i18n.t("spending.fri"); },
+  get sat() { return i18n.t("spending.sat"); },
+  get sun() { return i18n.t("spending.sun"); },
+};
 export const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
-export const fmtDate = (ts: number) => new Date(ts).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+export const fmtDate = (ts: number) => new Date(ts).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
 export const fmtWhen = (iso: string) => {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso.replace("T", " ") : d.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return Number.isNaN(d.getTime()) ? iso.replace("T", " ") : d.toLocaleString(locale(), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 };

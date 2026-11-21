@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { View, Text, FlatList, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useLoyalty } from "../useLoyalty";
 import { api } from "../../../shared/api/client";
 import { Voucher } from "../../../shared/api/types";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
+import { tierName } from "../../../shared/i18n/labels";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 
 export default function LoyaltyScreen() {
+  const { t } = useTranslation();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   useEffect(() => {
     // Vouchers this customer has already used go to the bottom, faded and marked "Used".
@@ -19,7 +22,7 @@ export default function LoyaltyScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Loyalty & vouchers" />
+      <ScreenHeader title={t("menu.loyalty")} />
 
       <FlatList
         data={vouchers}
@@ -27,13 +30,13 @@ export default function LoyaltyScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.pointsCard}>
-            <Text style={styles.pointsLabel}>{loyalty.tier} member</Text>
-            <Text style={styles.points}>{loyalty.points} pts</Text>
+            <Text style={styles.pointsLabel}>{t("loyalty.member", { tier: tierName(loyalty.tier) })}</Text>
+            <Text style={styles.points}>{t("loyalty.pts", { points: loyalty.points })}</Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
             </View>
             <Text style={styles.progressHint}>
-              {loyalty.nextTier ? `${loyalty.toNext} pts to ${loyalty.nextTier}` : "Top tier reached"} · 1 pt for every RM 1 on completed orders
+              {loyalty.nextTier ? t("loyalty.toNext", { points: loyalty.toNext, tier: tierName(loyalty.nextTier) }) : t("loyalty.top")} · {t("loyalty.rule")}
             </Text>
           </View>
         }
@@ -42,10 +45,10 @@ export default function LoyaltyScreen() {
             <View style={{ flex: 1 }}>
               <Text style={type.h3}>{item.title}</Text>
               <Text style={type.bodyMuted}>{item.description}</Text>
-              <Text style={type.small}>{item.minSpend ? `Min spend RM ${item.minSpend}` : "No minimum spend"}</Text>
+              <Text style={type.small}>{item.minSpend ? t("loyalty.minSpend", { amount: item.minSpend }) : t("loyalty.noMin")}</Text>
             </View>
             <View style={[styles.redeemBtn, item.used && styles.redeemBtnDisabled]}>
-              <Text style={styles.redeemBtnText}>{item.used ? "Used" : "Apply at checkout"}</Text>
+              <Text style={styles.redeemBtnText}>{item.used ? t("checkout.used") : t("loyalty.applyAtCheckout")}</Text>
             </View>
           </View>
         )}

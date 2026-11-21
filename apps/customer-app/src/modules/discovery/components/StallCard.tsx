@@ -6,16 +6,18 @@ import { colors, fonts, spacing, ui } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
 import ReadyChip from "./ReadyChip";
+import { useTranslation } from "react-i18next";
 
 // Stall row for the "Stalls near you" list on Home ("Browse stalls" scrolls here). Opens the stall menu.
 export default function StallCard({ merchant, image, onPress }: { merchant: Merchant; image?: string; onPress: () => void }) {
+  const { t } = useTranslation();
   return (
     <PressableScale
       scaleTo={0.98}
       onPress={onPress}
       style={styles.card}
       accessibilityRole="button"
-      accessibilityLabel={`${merchant.name}, ${merchant.stallNo}, rated ${merchant.rating}, ${merchant.openNow ? "open" : "closed"}`}
+      accessibilityLabel={`${merchant.name}, ${merchant.stallNo}, ${t("stall.rated", { rating: merchant.rating })}, ${merchant.openNow ? t("stall.open") : t("stall.closed")}`}
       testID={`stall-${merchant.id}`}
     >
       <DishImage image={merchant.logo || image} size={60} tint={softTint(merchant.color)} />
@@ -23,7 +25,7 @@ export default function StallCard({ merchant, image, onPress }: { merchant: Merc
         <View style={styles.titleRow}>
           <Text style={styles.name} numberOfLines={1}>{merchant.name}</Text>
           <View style={[styles.pill, { backgroundColor: merchant.openNow ? colors.herbLight : colors.chiliSoft }]}>
-            <Text style={[styles.pillText, { color: merchant.openNow ? colors.herb : colors.chiliText }]}>{merchant.openNow ? "Open" : "Closed"}</Text>
+            <Text style={[styles.pillText, { color: merchant.openNow ? colors.herb : colors.chiliText }]}>{merchant.openNow ? t("stall.open") : t("stall.closed")}</Text>
           </View>
         </View>
         <Text style={styles.sub} numberOfLines={1}>{merchant.stallNo}{merchant.tags.length ? ` · ${merchant.tags.join(" · ")}` : ""}</Text>

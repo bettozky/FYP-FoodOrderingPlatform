@@ -8,6 +8,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../../shared/api/client";
 import { colors, fonts, radius, shadow, spacing } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
 
 type BusyMode = { on: boolean; limitMinutes: number; action: "warn" | "pause" };
 type BusyReply = { busyMode: BusyMode; waitMinutes: number; queue: number; ordersPaused: boolean; longWaitWarning: boolean };
@@ -15,6 +16,7 @@ type BusyReply = { busyMode: BusyMode; waitMinutes: number; queue: number; order
 const LIMITS = [15, 20, 30, 45];
 
 export default function BusyModeCard() {
+  const { t } = useTranslation();
   const [data, setData] = useState<BusyReply | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -52,16 +54,16 @@ export default function BusyModeCard() {
       <View style={styles.head}>
         <Ionicons name="flame" size={20} color={over && mode.on ? colors.chili : colors.turmeric} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Busy mode</Text>
-          <Text style={styles.hint}>Protect your kitchen during the lunch rush</Text>
+          <Text style={styles.title}>{t("busy.title")}</Text>
+          <Text style={styles.hint}>{t("busy.intro")}</Text>
         </View>
-        <Switch value={mode.on} onValueChange={(on) => save({ on })} disabled={saving} trackColor={{ true: colors.herb, false: colors.stoneLine }} accessibilityLabel="Busy mode" testID="busy-mode-switch" />
+        <Switch value={mode.on} onValueChange={(on) => save({ on })} disabled={saving} trackColor={{ true: colors.herb, false: colors.stoneLine }} accessibilityLabel={t("busy.title")} testID="busy-mode-switch" />
       </View>
 
       {/* live wait against the limit */}
       <View style={styles.liveRow}>
-        <Text style={styles.liveBig}>{waitMinutes} min</Text>
-        <Text style={styles.hint}>wait now · {queue} order{queue === 1 ? "" : "s"} in the queue{mode.on ? ` · limit ${mode.limitMinutes} min` : ""}</Text>
+        <Text style={styles.liveBig}>{t("busy.min", { n: waitMinutes })}</Text>
+        <Text style={styles.hint}>{t("busy.waitNow", { count: queue })}{mode.on ? ` · ${t("busy.limit", { n: mode.limitMinutes })}` : ""}</Text>
       </View>
       <View style={styles.track} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: percent }}>
         <View style={[styles.fill, { width: `${percent}%` as `${number}%`, backgroundColor: barColour }]} />
@@ -69,11 +71,11 @@ export default function BusyModeCard() {
 
       {mode.on ? (
         <>
-          <Text style={styles.label}>When the wait goes over</Text>
+          <Text style={styles.label}>{t("busy.whenOver")}</Text>
           <View style={styles.chips}>
             {LIMITS.map((l) => (
               <Pressable key={l} onPress={() => save({ limitMinutes: l })} style={[styles.chip, mode.limitMinutes === l && styles.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: mode.limitMinutes === l }} testID={`busy-limit-${l}`}>
-                <Text style={[styles.chipText, mode.limitMinutes === l && styles.chipTextOn]}>{l} min</Text>
+                <Text style={[styles.chipText, mode.limitMinutes === l && styles.chipTextOn]}>{t("busy.min", { n: l })}</Text>
               </Pressable>
             ))}
           </View>
@@ -83,8 +85,8 @@ export default function BusyModeCard() {
               return (
                 <Pressable key={a} onPress={() => save({ action: a })} style={[styles.action, on && styles.actionOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`busy-action-${a}`}>
                   <Ionicons name={a === "warn" ? "alert-circle-outline" : "pause-circle-outline"} size={18} color={on ? colors.ink : colors.stone} />
-                  <Text style={[styles.actionTitle, !on && { color: colors.stone }]}>{a === "warn" ? "Warn customers" : "Pause new orders"}</Text>
-                  <Text style={styles.actionHint}>{a === "warn" ? "They must accept the long wait" : "Back on by itself when it's quieter"}</Text>
+                  <Text style={[styles.actionTitle, !on && { color: colors.stone }]}>{a === "warn" ? t("busy.warn") : t("busy.pause")}</Text>
+                  <Text style={styles.actionHint}>{a === "warn" ? t("busy.warnHint") : t("busy.pauseHint")}</Text>
                 </Pressable>
               );
             })}
@@ -93,7 +95,7 @@ export default function BusyModeCard() {
             <View style={[styles.banner, mode.action === "pause" ? styles.bannerRed : styles.bannerAmber]} testID="busy-active">
               <Ionicons name={mode.action === "pause" ? "pause-circle" : "alert-circle"} size={16} color={mode.action === "pause" ? colors.chiliText : colors.amberText} />
               <Text style={[styles.bannerText, { color: mode.action === "pause" ? colors.chiliText : colors.amberText }]}>
-                {mode.action === "pause" ? "New orders are paused right now. They open again when the wait is under your limit." : "Customers are being warned about the long wait right now."}
+                {mode.action === "pause" ? t("busy.pausedNow") : t("busy.warningNow")}
               </Text>
             </View>
           ) : null}

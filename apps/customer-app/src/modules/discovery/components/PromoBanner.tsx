@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { colors, fonts, radius, spacing, ui } from "../../../shared/theme/theme";
 import DishImage from "../../../shared/components/DishImage";
 import PressableScale from "../../../shared/motion/PressableScale";
@@ -8,14 +9,15 @@ import PressableScale from "../../../shared/motion/PressableScale";
 // It explains the order-first, pay-after-the-stall-confirms flow; "Browse stalls" scrolls to the stall list.
 // Vouchers moved to the cart ("Apply a voucher"), so this card no longer shows one.
 export default function PromoBanner({ onBrowse }: { onBrowse?: () => void }) {
+  const { t } = useTranslation();
   return (
-    <View style={styles.card} accessible={!onBrowse} accessibilityLabel="How it works: order first. Pay only after the stall says yes.">
+    <View style={styles.card} accessible={!onBrowse} accessibilityLabel={`${t("home.howItWorks")}: ${t("home.howTitle")}`}>
       <View style={styles.text}>
-        <Text style={styles.kicker}>HOW IT WORKS</Text>
-        <Text style={styles.title}>Order first. Pay only after the stall says yes.</Text>
+        <Text style={styles.kicker}>{t("home.howItWorks").toUpperCase()}</Text>
+        <Text style={styles.title}>{t("home.howTitle")}</Text>
         {onBrowse ? (
           <PressableScale style={[ui.buttonDark, styles.button]} onPress={onBrowse} accessibilityRole="button" testID="browse-stalls">
-            <Text style={[ui.buttonDarkText, { fontSize: 12.5 }]}>Browse stalls</Text>
+            <Text style={[ui.buttonDarkText, { fontSize: 12.5 }]}>{t("home.browseStalls")}</Text>
           </PressableScale>
         ) : null}
       </View>

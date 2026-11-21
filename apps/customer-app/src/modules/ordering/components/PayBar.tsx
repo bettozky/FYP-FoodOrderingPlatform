@@ -4,9 +4,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { rm, mmss, useCountdown } from "../../../shared/util/format";
 import { colors, fonts, radius, shadow, spacing } from "../../../shared/theme/theme";
 import { usePayableOrders } from "../payments";
+import { useTranslation } from "react-i18next";
 
 // Stays on Home and Orders while an order is confirmed but unpaid, even after the top banner was swiped away.
 export default function PayBar({ onPress, bottom }: { onPress: (orderId: string) => void; bottom: number }) {
+  const { t } = useTranslation();
   const order = usePayableOrders()[0];
   const s = useCountdown(order?.payBy);
   if (!order) return null;
@@ -15,15 +17,15 @@ export default function PayBar({ onPress, bottom }: { onPress: (orderId: string)
       style={[styles.bar, { bottom }]}
       onPress={() => onPress(order.id)}
       accessibilityRole="button"
-      accessibilityLabel={`Pay ${rm(order.total)} to ${order.merchantName}, ${mmss(s)} left`}
+      accessibilityLabel={`${t("paybar.payTo", { amount: rm(order.total), name: order.merchantName })}, ${t("paybar.left", { time: mmss(s) })}`}
       testID="pay-bar"
     >
       <View style={styles.icon}><Ionicons name="wallet" size={18} color={colors.ink} /></View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.title} numberOfLines={1}>Pay {rm(order.total)} to {order.merchantName}</Text>
-        <Text style={[styles.sub, s < 60 && { color: colors.chiliSoft }]}>{mmss(s)} left before it is cancelled</Text>
+        <Text style={styles.title} numberOfLines={1}>{t("paybar.payTo", { amount: rm(order.total), name: order.merchantName })}</Text>
+        <Text style={[styles.sub, s < 60 && { color: colors.chiliSoft }]}>{t("paybar.beforeCancel", { time: mmss(s) })}</Text>
       </View>
-      <View style={styles.cta}><Text style={styles.ctaText}>Pay now</Text></View>
+      <View style={styles.cta}><Text style={styles.ctaText}>{t("popups.payNow")}</Text></View>
     </Pressable>
   );
 }

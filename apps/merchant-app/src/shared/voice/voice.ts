@@ -24,6 +24,8 @@ export interface VoiceOptions {
 
 /** Why audio is unavailable, shown on the call screen. */
 export let voiceNote = "Audio calls are not supported on this device.";
+/** The same note as a translation key ("" = audio works), so the call screen can show it in the app's language. */
+export let voiceNoteKey: "" | "calls.needDevBuild" | "calls.noAudio" = "calls.noAudio";
 
 export async function createVoiceSession(_opts: VoiceOptions): Promise<VoiceSession> {
   return { audio: false, async handleSignal() {}, setMuted() {}, close() {} };

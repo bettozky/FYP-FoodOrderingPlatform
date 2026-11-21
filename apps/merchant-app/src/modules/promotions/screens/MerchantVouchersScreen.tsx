@@ -14,6 +14,7 @@ import { api, errorText } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
 
 export interface Voucher {
   id: string;
@@ -38,7 +39,7 @@ const fromApi = (v: any): Voucher => ({
   totalLimit: v.totalLimit ?? 0,
   claimedCount: v.claimed,
   costSpent: v.costSpent,
-  expiryDate: v.expiryDate ?? "No expiry",
+  expiryDate: v.expiryDate ?? "", // "" = no expiry
   isActive: v.active,
 });
 
@@ -52,6 +53,7 @@ function defaultExpiry(): string {
 }
 
 export default function MerchantVouchersScreen() {
+  const { t } = useTranslation();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [message, setMessage] = useState("");
   const load = () =>
@@ -108,14 +110,14 @@ export default function MerchantVouchersScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Promotions & Vouchers"
-        subtitle={`${vouchers.filter((v) => v.isActive).length} active campaigns`}
+        title={t("drawer.vouchers")}
+        subtitle={t("vouchers.activeCount", { n: vouchers.filter((v) => v.isActive).length })}
       />
       {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
 
       <FlatList
         data={vouchers}
-        ListEmptyComponent={<EmptyState icon="pricetags-outline" title="No vouchers yet" hint="Create a discount code to attract customers. You control the limit and expiry." />}
+        ListEmptyComponent={<EmptyState icon="pricetags-outline" title={t("vouchers.empty")} hint={t("vouchers.emptyHint")} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
@@ -124,11 +126,11 @@ export default function MerchantVouchersScreen() {
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>RM {totalCostSpent.toFixed(2)}</Text>
-                <Text style={type.small}>Total Cost Spent</Text>
+                <Text style={type.small}>{t("vouchers.totalCost")}</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>{totalVouchersRemaining}</Text>
-                <Text style={type.small}>Vouchers Remaining</Text>
+                <Text style={type.small}>{t("vouchers.remaining")}</Text>
               </View>
             </View>
 
@@ -137,7 +139,7 @@ export default function MerchantVouchersScreen() {
               style={({ hovered }: any) => [styles.createBtn, hovered && styles.btnHover]}
               onPress={() => setIsModalOpen(true)}
             >
-              <Text style={styles.createBtnText}>+ Create New Voucher</Text>
+              <Text style={styles.createBtnText}>+ {t("vouchers.createNew")}</Text>
             </Pressable>
           </>
         }
@@ -154,15 +156,15 @@ export default function MerchantVouchersScreen() {
                   <Badge
                     label={
                       item.type === "percentage"
-                        ? `${item.discountValue}% OFF`
-                        : `RM ${item.discountValue.toFixed(2)} OFF`
+                        ? t("vouchers.pctOff", { n: item.discountValue })
+                        : t("vouchers.rmOff", { amount: item.discountValue.toFixed(2) })
                     }
                     tone="primary"
                   />
                 </View>
 
                 <Badge
-                  label={!item.isActive ? "Paused" : isSoldOut ? "Fully Claimed" : "Active"}
+                  label={!item.isActive ? t("vouchers.paused") : isSoldOut ? t("vouchers.fullyClaimed") : t("orders.active")}
                   tone={!item.isActive ? "neutral" : isSoldOut ? "warning" : "success"}
                 />
               </View>
@@ -170,13 +172,13 @@ export default function MerchantVouchersScreen() {
               {/* Rules & Conditions */}
               <View style={styles.rulesWrap}>
                 <Text style={type.bodyMuted}>
-                  Min. Spend:{" "}
+                  {t("vouchers.minSpend")}{" "}
                   <Text style={{ color: colors.text, fontWeight: "600" }}>
                     RM {item.minSpend.toFixed(2)}
                   </Text>{" "}
-                  · Valid until:{" "}
+                  · {t("vouchers.validUntil")}{" "}
                   <Text style={{ color: colors.text, fontWeight: "600" }}>
-                    {item.expiryDate}
+                    {item.expiryDate || t("vouchers.noExpiry")}
                   </Text>
                 </Text>
               </View>
@@ -184,14 +186,14 @@ export default function MerchantVouchersScreen() {
               {/* Vouchers Still Have & Cost Spent */}
               <View style={styles.metricsBox}>
                 <View style={styles.metricItem}>
-                  <Text style={type.small}>Stock Remaining</Text>
+                  <Text style={type.small}>{t("vouchers.stockRemaining")}</Text>
                   <Text style={[type.body, { fontWeight: "700" }]}>
-                    {remaining} / {item.totalLimit} left
+                    {t("vouchers.left", { n: remaining, total: item.totalLimit })}
                   </Text>
                 </View>
 
                 <View style={styles.metricItem}>
-                  <Text style={type.small}>Cost Spent by Store</Text>
+                  <Text style={type.small}>{t("vouchers.costByStore")}</Text>
                   <Text style={[type.body, { fontWeight: "700", color: colors.primary }]}>
                     RM {item.costSpent.toFixed(2)}
                   </Text>
@@ -201,7 +203,7 @@ export default function MerchantVouchersScreen() {
               {/* Action Button: Pause / Resume */}
               <View style={[styles.rowBetween, { marginTop: 4 }]}>
                 <Text style={type.bodyMuted}>
-                  {item.claimedCount} customers redeemed
+                  {t("vouchers.redeemed", { count: item.claimedCount })}
                 </Text>
                 <Pressable
                   style={({ hovered }: any) => [
@@ -217,7 +219,7 @@ export default function MerchantVouchersScreen() {
                       { color: item.isActive ? colors.chiliText : colors.herb },
                     ]}
                   >
-                    {item.isActive ? "Pause Campaign" : "Resume Campaign"}
+                    {item.isActive ? t("vouchers.pause") : t("vouchers.resume")}
                   </Text>
                 </Pressable>
               </View>
@@ -231,13 +233,13 @@ export default function MerchantVouchersScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={type.h2}>Create Discount Voucher</Text>
+              <Text style={type.h2}>{t("vouchers.createTitle")}</Text>
               <Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>
-                Set discount rules, limits, and redemption quota.
+                {t("vouchers.createIntro")}
               </Text>
 
               {/* Voucher Code */}
-              <Text style={styles.inputLabel}>Voucher Code</Text>
+              <Text style={styles.inputLabel}>{t("vouchers.code")}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. SUPERSAVER10"
@@ -247,7 +249,7 @@ export default function MerchantVouchersScreen() {
               />
 
               {/* Discount Limit Type Toggle */}
-              <Text style={styles.inputLabel}>Discount Limit Type</Text>
+              <Text style={styles.inputLabel}>{t("vouchers.type")}</Text>
               <View style={styles.typeSelector}>
                 <Pressable
                   style={[
@@ -262,7 +264,7 @@ export default function MerchantVouchersScreen() {
                       discountType === "percentage" && styles.typeBtnTextActive,
                     ]}
                   >
-                    Percentage (%)
+                    {t("vouchers.percentage")}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -278,45 +280,45 @@ export default function MerchantVouchersScreen() {
                       discountType === "fixed" && styles.typeBtnTextActive,
                     ]}
                   >
-                    Fixed Amount (RM)
+                    {t("vouchers.fixed")}
                   </Text>
                 </Pressable>
               </View>
 
               {/* Discount Value */}
               <Text style={styles.inputLabel}>
-                {discountType === "percentage" ? "Discount Percentage (%)" : "Discount Amount (RM)"}
+                {discountType === "percentage" ? t("vouchers.pctLabel") : t("vouchers.amountLabel")}
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder={discountType === "percentage" ? "e.g. 15" : "e.g. 5.00"}
+                placeholder={t("menu.eg", { v: discountType === "percentage" ? "15" : "5.00" })}
                 keyboardType="numeric"
                 value={discountValue}
                 onChangeText={setDiscountValue}
               />
 
               {/* Minimum Spend */}
-              <Text style={styles.inputLabel}>Minimum Spend Required (RM)</Text>
+              <Text style={styles.inputLabel}>{t("vouchers.minSpendLabel")}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. 30.00"
+                placeholder={t("menu.eg", { v: "30.00" })}
                 keyboardType="numeric"
                 value={minSpend}
                 onChangeText={setMinSpend}
               />
 
               {/* Quantity Limit (Vouchers Still Have) */}
-              <Text style={styles.inputLabel}>Total Voucher Stock / Limit</Text>
+              <Text style={styles.inputLabel}>{t("vouchers.limit")}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. 100"
+                placeholder={t("menu.eg", { v: "100" })}
                 keyboardType="numeric"
                 value={totalLimit}
                 onChangeText={setTotalLimit}
               />
 
               {/* Expiry Date */}
-              <Text style={styles.inputLabel}>Expiry Date (YYYY-MM-DD)</Text>
+              <Text style={styles.inputLabel}>{t("vouchers.expiry")}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="YYYY-MM-DD"
@@ -330,14 +332,14 @@ export default function MerchantVouchersScreen() {
                   style={[styles.cancelBtn, { flex: 1 }]}
                   onPress={() => setIsModalOpen(false)}
                 >
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                  <Text style={styles.cancelBtnText}>{t("common.cancel")}</Text>
                 </Pressable>
 
                 <Pressable
                   style={[styles.submitBtn, { flex: 1 }]}
                   onPress={handleCreateVoucher}
                 >
-                  <Text style={styles.submitBtnText}>Create Voucher</Text>
+                  <Text style={styles.submitBtnText}>{t("vouchers.create")}</Text>
                 </Pressable>
               </View>
             </ScrollView>

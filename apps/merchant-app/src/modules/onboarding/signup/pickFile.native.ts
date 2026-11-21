@@ -9,6 +9,7 @@
 // Then delete the stub below and uncomment the real version underneath it. Until then the
 // phone sign-up skips the uploads (the admin sees "files to follow"), and file choosing works in the web build.
 import type { PickKind, PickResult } from "./pickFile";
+import i18n from "../../../shared/i18n";
 
 export type { PickKind, PickResult } from "./pickFile";
 
@@ -16,7 +17,7 @@ export type { PickKind, PickResult } from "./pickFile";
 export const canPickFiles = false;
 
 export async function pickFile(_kind: PickKind): Promise<PickResult> {
-  return { unavailable: "Photo upload on phones is not switched on yet. You can finish sign-up now and add files later." };
+  return { unavailable: i18n.t("signup.phoneUploadOff") };
 }
 
 /*
@@ -26,7 +27,7 @@ import * as DocumentPicker from "expo-document-picker";
 export async function pickFile(kind: PickKind): Promise<PickResult> {
   if (kind === "image") {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return { unavailable: "Allow photo access in Settings to add pictures." };
+    if (!perm.granted) return { unavailable: i18n.t("signup.allowPhotos") };
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.8, allowsEditing: true });
     if (r.canceled || !r.assets?.length) return { cancelled: true };
     const a = r.assets[0];

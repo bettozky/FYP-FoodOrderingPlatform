@@ -1,5 +1,6 @@
 // Tiny fetch wrapper for the ScootMeal backend. Every call sends the login token.
 import { API_URL } from "../config";
+import i18n from "i18next";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -45,16 +46,16 @@ export async function api<T = any>(method: "GET" | "POST" | "PUT" | "PATCH" | "D
     });
     data = await res.json().catch(() => ({}));
   } catch {
-    throw new ApiError(0, `Cannot reach the ScootMeal server at ${API_URL}. Check the backend is running and your phone is on the same Wi-Fi as the PC.`);
+    throw new ApiError(0, i18n.t("errors.noServer", { url: API_URL }));
   } finally {
     clearTimeout(timer);
   }
   if (data && typeof data === "object" && "serverNow" in data) syncClock((data as any).serverNow);
   if (!res.ok) {
     if (res.status === 401 && token) onUnauthorized?.();
-    throw new ApiError(res.status, (data as any)?.error ?? "Something went wrong");
+    throw new ApiError(res.status, (data as any)?.error ?? i18n.t("errors.generic"));
   }
   return data as T;
 }
 
-export const errorText = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong");
+export const errorText = (e: unknown) => (e instanceof Error ? e.message : i18n.t("errors.generic"));

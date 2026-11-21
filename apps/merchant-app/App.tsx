@@ -1,3 +1,4 @@
+import "./src/shared/i18n"; // load the app language before any screen draws
 import React, { useCallback } from "react";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";

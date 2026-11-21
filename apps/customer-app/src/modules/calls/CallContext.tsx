@@ -1,10 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import i18n from "../../shared/i18n";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText, serverTime } from "../../shared/api/client";
 import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
 import { startRing, stopRing } from "../../shared/util/ringtone";
-import { createVoiceSession, SignalType, VoiceSession, voiceNote } from "../../shared/voice/voice";
+import { createVoiceSession, SignalType, VoiceSession, voiceNoteKey } from "../../shared/voice/voice";
 import { useAuth } from "../auth/AuthContext";
 
 // In-app voice calls. The backend relays the WebRTC handshake; polling every 1.5 s finds incoming calls
@@ -64,7 +65,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     const s = await createVoiceSession({
       initiator,
       sendSignal: (type, data) => { api("POST", `/calls/${callId}/signal`, { type, data }).catch(() => {}); },
-      onFailed: () => setNote("The connection dropped."),
+      onFailed: () => setNote(i18n.t("calls.dropped")),
     });
     session.current = s;
     setAudioOn(s.audio);
@@ -104,7 +105,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           // the server finished the call (the other side hung up, or it rang out)
           const f = await api<{ call: CallView }>("GET", `/calls/${local.id}`).catch(() => null);
           const status = f?.call.status ?? "ended";
-          finish({ ...local, status }, status === "missed" ? (local.direction === "outgoing" ? "No answer" : "Missed call") : status === "declined" ? "Call declined" : "Call ended");
+          finish({ ...local, status }, status === "missed" ? (local.direction === "outgoing" ? i18n.t("calls.noAnswer") : i18n.t("calls.missed")) : status === "declined" ? i18n.t("calls.declined") : i18n.t("calls.ended"));
         }
       } catch { /* offline: next tick */ } finally { busy = false; }
     };
@@ -172,14 +173,14 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     const c = callRef.current;
     if (!c) return;
     await api("POST", `/calls/${c.id}/decline`).catch(() => {});
-    finish({ ...c, status: "declined" }, "Call declined");
+    finish({ ...c, status: "declined" }, i18n.t("calls.declined"));
   }
 
   async function hangUp() {
     const c = callRef.current;
     if (!c) return;
     await api("POST", `/calls/${c.id}/end`).catch(() => {});
-    finish({ ...c, status: c.status === "ringing" ? "missed" : "ended" }, c.status === "ringing" ? "Call cancelled" : "Call ended");
+    finish({ ...c, status: c.status === "ringing" ? "missed" : "ended" }, c.status === "ringing" ? i18n.t("calls.cancelled") : i18n.t("calls.ended"));
   }
 
   function toggleMute() {
@@ -192,10 +193,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const over = call && ["ended", "declined", "missed"].includes(call.status);
   const secs = call?.status === "active" && call.answeredAt ? Math.max(0, Math.floor((serverTime() - call.answeredAt) / 1000)) : 0;
   const timer = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
-  const statusText = over ? note || "Call ended"
+  const statusText = over ? note || i18n.t("calls.ended")
     : call?.status === "active" ? timer
-    : incomingRinging ? "Incoming call"
-    : "Calling...";
+    : incomingRinging ? i18n.t("calls.incoming")
+    : i18n.t("calls.calling");
 
   return (
     <CallContext.Provider value={{ startCall, inCall: !!call }}>
@@ -203,24 +204,24 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       <Modal visible={!!call} animationType="fade" onRequestClose={() => {}}>
         <View style={styles.screen} testID="call-screen">
           <View style={styles.top}>
-            <Text style={styles.kicker}>{call?.status === "active" ? "ScootMeal call" : incomingRinging ? "ScootMeal incoming call" : "ScootMeal call"}</Text>
+            <Text style={styles.kicker}>{incomingRinging ? i18n.t("calls.kickerIncoming") : i18n.t("calls.kicker")}</Text>
             <View style={styles.avatar}><Text style={styles.avatarText}>{(call?.peerName || "?").trim().charAt(0).toUpperCase()}</Text></View>
             <Text style={styles.name} testID="call-peer">{call?.peerName || ""}</Text>
             <Text style={styles.status} testID="call-status">{statusText}</Text>
             {call?.status === "active" && !over && note ? <Text style={styles.small}>{note}</Text> : null}
-            {call?.status === "active" && !audioOn ? <Text style={styles.small}>{voiceNote || "No audio on this device."}</Text> : null}
+            {call?.status === "active" && !audioOn ? <Text style={styles.small}>{i18n.t(voiceNoteKey || "calls.noAudio")}</Text> : null}
           </View>
           {!over && (
             <View style={styles.actions}>
               {incomingRinging ? (
                 <>
-                  <RoundBtn icon="call" color={colors.chiliText} label="Decline" onPress={decline} testID="call-decline" rotate />
-                  <RoundBtn icon="call" color={colors.herb} label="Accept" onPress={accept} testID="call-accept" />
+                  <RoundBtn icon="call" color={colors.chiliText} label={i18n.t("calls.decline")} onPress={decline} testID="call-decline" rotate />
+                  <RoundBtn icon="call" color={colors.herb} label={i18n.t("calls.accept")} onPress={accept} testID="call-accept" />
                 </>
               ) : (
                 <>
-                  {call?.status === "active" && <RoundBtn icon={muted ? "mic-off" : "mic"} color={muted ? colors.turmeric : colors.ink} label={muted ? "Unmute" : "Mute"} onPress={toggleMute} testID="call-mute" />}
-                  <RoundBtn icon="call" color={colors.chiliText} label={call?.status === "ringing" ? "Cancel" : "End"} onPress={hangUp} testID="call-end" rotate />
+                  {call?.status === "active" && <RoundBtn icon={muted ? "mic-off" : "mic"} color={muted ? colors.turmeric : colors.ink} label={muted ? i18n.t("calls.unmute") : i18n.t("calls.mute")} onPress={toggleMute} testID="call-mute" />}
+                  <RoundBtn icon="call" color={colors.chiliText} label={call?.status === "ringing" ? i18n.t("common.cancel") : i18n.t("calls.end")} onPress={hangUp} testID="call-end" rotate />
                 </>
               )}
             </View>

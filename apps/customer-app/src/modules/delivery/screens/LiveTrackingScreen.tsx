@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import i18n from "../../../shared/i18n";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { UrlTile, AnimatedRegion, MarkerAnimated, Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,10 +25,10 @@ const RiderMarker = MarkerAnimated as unknown as React.ComponentType<any>;
 // built-in local simulation.
 
 const STAGES: { key: DeliveryStatus; label: string }[] = [
-  { key: "assigned", label: "Rider assigned" },
-  { key: "picked_up", label: "Picked up" },
-  { key: "en_route", label: "On the way" },
-  { key: "delivered", label: "Delivered" },
+  { key: "assigned", get label() { return i18n.t("tracking.assigned"); } },
+  { key: "picked_up", get label() { return i18n.t("tracking.pickedUp"); } },
+  { key: "en_route", get label() { return i18n.t("tracking.onTheWay"); } },
+  { key: "delivered", get label() { return i18n.t("status.delivered"); } },
 ];
 
 function stageIndex(status: DeliveryStatus) {
@@ -96,7 +97,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Live tracking" subtitle={`Order #${orderId}`} />
+      <ScreenHeader title={i18n.t("tracking.title")} subtitle={i18n.t("track.orderNo", { id: orderId })} />
 
       <View style={styles.mapWrap}>
         <MapView style={StyleSheet.absoluteFill} initialRegion={{ ...INITIAL_REGION, latitude: dest.lat, longitude: dest.lng }}>
@@ -128,7 +129,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
 
         <View style={styles.livePill}>
           <View style={styles.liveDot} />
-          <Text style={styles.livePillText}>Live</Text>
+          <Text style={styles.livePillText}>{i18n.t("home.live")}</Text>
         </View>
       </View>
 
@@ -138,8 +139,8 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
             <Text style={styles.riderAvatarText}>{tracking?.rider ? tracking.rider.name.charAt(0) : "?"}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.riderName}>{tracking?.rider ? tracking.rider.name : "Finding a rider…"}</Text>
-            <Text style={type.bodyMuted}>Your delivery partner · Order #{orderId}</Text>
+            <Text style={styles.riderName}>{tracking?.rider ? tracking.rider.name : i18n.t("tracking.finding")}</Text>
+            <Text style={type.bodyMuted}>{i18n.t("tracking.partner", { id: orderId })}</Text>
           </View>
         </View>
 
