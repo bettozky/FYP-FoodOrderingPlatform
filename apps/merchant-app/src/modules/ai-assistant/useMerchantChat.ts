@@ -3,7 +3,18 @@
 import { useRef, useState } from "react";
 import { api, errorText } from "../../shared/api/client";
 
-export type ChatMessage = { id: string; from: "user" | "bot"; text: string; error?: boolean };
+/** A chart under an answer. The server builds it from the stall's own orders. */
+export type ChartCard = {
+  type: "chart";
+  kind: "today_by_hour" | "last_7_days" | "best_sellers_7_days";
+  title: string;
+  unit: "RM" | "sold";
+  layout: "columns" | "rows";
+  bars: { label: string; value: number }[];
+  total: number;
+};
+
+export type ChatMessage = { id: string; from: "user" | "bot"; text: string; error?: boolean; card?: ChartCard | null };
 
 /** What POST /api/ai/merchant/chat returns. */
 export type AssistantReply = {
@@ -11,6 +22,7 @@ export type AssistantReply = {
   spoken?: string; // read aloud in voice mode (money in words, no symbols)
   language?: "en" | "ms" | "zh"; // which voice to use
   asksQuestion?: boolean; // voice mode listens again by itself when true
+  card?: ChartCard | null; // a chart to show under the answer
 };
 
 let lastId = 0;
@@ -38,7 +50,7 @@ export function useMerchantChat() {
 
     try {
       const res = await api<AssistantReply>("POST", "/ai/merchant/chat", { message, history });
-      setMessages((prev) => [...prev, { id: newId(), from: "bot", text: res.reply }]);
+      setMessages((prev) => [...prev, { id: newId(), from: "bot", text: res.reply, card: res.card ?? null }]);
       return res;
     } catch (e) {
       setMessages((prev) => [...prev, { id: newId(), from: "bot", text: errorText(e), error: true }]);

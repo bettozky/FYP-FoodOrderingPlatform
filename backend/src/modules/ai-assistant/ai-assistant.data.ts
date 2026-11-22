@@ -1,5 +1,6 @@
 import { db } from "../../store/db.js";
 import { merchantView } from "../merchants/merchants.view.js";
+import { chartsForContext } from "./ai-merchant.charts.js";
 
 export function getAssistantContext(customerId: string) {
   // Only expose merchants approved for the public catalog.

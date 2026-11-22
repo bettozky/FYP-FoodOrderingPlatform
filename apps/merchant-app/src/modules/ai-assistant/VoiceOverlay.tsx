@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, fonts } from "../../shared/theme/theme";
 import EdgeGlow, { type GlowMode } from "./EdgeGlow";
 import Orb from "./Orb";
+import StatsChart from "./StatsChart";
 import type { MerchantChat } from "./useMerchantChat";
 import { useSpeaker } from "./useSpeaker";
 import { useSpeechToText } from "./useSpeechToText";
@@ -122,7 +123,10 @@ export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Prop
           {question.text}
         </Text>
         {answer ? (
-          <Text style={[styles.answer, answer.error && styles.error]}>{answer.text}</Text>
+          <>
+            <Text style={[styles.answer, answer.error && styles.error]}>{answer.text}</Text>
+            {answer.card && <StatsChart card={answer.card} />}
+          </>
         ) : (
           <ActivityIndicator style={styles.spinner} color={colors.turmericDeep} />
         )}

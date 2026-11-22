@@ -21,6 +21,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, fonts } from "../../shared/theme/theme";
+import StatsChart from "./StatsChart";
 import type { MerchantChat } from "./useMerchantChat";
 import { MAX_RECORDING_SECONDS, useSpeechToText } from "./useSpeechToText";
 
@@ -144,11 +145,15 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
               messages.map((m) => (
                 <View
                   key={m.id}
-                  style={[styles.bubble, m.from === "user" ? styles.userBubble : styles.botBubble, m.error && styles.errorBubble]}
+                  style={[styles.bubble, m.from === "user" ? styles.userBubble : styles.botBubble, m.error && styles.errorBubble, m.card && styles.chartBubble]}
                 >
                   <Text style={[styles.bubbleText, m.from === "user" && styles.userText, m.error && styles.errorText]}>
                     {m.text}
                   </Text>
+                    <Text style={[styles.bubbleText, m.from === "user" && styles.userText, m.error && styles.errorText]}>
+                    {m.text}
+                  </Text>
+                  {m.card && <StatsChart card={m.card} />}
                 </View>
               ))
             )}
@@ -282,6 +287,7 @@ const styles = StyleSheet.create({
   userBubble: { alignSelf: "flex-end", backgroundColor: colors.ink, borderBottomRightRadius: 6 },
   botBubble: { alignSelf: "flex-start", backgroundColor: colors.paperDim, borderBottomLeftRadius: 6 },
   errorBubble: { backgroundColor: colors.chiliSoft },
+    chartBubble: { width: "85%" }, // a chart needs room, so the bubble takes its full width
   bubbleText: { fontFamily: fonts.serif, fontSize: 15, lineHeight: 21, color: colors.ink },
   userText: { color: colors.white },
   errorText: { color: colors.chiliText },

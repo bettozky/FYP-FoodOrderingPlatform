@@ -2,6 +2,7 @@ import type { ResponseInputItem } from "openai/resources/responses/responses.js"
 
 import { env } from "../../config/env.js";
 import { getClient, type ChatMessage } from "./ai-assistant.service.js";
+import { buildChart, CHART_KINDS, type ChartCard, type ChartKind } from "./ai-merchant.charts.js";
 import type { MerchantContext } from "./ai-merchant.data.js";
 
 // Instructions for the merchant (stall owner) assistant.
@@ -39,6 +40,10 @@ Return JSON matching the response schema:
   "12令吉50仙" (Chinese). Keep it as short as the reply or shorter.
 - language: "en", "ms" or "zh", the language of the reply.
 - asksQuestion: true only if the reply ends by asking the merchant something they should answer now; otherwise false.
+- chart: a chart to show under the answer, or "none". Use "today_by_hour" for today's sales through the day,
+  "last_7_days" for sales this week or over the last few days, and "best_sellers_7_days" for best or worst selling
+  dishes. Use "none" for everything else. The numbers for each chart are in the context under "charts"; the app draws
+  the chart from the server's numbers, so describe the same numbers in the reply.
 `;
 
 export type MerchantLanguage = "en" | "ms" | "zh";
@@ -48,7 +53,17 @@ export type MerchantReply = {
   spoken: string; // read aloud in voice mode
   language: MerchantLanguage; // which voice to use
   asksQuestion: boolean; // voice mode listens again by itself when true
+  card: ChartCard | null; // a chart under the answer, built by the server
 };
+
+/** Offline fallback: guess a chart from the question's words (English, Malay, Chinese). */
+function chartFromWords(text: string): ChartKind | null {
+  const t = text.toLowerCase();
+  if (/\b(best|popular|top)\b|laris|畅销|最好卖|热卖/.test(t)) return "best_sellers_7_days";
+  if (/week|7 days|seven days|minggu|7 hari|本周|这周|一周|七天/.test(t)) return "last_7_days";
+  if (/hour|by time|jam|小时|时段/.test(t)) return "today_by_hour";
+  return null;
+}
 
 function detectLanguage(text: string): MerchantLanguage {
   if (/[\u4e00-\u9fff]/.test(text)) return "zh";
@@ -98,7 +113,14 @@ export function getMerchantFallbackReply(message: string, context: MerchantConte
         `${soldOut} dishes sold out. Please try again shortly.`;
   }
 
-  return { reply, spoken: speakMoney(reply, language), language, asksQuestion: false };
+  const kind = chartFromWords(message);
+  return {
+    reply,
+    spoken: speakMoney(reply, language),
+    language,
+    asksQuestion: false,
+    card: kind ? buildChart(context.stall.id, kind) : null,
+  };
 }
 
 export async function generateMerchantReply(params: {
@@ -145,8 +167,9 @@ export async function generateMerchantReply(params: {
               spoken: { type: "string" },
               language: { type: "string", enum: ["en", "ms", "zh"] },
               asksQuestion: { type: "boolean" },
+              chart: { type: "string", enum: ["none", ...CHART_KINDS] },
             },
-            required: ["reply", "spoken", "language", "asksQuestion"],
+            required: ["reply", "spoken", "language", "asksQuestion", "chart"],
           },
         },
       },
@@ -165,14 +188,18 @@ export async function generateMerchantReply(params: {
       throw new Error("Invalid AI response.");
     }
 
-    const p = parsed as Partial<MerchantReply>;
+    const p = parsed as Partial<MerchantReply> & { chart?: string };
     const reply = p.reply!.trim();
     const language: MerchantLanguage =
       p.language === "en" || p.language === "ms" || p.language === "zh" ? p.language : detectLanguage(reply);
     // If the AI left out the spoken version (or left "RM" in it), fall back to the reply with money in words.
     const spoken = speakMoney(typeof p.spoken === "string" && p.spoken.trim() ? p.spoken.trim() : reply, language);
 
-    return { reply, spoken, language, asksQuestion: p.asksQuestion === true };
+    // The AI only picks WHICH chart; the server builds it from the stall's own orders.
+    const kind = CHART_KINDS.find((k) => k === p.chart);
+    const card = kind ? buildChart(context.stall.id, kind) : null;
+
+    return { reply, spoken, language, asksQuestion: p.asksQuestion === true, card };
   } catch {
     console.warn("[AI Merchant] Using fallback reply.");
     return getMerchantFallbackReply(message, context);
