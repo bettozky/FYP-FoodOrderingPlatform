@@ -21,6 +21,7 @@ export interface User {
   appRatingAskedAt?: number;
   appRatingNever?: boolean;
   weeklyBudget?: number; // Sprint 3 spending tracker: the customer's weekly limit in RM (none when unset)
+  language?: "en" | "ms" | "zh"; // app language the user picked (English, Bahasa Melayu, Chinese)
 }
 
 export interface Merchant {

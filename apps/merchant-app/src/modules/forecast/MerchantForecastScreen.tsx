@@ -10,19 +10,24 @@ import { api, errorText } from "../../shared/api/client";
 import ScreenHeader from "../../shared/components/ScreenHeader";
 import EmptyState from "../../shared/components/EmptyState";
 import { colors, fonts, radius, shadow, spacing, type } from "../../shared/theme/theme";
+import i18n, { locale } from "../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 type DishForecast = { dishId: string; name: string; expected: number; low: number; high: number; history: number[]; trend: "up" | "down" | "flat" };
 type Forecast = { date: string; weekday: number; dates: string[]; expectedOrders: number; rushHour: number | null; dishes: DishForecast[] };
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const PICKS: { key: string; label: string }[] = [{ key: "tomorrow", label: "Tomorrow" }, ...[1, 2, 3, 4, 5, 6, 0].map((d) => ({ key: String(d), label: DAYS[d]! }))];
+// Day names in the app language (0 = Sunday, as the server counts).
+const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+const dayShort = (d: number) => i18n.t(`days.${KEYS[d]!}Short`);
+const dayLong = (d: number) => i18n.t(`days.${KEYS[d]!}`);
+const picks = (): { key: string; label: string }[] => [{ key: "tomorrow", label: i18n.t("forecast.tomorrow") }, ...[1, 2, 3, 4, 5, 6, 0].map((d) => ({ key: String(d), label: dayShort(d) }))];
 
-const shortDate = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+const shortDate = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "UTC" });
 const hourText = (h: number) => `${String(h).padStart(2, "0")}:00–${String((h + 1) % 24).padStart(2, "0")}:00`;
 
 export default function MerchantForecastScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [day, setDay] = useState("tomorrow");
   const [f, setF] = useState<Forecast | null>(null);
   const [error, setError] = useState("");
@@ -39,10 +44,10 @@ export default function MerchantForecastScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Prep forecast" subtitle="What you'll probably sell, from past weeks" />
+      <ScreenHeader title={t("drawer.forecast")} subtitle={t("forecast.subtitle")} />
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.xxl }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.days}>
-          {PICKS.map((p) => (
+          {picks().map((p) => (
             <Pressable key={p.key} onPress={() => setDay(p.key)} style={[styles.dayChip, day === p.key && styles.dayChipOn]} accessibilityRole="radio" accessibilityState={{ selected: day === p.key }} testID={`forecast-day-${p.key}`}>
               <Text style={[styles.dayText, day === p.key && styles.dayTextOn]}>{p.label}</Text>
             </Pressable>
@@ -54,32 +59,32 @@ export default function MerchantForecastScreen() {
         {f ? (
           <>
             <View style={styles.hero} testID="forecast-hero">
-              <Text style={styles.heroLabel}>{LONG[f.weekday]!.toUpperCase()} · {shortDate(f.date)}</Text>
+              <Text style={styles.heroLabel}>{dayLong(f.weekday).toUpperCase()} · {shortDate(f.date)}</Text>
               <View style={styles.heroRow}>
-                <HeroStat icon="receipt-outline" value={`~${f.expectedOrders}`} label="orders" />
-                <HeroStat icon="flame-outline" value={f.rushHour !== null ? hourText(f.rushHour) : "–"} label="rush hour" />
-                <HeroStat icon="restaurant-outline" value={top ? `${top.expected}` : "–"} label={top ? top.name : "top dish"} />
+                <HeroStat icon="receipt-outline" value={`~${f.expectedOrders}`} label={t("forecast.orders")} />
+                <HeroStat icon="flame-outline" value={f.rushHour !== null ? hourText(f.rushHour) : "–"} label={t("forecast.rush")} />
+                <HeroStat icon="restaurant-outline" value={top ? `${top.expected}` : "–"} label={top ? top.name : t("forecast.topDish")} />
               </View>
               <Text style={styles.heroHint}>
-                {f.dates.length ? `Based on the last ${f.dates.length} ${LONG[f.weekday]}${f.dates.length === 1 ? "" : "s"} (${f.dates.map(shortDate).join(", ")}). Recent weeks count more.` : "Not enough past orders yet."}
+                {f.dates.length ? t("forecast.basedOn", { count: f.dates.length, day: dayLong(f.weekday), dates: f.dates.map(shortDate).join(t("common.listSep")) }) : t("forecast.notEnough")}
               </Text>
             </View>
 
             {f.dishes.length === 0 ? (
-              <EmptyState icon="analytics-outline" title="No forecast yet" hint={`Once you have orders on a ${LONG[f.weekday]}, your forecast for that day appears here.`} />
+              <EmptyState icon="analytics-outline" title={t("forecast.none")} hint={t("forecast.noneHint", { day: dayLong(f.weekday) })} />
             ) : (
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>Portions to prep</Text>
+                <Text style={styles.cardTitle}>{t("forecast.portions")}</Text>
                 {f.dishes.map((d, i) => <DishRow key={d.dishId} d={d} max={max} index={i} dates={f.dates} />)}
                 <View style={styles.tip}>
                   <Ionicons name="bulb-outline" size={16} color={colors.amberText} />
-                  <Text style={styles.tipText}>The orange bar is how many to prep; the light band behind it is the range seen on past {LONG[f.weekday]}s. Keep a little extra for dishes trending up.</Text>
+                  <Text style={styles.tipText}>{t("forecast.tip", { day: dayLong(f.weekday) })}</Text>
                 </View>
               </View>
             )}
           </>
         ) : !error ? (
-          <Text style={type.bodyMuted}>Working it out…</Text>
+          <Text style={type.bodyMuted}>{t("forecast.working")}</Text>
         ) : null}
       </ScrollView>
     </View>
@@ -108,7 +113,7 @@ function DishRow({ d, max, index, dates }: { d: DishForecast; max: number; index
   const histMax = Math.max(1, ...d.history);
 
   return (
-    <View style={styles.dish} testID={`forecast-${d.dishId}`} accessibilityLabel={`${d.name}: prep about ${d.expected}. Past weeks ${d.history.join(", ")}. Trend ${d.trend}.`}>
+    <View style={styles.dish} testID={`forecast-${d.dishId}`} accessibilityLabel={i18n.t("forecast.a11y", { name: d.name, n: d.expected, history: d.history.join(", "), trend: i18n.t(`forecast.trend_${d.trend}`) })}>
       <View style={styles.dishTop}>
         <Text style={styles.dishName} numberOfLines={1}>{d.name}</Text>
         <Ionicons name={trendIcon} size={16} color={trendColour} />

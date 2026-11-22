@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, spacing, type } from "../theme/theme";
+import i18n from "../../shared/i18n";
 
 type Props = {
   title: string;
@@ -18,7 +19,7 @@ export default function ScreenHeader({ title, subtitle, showBack = true, right }
     <View style={[styles.wrap, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.left}>
         {showBack && navigation.canGoBack() && (
-          <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.backBtn} testID="back">
+          <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.backBtn} testID="back" accessibilityRole="button" accessibilityLabel={i18n.t("common.back")}>
             <Text style={styles.backArrow}>{"‹"}</Text>
           </Pressable>
         )}

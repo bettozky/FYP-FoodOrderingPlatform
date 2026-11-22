@@ -1,17 +1,19 @@
 // Browser WebRTC voice. Microphone access needs https or localhost.
 import type { SignalType, VoiceOptions, VoiceSession } from "./voice";
+import i18n from "i18next";
 
 export const voiceNote = "";
+export const voiceNoteKey = "" as const;
 const ICE = [{ urls: "stun:stun.l.google.com:19302" }];
 
 export async function createVoiceSession(opts: VoiceOptions): Promise<VoiceSession> {
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia)
-    throw new Error("This browser cannot use the microphone here. Open the app over https or on localhost.");
+    throw new Error(i18n.t("calls.micHttps"));
   let stream: MediaStream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch {
-    throw new Error("Microphone access was blocked. Allow the microphone to make calls.");
+    throw new Error(i18n.t("calls.micBlocked"));
   }
   const pc = new RTCPeerConnection({ iceServers: ICE });
   stream.getTracks().forEach((t) => pc.addTrack(t, stream));

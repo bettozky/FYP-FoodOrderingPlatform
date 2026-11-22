@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from "i18next";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,7 +25,7 @@ export default function ScreenHeader({ title, subtitle, showBack = true, right }
             style={styles.backBtn}
             testID="back"
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={i18n.t("common.back")}
           >
             <Text style={styles.backArrow}>{"‹"}</Text>
           </Pressable>

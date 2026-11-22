@@ -8,6 +8,8 @@ import FadeInView from "../../../shared/motion/FadeInView";
 import PulseRing from "../../../shared/motion/PulseRing";
 import { colors, fonts, radius, spacing, ui } from "../../../shared/theme/theme";
 import DishCard from "./DishCard";
+import i18n from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 // Sprint 3 "last-hour deals" on Home: leftover dishes stalls sell off cheaper before closing, ending soonest first,
 // each with a live countdown. Hidden when no deal is on. GET /api/deals, refreshed every 30 seconds.
@@ -15,10 +17,10 @@ type DealRow = { dish: Dish; merchant: Merchant };
 
 /** "Ends in 42 min" / "Ends in 3:05" in the last 10 minutes. */
 export function endsText(s: number): string {
-  if (s <= 0) return "Ended";
-  if (s < 600) return `Ends in ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  if (s <= 0) return i18n.t("deals.ended");
+  if (s < 600) return i18n.t("deals.endsIn", { time: `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` });
   const m = Math.ceil(s / 60);
-  return m >= 60 ? `Ends in ${Math.floor(m / 60)} h ${m % 60} min` : `Ends in ${m} min`;
+  return i18n.t("deals.endsIn", { time: m >= 60 ? i18n.t("deals.hMin", { h: Math.floor(m / 60), m: m % 60 }) : i18n.t("deals.min", { m }) });
 }
 
 export function EndsChip({ endsAt }: { endsAt?: number }) {
@@ -33,6 +35,7 @@ export function EndsChip({ endsAt }: { endsAt?: number }) {
 }
 
 export default function LastHourDeals({ onOpen, onAdd }: { onOpen: (d: Dish) => void; onAdd: (d: Dish, m: Merchant) => unknown }) {
+  const { t } = useTranslation();
   const [deals, setDeals] = useState<DealRow[]>([]);
 
   useEffect(() => {
@@ -50,8 +53,8 @@ export default function LastHourDeals({ onOpen, onAdd }: { onOpen: (d: Dish) => 
           <Ionicons name="flame" size={18} color={colors.chili} />
         </PulseRing>
         <View style={{ flex: 1 }}>
-          <Text style={ui.sectionTitle}>Last-hour deals</Text>
-          <Text style={styles.sub}>Leftovers before closing · cheaper, and less food wasted</Text>
+          <Text style={ui.sectionTitle}>{t("deals.title")}</Text>
+          <Text style={styles.sub}>{t("deals.sub")}</Text>
         </View>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>

@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from "../../shared/i18n";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, fonts, radius } from "../../shared/theme/theme";
@@ -16,13 +17,13 @@ export default function ChatButtons({ kind, id, allowCall = true, dark = false }
     <View style={styles.row}>
       <Pressable style={[styles.btn, dark && styles.btnDark]} onPress={() => openChat(kind, id)} testID="chat-open">
         <Ionicons name="chatbubble-ellipses-outline" size={16} color={fg} />
-        <Text style={[styles.label, { color: fg }]}>Chat</Text>
+        <Text style={[styles.label, { color: fg }]}>{i18n.t("chat.chat")}</Text>
         {n > 0 && <View style={styles.badge} testID="chat-unread"><Text style={styles.badgeText}>{n}</Text></View>}
       </Pressable>
       {allowCall && (
         <Pressable style={[styles.btn, dark && styles.btnDark, inCall && { opacity: 0.4 }]} disabled={inCall} onPress={() => startCall(kind, id)} testID="call-open">
           <Ionicons name="call-outline" size={16} color={fg} />
-          <Text style={[styles.label, { color: fg }]}>Call</Text>
+          <Text style={[styles.label, { color: fg }]}>{i18n.t("chat.call")}</Text>
         </Pressable>
       )}
     </View>

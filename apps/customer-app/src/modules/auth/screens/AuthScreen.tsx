@@ -23,26 +23,29 @@ import { errorText } from "../../../shared/api/client";
 import GoogleSignInButton, { googleSignInAvailable } from "../components/GoogleSignInButton";
 import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
 import { colors, spacing, type, radius, fonts, shadow } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
+import LanguagePicker from "../../../shared/i18n/LanguagePicker";
 
-const TABS = ["Sign In", "Sign Up"];
+const TABS = ["auth.signIn", "auth.signUp"] as const;
 
 /** "or" line above the Google button; shown only when Google sign-in is set up for this build. */
 function GoogleOr() {
+  const { t } = useTranslation();
   if (!googleSignInAvailable) return null;
   return (
     <View style={styles.orRow}>
       <View style={styles.dividerLine} />
-      <Text style={styles.dividerText}>or</Text>
+      <Text style={styles.dividerText}>{t("auth.or")}</Text>
       <View style={styles.dividerLine} />
     </View>
   );
 }
 // What makes ScootMeal different, shown before anyone has logged in (login stays required, FR-1.1).
-const PROMISES: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
-  { icon: "shield-checkmark-outline", text: "You are not charged until the stall confirms" },
-  { icon: "restaurant-outline", text: "Dine-in, takeaway and delivery in one order" },
-  { icon: "calendar-outline", text: "Book a table and pre-order your food" },
-];
+const PROMISES = [
+  { icon: "shield-checkmark-outline", text: "auth.promiseCharge" },
+  { icon: "restaurant-outline", text: "auth.promiseModes" },
+  { icon: "calendar-outline", text: "auth.promiseBook" },
+] as const;
 const MIN_AGE = 18; // FR-1.2 (the number is an assumption to confirm with the client; the server enforces it too)
 
 function ageFrom(y: number, m: number, d: number) {
@@ -54,6 +57,7 @@ function ageFrom(y: number, m: number, d: number) {
 
 export default function AuthScreen() {
   const { login, loginWithGoogle, register } = useAuth();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(width, 520); // matches the centered card on wide/web viewports
@@ -119,8 +123,8 @@ export default function AuthScreen() {
   const finishGoogle = async () => {
     if (!googleNew) return;
     const y = Number(gyyyy), m = Number(gmm), d = Number(gdd);
-    if (!Number.isInteger(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31 || gyyyy.length !== 4) return setGoogleError("Enter your date of birth as day, month and 4-digit year");
-    if (ageFrom(y, m, d) < MIN_AGE) return setGoogleError(`You must be at least ${MIN_AGE} years old to use ScootMeal.`);
+    if (!Number.isInteger(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31 || gyyyy.length !== 4) return setGoogleError(t("auth.dobInvalid"));
+    if (ageFrom(y, m, d) < MIN_AGE) return setGoogleError(t("auth.tooYoung", { age: MIN_AGE }));
     setBusy(true);
     setGoogleError("");
     try {
@@ -136,10 +140,10 @@ export default function AuthScreen() {
   const doRegister = () =>
     run(async () => {
       const y = Number(yyyy), m = Number(mm), d = Number(dd);
-      if (!fullName.trim()) throw new Error("Enter your full name");
+      if (!fullName.trim()) throw new Error(t("auth.nameRequired"));
       if (!Number.isInteger(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31 || yyyy.length !== 4)
-        throw new Error("Enter your date of birth as day, month and 4-digit year");
-      if (ageFrom(y, m, d) < MIN_AGE) throw new Error(`You must be at least ${MIN_AGE} years old to use ScootMeal.`);
+        throw new Error(t("auth.dobInvalid"));
+      if (ageFrom(y, m, d) < MIN_AGE) throw new Error(t("auth.tooYoung", { age: MIN_AGE }));
       const dob = `${yyyy}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       await register({ name: fullName.trim(), email: signupEmail.trim(), phone: phone.trim(), dob, password: signupPassword });
     });
@@ -156,14 +160,16 @@ export default function AuthScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.ink }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.outerScroll} keyboardShouldPersistTaps="handled" bounces={false}>
         <View style={[styles.heroWrap, { paddingTop: insets.top + spacing.xl }]}>
+          {/* Language first, before anything else is read. */}
+          <View style={styles.langRow}><LanguagePicker variant="compact" /></View>
           <Image source={require("../../../../assets/images/auth-hero.jpg")} style={styles.hero} />
           <Text style={styles.brand}>ScootMeal</Text>
-          <Text style={styles.tagline}>Order first. Pay only when the stall says yes.</Text>
+          <Text style={styles.tagline}>{t("auth.tagline")}</Text>
           <View style={styles.points}>
             {PROMISES.map((p) => (
               <View key={p.icon} style={styles.pointRow}>
                 <Ionicons name={p.icon} size={16} color={colors.turmeric} />
-                <Text style={styles.pointText}>{p.text}</Text>
+                <Text style={styles.pointText}>{t(p.text)}</Text>
               </View>
             ))}
           </View>
@@ -172,9 +178,9 @@ export default function AuthScreen() {
         <View style={styles.card}>
           <View style={styles.tabWrap}>
             <View style={styles.tabRow}>
-              {TABS.map((t, i) => (
-                <Pressable key={t} style={styles.tabBtn} onPress={() => goToTab(i)}>
-                  <Text style={[styles.tabText, activeTab === i && styles.tabTextActive]}>{t}</Text>
+              {TABS.map((key, i) => (
+                <Pressable key={key} style={styles.tabBtn} onPress={() => goToTab(i)}>
+                  <Text style={[styles.tabText, activeTab === i && styles.tabTextActive]} numberOfLines={1}>{t(key)}</Text>
                 </Pressable>
               ))}
             </View>
@@ -196,7 +202,7 @@ export default function AuthScreen() {
           >
             {/* SIGN IN */}
             <View style={{ width: pageWidth, padding: spacing.xl }}>
-              <Text style={styles.label}>E-mail address</Text>
+              <Text style={styles.label}>{t("auth.email")}</Text>
               <TextInput
                 style={styles.input}
                 value={email}
@@ -207,7 +213,7 @@ export default function AuthScreen() {
                 placeholderTextColor={colors.textFaint}
                 testID="login-email"
               />
-              <Text style={styles.label}>Enter password</Text>
+              <Text style={styles.label}>{t("auth.password")}</Text>
               <View style={styles.passwordRow}>
                 <TextInput
                   style={[styles.input, { flex: 1, borderWidth: 0 }]}
@@ -219,30 +225,30 @@ export default function AuthScreen() {
                   onSubmitEditing={doLogin}
                   testID="login-password"
                 />
-                <Pressable onPress={() => setShowPassword((s) => !s)} hitSlop={12} style={{ paddingRight: spacing.md }} accessibilityRole="button" accessibilityLabel={showPassword ? "Hide password" : "Show password"}>
+                <Pressable onPress={() => setShowPassword((s) => !s)} hitSlop={12} style={{ paddingRight: spacing.md }} accessibilityRole="button" accessibilityLabel={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}>
                   <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={18} color={colors.stone} />
                 </Pressable>
               </View>
 
               <Pressable onPress={() => setForgot(true)} hitSlop={8} style={{ alignSelf: "flex-end", marginTop: spacing.sm }} accessibilityRole="button" testID="forgot-link">
-                <Text style={[type.small, { textDecorationLine: "underline" }]}>Forgot password?</Text>
+                <Text style={[type.small, { textDecorationLine: "underline" }]}>{t("auth.forgot")}</Text>
               </Pressable>
 
               {activeTab === 0 && error ? <Text style={styles.error}>{error}</Text> : null}
 
               <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={doLogin} disabled={busy} testID="login-button">
-                <Text style={styles.ctaText}>{busy && activeTab === 0 ? "Signing in…" : "Login"}</Text>
+                <Text style={styles.ctaText}>{busy && activeTab === 0 ? t("auth.signingIn") : t("auth.login")}</Text>
               </Pressable>
               <GoogleOr />
               <GoogleSignInButton onToken={onGoogleToken} onError={(m) => setError(m)} disabled={busy} />
-              <Text style={styles.hint}>An account is required to order. Demo account: demo@scootmeal.test / demo123</Text>
+              <Text style={styles.hint}>{t("auth.demoHint")}</Text>
             </View>
 
             {/* SIGN UP */}
             <View style={{ width: pageWidth, padding: spacing.xl }}>
-              <Text style={styles.label}>Full name</Text>
-              <TextInput style={styles.input} value={fullName} onChangeText={setFullName} placeholder="Your name" placeholderTextColor={colors.textFaint} testID="signup-name" />
-              <Text style={styles.label}>E-mail address</Text>
+              <Text style={styles.label}>{t("auth.fullName")}</Text>
+              <TextInput style={styles.input} value={fullName} onChangeText={setFullName} placeholder={t("auth.yourName")} placeholderTextColor={colors.textFaint} testID="signup-name" />
+              <Text style={styles.label}>{t("auth.email")}</Text>
               <TextInput
                 style={styles.input}
                 value={signupEmail}
@@ -253,24 +259,24 @@ export default function AuthScreen() {
                 placeholderTextColor={colors.textFaint}
                 testID="signup-email"
               />
-              <Text style={styles.label}>Phone number</Text>
+              <Text style={styles.label}>{t("auth.phone")}</Text>
               <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+60 1x-xxx xxxx" placeholderTextColor={colors.textFaint} />
-              <Text style={styles.label}>Date of birth (must be {MIN_AGE}+)</Text>
+              <Text style={styles.label}>{t("auth.dobMin", { age: MIN_AGE })}</Text>
               <View style={styles.dobRow}>
-                <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={dd} onChangeText={(t) => setDd(t.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="DD" placeholderTextColor={colors.textFaint} testID="signup-dd" />
-                <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={mm} onChangeText={(t) => setMm(t.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="MM" placeholderTextColor={colors.textFaint} testID="signup-mm" />
-                <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={yyyy} onChangeText={(t) => setYyyy(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="YYYY" placeholderTextColor={colors.textFaint} testID="signup-yyyy" />
+                <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={dd} onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.dd")} placeholderTextColor={colors.textFaint} testID="signup-dd" />
+                <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={mm} onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.mm")} placeholderTextColor={colors.textFaint} testID="signup-mm" />
+                <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={yyyy} onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder={t("auth.yyyy")} placeholderTextColor={colors.textFaint} testID="signup-yyyy" />
               </View>
-              <Text style={styles.label}>Password (6+ characters)</Text>
+              <Text style={styles.label}>{t("auth.passwordMin")}</Text>
               <TextInput style={styles.input} value={signupPassword} onChangeText={setSignupPassword} secureTextEntry placeholder="••••••••" placeholderTextColor={colors.textFaint} testID="signup-password" />
 
               {activeTab === 1 && error ? <Text style={styles.error} testID="signup-error">{error}</Text> : null}
 
               <Pressable style={[styles.cta, { marginTop: spacing.lg }, busy && { opacity: 0.6 }]} onPress={doRegister} disabled={busy} testID="signup-button">
-                <Text style={styles.ctaText}>{busy && activeTab === 1 ? "Creating…" : "Create account"}</Text>
+                <Text style={styles.ctaText}>{busy && activeTab === 1 ? t("auth.creating") : t("auth.createAccount")}</Text>
               </Pressable>
               <GoogleOr />
-              <GoogleSignInButton onToken={onGoogleToken} onError={(m) => setError(m)} disabled={busy} label="Sign up with Google" />
+              <GoogleSignInButton onToken={onGoogleToken} onError={(m) => setError(m)} disabled={busy} label={t("auth.googleSignUp")} />
             </View>
           </ScrollView>
           <View style={{ height: spacing.xxl }} />
@@ -279,20 +285,20 @@ export default function AuthScreen() {
           <Modal visible={!!googleNew} transparent animationType="fade" onRequestClose={() => setGoogleNew(null)}>
             <View style={styles.gBackdrop}>
               <View style={styles.gCard} testID="google-dob-card">
-                <Text style={styles.gTitle}>One more step</Text>
-                <Text style={type.small}>Welcome, {googleNew?.name}. We will use {googleNew?.email}. ScootMeal needs your date of birth to check the age rule ({MIN_AGE}+).</Text>
-                <Text style={[styles.label, { marginTop: spacing.lg }]}>Date of birth</Text>
+                <Text style={styles.gTitle}>{t("auth.oneMoreStep")}</Text>
+                <Text style={type.small}>{t("auth.googleWelcome", { name: googleNew?.name, email: googleNew?.email, age: MIN_AGE })}</Text>
+                <Text style={[styles.label, { marginTop: spacing.lg }]}>{t("auth.dob")}</Text>
                 <View style={styles.dobRow}>
-                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gdd} onChangeText={(t) => setGdd(t.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="DD" placeholderTextColor={colors.textFaint} testID="google-dd" />
-                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gmm} onChangeText={(t) => setGmm(t.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="MM" placeholderTextColor={colors.textFaint} testID="google-mm" />
-                  <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={gyyyy} onChangeText={(t) => setGyyyy(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder="YYYY" placeholderTextColor={colors.textFaint} testID="google-yyyy" />
+                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gdd} onChangeText={(v) => setGdd(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.dd")} placeholderTextColor={colors.textFaint} testID="google-dd" />
+                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gmm} onChangeText={(v) => setGmm(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.mm")} placeholderTextColor={colors.textFaint} testID="google-mm" />
+                  <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={gyyyy} onChangeText={(v) => setGyyyy(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder={t("auth.yyyy")} placeholderTextColor={colors.textFaint} testID="google-yyyy" />
                 </View>
                 {googleError ? <Text style={styles.error} testID="google-error">{googleError}</Text> : null}
                 <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={finishGoogle} disabled={busy} testID="google-continue">
-                  <Text style={styles.ctaText}>{busy ? "Creating…" : "Continue"}</Text>
+                  <Text style={styles.ctaText}>{busy ? t("auth.creating") : t("common.continue")}</Text>
                 </Pressable>
                 <Pressable onPress={() => setGoogleNew(null)} style={{ alignItems: "center", marginTop: spacing.md }} accessibilityRole="button" testID="google-cancel">
-                  <Text style={styles.link}>Cancel</Text>
+                  <Text style={styles.link}>{t("common.cancel")}</Text>
                 </Pressable>
               </View>
             </View>
@@ -305,6 +311,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   outerScroll: { flexGrow: 1, backgroundColor: colors.ink },
   heroWrap: { alignItems: "center", paddingTop: spacing.xxl, paddingBottom: 56 },
+  langRow: { alignSelf: "stretch", alignItems: "flex-end", paddingHorizontal: spacing.lg, marginBottom: spacing.md },
   brand: { fontFamily: fonts.displayBold, fontSize: 26, color: colors.white, marginTop: spacing.md },
   tagline: { fontFamily: fonts.display, fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 4, textAlign: "center", paddingHorizontal: spacing.xl },
   points: { marginTop: spacing.md, gap: 8, paddingHorizontal: spacing.xl },

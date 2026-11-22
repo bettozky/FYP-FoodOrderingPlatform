@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { Dish, Merchant, Mode } from "../../shared/api/types";
 import { confirmAsync } from "../../shared/util/confirm";
+import i18n from "../../shared/i18n";
 
 // One cart = one restaurant. Every dish carries its own quantity per fulfilment mode, so a single
 // order can mix dine-in, takeaway and delivery items and still be paid in one go (FR-2.2, FR-2.3).
@@ -47,7 +48,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (m.dineInOnly) mode = "dine_in";
     let base = lines;
     if (merchant && merchant.id !== m.id && lines.length > 0) {
-      const ok = await confirmAsync("Start a new cart?", `Your cart has food from ${merchant.name}. Clear it and add from ${m.name}? One order can only be from one restaurant.`, "Start new cart");
+      const ok = await confirmAsync(i18n.t("cart.newCartTitle"), i18n.t("cart.newCartText", { from: merchant.name, to: m.name }), i18n.t("cart.newCartOk"));
       if (!ok) return false;
       base = [];
     }

@@ -4,10 +4,11 @@ import { errorText } from "../../shared/api/client";
 import PrimaryButton from "../../shared/components/PrimaryButton";
 import { colors, radius, spacing, type } from "../../shared/theme/theme";
 import { RatingWord, StarPicker } from "./Stars";
+import { useTranslation } from "react-i18next";
 
 /** Pop-up to write or edit a review. onSubmit may throw; the message is shown inside the pop-up. */
 export default function ReviewEditor({
-  visible, title, subtitle, initial, submitLabel = "Submit review", onSubmit, onClose,
+  visible, title, subtitle, initial, submitLabel, onSubmit, onClose,
 }: {
   visible: boolean;
   title: string;
@@ -17,6 +18,7 @@ export default function ReviewEditor({
   onSubmit: (rating: number, comment: string) => Promise<void>;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [stars, setStars] = useState(5);
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,7 +58,7 @@ export default function ReviewEditor({
             style={styles.input}
             value={comment}
             onChangeText={setComment}
-            placeholder="Tell others what you thought (optional)"
+            placeholder={t("myReviews.placeholder")}
             placeholderTextColor={colors.textFaint}
             multiline
             maxLength={300}
@@ -64,8 +66,8 @@ export default function ReviewEditor({
           />
           <Text style={[type.small, { textAlign: "right" }]}>{comment.length}/300</Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <PrimaryButton label={submitLabel} onPress={submit} loading={busy} testID="review-submit" />
-          <PrimaryButton label="Cancel" variant="outline" onPress={onClose} disabled={busy} />
+          <PrimaryButton label={submitLabel ?? t("track.submitReview")} onPress={submit} loading={busy} testID="review-submit" />
+          <PrimaryButton label={t("common.cancel")} variant="outline" onPress={onClose} disabled={busy} />
         </View>
       </KeyboardAvoidingView>
     </Modal>

@@ -7,6 +7,7 @@ import DishImage, { softTint } from "../../../shared/components/DishImage";
 import { readyText } from "./ReadyChip";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import PressableScale from "../../../shared/motion/PressableScale";
+import { useTranslation } from "react-i18next";
 
 // One dish, in the two layouts from Badrul's mock-up (Oct 2026):
 //  - "grid": tile for "Popular near you" on Home: picture with the stall's rating on top,
@@ -30,11 +31,12 @@ type Props = {
 
 export default function DishCard({ dish, merchant, onPress, onAdd, variant = "row", showMerchant = true, showSave = false, width }: Props) {
   const { isFav, toggle } = useFavourites();
+  const { t } = useTranslation();
   const fav = isFav(dish.id);
   const [justAdded, setJustAdded] = useState(false);
   const closed = !!merchant && !merchant.openNow;
   const unavailable = dish.soldOut || closed;
-  const overlay = dish.soldOut ? "Sold out" : closed ? "Closed" : undefined;
+  const overlay = dish.soldOut ? t("dish.soldOut") : closed ? t("stall.closed") : undefined;
   const btnScale = useRef(new Animated.Value(1)).current;
   const tint = softTint(merchant?.color);
 
@@ -60,7 +62,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
           hitSlop={10}
           style={[ui.addButton, justAdded && { backgroundColor: colors.herb }]}
           accessibilityRole="button"
-          accessibilityLabel={`Add ${dish.name} to cart`}
+          accessibilityLabel={t("dish.addToCartLabel", { name: dish.name })}
           testID={`add-${dish.id}`}
         >
           <Ionicons name={justAdded ? "checkmark" : "add"} size={18} color={justAdded ? colors.white : colors.ink} />
@@ -77,13 +79,13 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
       }}
       style={variant === "grid" ? styles.heartGrid : styles.heartRow}
       accessibilityRole="button"
-      accessibilityLabel={fav ? `Remove ${dish.name} from saved dishes` : `Save ${dish.name}`}
+      accessibilityLabel={fav ? t("dish.unsaveLabel", { name: dish.name }) : t("dish.saveLabel", { name: dish.name })}
     >
       <Ionicons name={fav ? "heart" : "heart-outline"} size={14} color={fav ? colors.chili : colors.stone} />
     </Pressable>
   ) : null;
 
-  const label = `${dish.name}, RM ${dish.price.toFixed(2)}${merchant && showMerchant ? `, from ${merchant.name}` : ""}${overlay ? `, ${overlay}` : ""}`;
+  const label = `${dish.name}, RM ${dish.price.toFixed(2)}${merchant && showMerchant ? `, ${t("dish.from", { shop: merchant.name })}` : ""}${overlay ? `, ${overlay}` : ""}`;
 
   if (variant === "grid") {
     return (
@@ -124,7 +126,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
         {dish.description ? <Text style={styles.desc} numberOfLines={2}>{dish.description}</Text> : null}
         {merchant && showMerchant ? (
           <Text style={styles.meta} numberOfLines={1}>
-            {merchant.name} · {merchant.openNow ? `${merchant.distanceKm} km` : `opens ${merchant.hours.open}`}
+            {merchant.name} · {merchant.openNow ? `${merchant.distanceKm} km` : t("stall.opensAt", { time: merchant.hours.open }).toLowerCase()}
           </Text>
         ) : null}
         <View style={{ marginTop: 2 }}><Price dish={dish} /></View>
@@ -139,10 +141,11 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
 
 /** The price, or during a last-hour deal the deal price in red with the normal price crossed out (Sprint 3). */
 export function Price({ dish, large }: { dish: Dish; large?: boolean }) {
+  const { t } = useTranslation();
   const base = large ? ui.priceLarge : ui.price;
   if (!dish.originalPrice) return <Text style={base}>RM {dish.price.toFixed(2)}</Text>;
   return (
-    <View style={[styles.priceRow, large && { justifyContent: "center" }]} accessibilityLabel={`RM ${dish.price.toFixed(2)}, was RM ${dish.originalPrice.toFixed(2)}`}>
+    <View style={[styles.priceRow, large && { justifyContent: "center" }]} accessibilityLabel={t("dish.wasPrice", { now: dish.price.toFixed(2), was: dish.originalPrice.toFixed(2) })}>
       <Text style={[base, { color: colors.chiliText }]}>RM {dish.price.toFixed(2)}</Text>
       <Text style={[styles.was, large && { fontSize: 15 }]}>RM {dish.originalPrice.toFixed(2)}</Text>
     </View>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import i18n from "i18next";
 import { Animated, DimensionValue, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { colors, radius, spacing } from "../theme/theme";
 import { useReducedMotion } from "./useReducedMotion";
@@ -26,7 +27,7 @@ export function Skeleton({ width = "100%", height = 14, rounded = radius.sm, sty
 /** Stall menu / saved dishes row: picture on the left, three text lines. */
 export function DishRowSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <View accessible accessibilityLabel="Loading" accessibilityRole="progressbar">
+    <View accessible accessibilityLabel={i18n.t("common.loading")} accessibilityRole="progressbar">
       {Array.from({ length: count }, (_, i) => (
         <View key={i} style={styles.row}>
           <Skeleton width={68} height={68} rounded={radius.md} />
@@ -44,7 +45,7 @@ export function DishRowSkeleton({ count = 4 }: { count?: number }) {
 /** "Popular near you" tiles: picture on top, two lines. */
 export function DishTileSkeleton({ count = 3, width = 150 }: { count?: number; width?: number }) {
   return (
-    <View style={styles.tiles} accessible accessibilityLabel="Loading" accessibilityRole="progressbar">
+    <View style={styles.tiles} accessible accessibilityLabel={i18n.t("common.loading")} accessibilityRole="progressbar">
       {Array.from({ length: count }, (_, i) => (
         <View key={i} style={[styles.tile, { width }]}>
           <Skeleton height={104} rounded={radius.md} />

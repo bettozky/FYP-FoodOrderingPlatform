@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import i18n from "../../shared/i18n";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
@@ -68,7 +69,7 @@ export default function ReviewOrderPopup({ order, onDone }: { order: Order | nul
               <View style={[styles.icon, { backgroundColor: colors.herbLight }]}>
                 <Ionicons name="checkmark-circle" size={34} color={colors.herb} />
               </View>
-              <Text style={styles.title}>Thanks for your review!</Text>
+              <Text style={styles.title}>{i18n.t("feedback.thanksReview")}</Text>
               <Text style={styles.body}>It helps other students choose, and tells {order?.merchantName} what you liked.</Text>
             </View>
           ) : (
@@ -76,7 +77,7 @@ export default function ReviewOrderPopup({ order, onDone }: { order: Order | nul
               <View style={[styles.icon, { backgroundColor: colors.amberTint }]}>
                 <Ionicons name="star" size={30} color={colors.turmeric} />
               </View>
-              <Text style={styles.title}>Review your order</Text>
+              <Text style={styles.title}>{i18n.t("feedback.reviewOrder")}</Text>
               <Text style={styles.body}>How was your food from {order?.merchantName}? Tap the stars for each dish.</Text>
 
               <ScrollView style={styles.list} contentContainerStyle={{ gap: spacing.sm }}>
@@ -86,7 +87,7 @@ export default function ReviewOrderPopup({ order, onDone }: { order: Order | nul
                       <DishImage image={images[r.dishId]} size={44} />
                       <View style={{ flex: 1, minWidth: 0 }}>
                         <Text style={styles.dish} numberOfLines={2}>{r.name}</Text>
-                        {r.rating ? <RatingWord value={r.rating} /> : <Text style={type.small}>Not rated yet</Text>}
+                        {r.rating ? <RatingWord value={r.rating} /> : <Text style={type.small}>{i18n.t("feedback.notRated")}</Text>}
                       </View>
                     </View>
                     <StarPicker value={r.rating} onChange={(n) => set(i, { rating: n })} size={28} />
@@ -95,15 +96,15 @@ export default function ReviewOrderPopup({ order, onDone }: { order: Order | nul
                         style={styles.input}
                         value={r.comment}
                         onChangeText={(t) => set(i, { comment: t })}
-                        placeholder="What did you think? (optional)"
+                        placeholder={i18n.t("feedback.whatThink")}
                         placeholderTextColor={colors.textFaint}
                         maxLength={300}
                         multiline
-                        accessibilityLabel={`Comment for ${r.name}`}
+                        accessibilityLabel={i18n.t("feedback.commentFor", { name: r.name })}
                       />
                     ) : r.rating ? (
                       <Pressable onPress={() => set(i, { open: true })} hitSlop={8} accessibilityRole="button">
-                        <Text style={styles.link}>+ Add a comment</Text>
+                        <Text style={styles.link}>+ {i18n.t("feedback.addComment")}</Text>
                       </Pressable>
                     ) : null}
                   </View>
@@ -112,7 +113,7 @@ export default function ReviewOrderPopup({ order, onDone }: { order: Order | nul
 
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <PrimaryButton
-                label={rated.length ? `Send ${rated.length === 1 ? "review" : `${rated.length} reviews`}` : "Tap the stars to rate"}
+                label={rated.length ? i18n.t("feedback.sendReviews", { count: rated.length }) : i18n.t("feedback.tapStars")}
                 onPress={send}
                 loading={busy}
                 disabled={!rated.length}
@@ -120,9 +121,9 @@ export default function ReviewOrderPopup({ order, onDone }: { order: Order | nul
                 testID="send-review"
               />
               <Pressable onPress={() => onDone(false)} hitSlop={8} accessibilityRole="button" testID="review-later">
-                <Text style={styles.later}>Maybe later</Text>
+                <Text style={styles.later}>{i18n.t("feedback.maybeLater")}</Text>
               </Pressable>
-              <Text style={styles.hint}>You can also review it later in Account → My reviews.</Text>
+              <Text style={styles.hint}>{i18n.t("feedback.laterHint")}</Text>
             </>
           )}
         </View>

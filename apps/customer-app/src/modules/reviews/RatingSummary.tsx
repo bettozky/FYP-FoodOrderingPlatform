@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
 import { StarRow } from "./Stars";
 import type { Breakdown } from "./types";
+import i18n from "../../shared/i18n";
 
 /** Big average + a bar per star level ("5 ★ ▇▇▇▇ 12"). */
 export default function RatingSummary({ average, count, breakdown }: { average: number | null; count: number; breakdown?: Breakdown }) {
@@ -12,7 +13,7 @@ export default function RatingSummary({ average, count, breakdown }: { average: 
       <View style={styles.left}>
         <Text style={styles.avg}>{average !== null ? average.toFixed(1) : "–"}</Text>
         <StarRow rating={average ?? 0} size={13} />
-        <Text style={type.small}>{count} {count === 1 ? "review" : "reviews"}</Text>
+        <Text style={type.small}>{i18n.t("reviews.count", { count })}</Text>
       </View>
       <View style={styles.bars}>
         {(breakdown ?? []).map((b) => (

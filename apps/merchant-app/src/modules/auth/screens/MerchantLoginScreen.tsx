@@ -5,10 +5,13 @@ import { errorText } from "../../../shared/api/client";
 import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
 import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
 import ShopSignupWizard from "../../onboarding/screens/ShopSignupWizard";
+import LanguagePicker from "../../../shared/i18n/LanguagePicker";
+import { useTranslation } from "react-i18next";
 
 // Sign in, or create a shop account with the 8-step sign-up (modules/onboarding).
 export default function MerchantLoginScreen() {
   const { login } = useAuth();
+  const { t } = useTranslation();
   const scroll = useRef<ScrollViewInstance>(null);
   const [mode, setMode] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
@@ -44,36 +47,37 @@ export default function MerchantLoginScreen() {
 
   return (
     <ScrollView ref={scroll} contentContainerStyle={[styles.wrap, mode === "register" && styles.wrapTop]} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" automaticallyAdjustKeyboardInsets>
-      <Text style={type.h1}>ScootMeal Merchant</Text>
+      <LanguagePicker style={{ alignSelf: "flex-end", marginBottom: spacing.lg }} />
+      <Text style={type.h1}>{t("auth.appName")}</Text>
       <Text style={[type.bodyMuted, { marginBottom: spacing.lg }]}>
-        {mode === "login" ? "Sign in to manage your store" : "Register your business. It goes live once an admin approves it."}
+        {mode === "login" ? t("auth.signInIntro") : t("auth.registerIntro")}
       </Text>
 
       <View style={styles.seg}>
         {(["login", "register"] as const).map((m) => (
           <Pressable key={m} style={[styles.segBtn, mode === m && styles.segOn]} onPress={() => changeMode(m)} accessibilityRole="tab" accessibilityState={{ selected: mode === m }} testID={`mode-${m}`}>
-            <Text style={[styles.segText, mode === m && { color: colors.white }]}>{m === "login" ? "Sign in" : "Create shop account"}</Text>
+            <Text style={[styles.segText, mode === m && { color: colors.white }]}>{m === "login" ? t("auth.signIn") : t("auth.createShop")}</Text>
           </Pressable>
         ))}
       </View>
 
       {mode === "login" ? (
         <>
-          {field("Email", email, setEmail, { autoCapitalize: "none", keyboardType: "email-address", placeholder: "you@restaurant.com" }, "login-email")}
-          {field("Password", password, setPassword, { secureTextEntry: true, placeholder: "Password", onSubmitEditing: signIn }, "login-password")}
-          <Pressable onPress={() => setForgot(true)} style={styles.forgot} accessibilityRole="button" testID="forgot-password"><Text style={styles.forgotText}>Forgot password?</Text></Pressable>
+          {field(t("auth.email"), email, setEmail, { autoCapitalize: "none", keyboardType: "email-address", placeholder: "you@restaurant.com" }, "login-email")}
+          {field(t("auth.password"), password, setPassword, { secureTextEntry: true, placeholder: t("auth.password"), onSubmitEditing: signIn }, "login-password")}
+          <Pressable onPress={() => setForgot(true)} style={styles.forgot} accessibilityRole="button" testID="forgot-password"><Text style={styles.forgotText}>{t("auth.forgot")}</Text></Pressable>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={signIn} disabled={busy} accessibilityRole="button" testID="login-button">
-            <Text style={styles.ctaText}>{busy ? "Signing in…" : "Sign in"}</Text>
+            <Text style={styles.ctaText}>{busy ? t("auth.signingIn") : t("auth.signIn")}</Text>
           </Pressable>
-          <Text style={styles.hint}>Demo restaurant: ahseng@scootmeal.test / merchant123</Text>
+          <Text style={styles.hint}>{t("auth.demoHint")}</Text>
         </>
       ) : (
         <View style={{ marginTop: spacing.md }}>
           <ShopSignupWizard onCancel={() => changeMode("login")} scrollToTop={() => scroll.current?.scrollTo({ y: 0, animated: true })} />
         </View>
       )}
-      <ForgotPasswordModal visible={forgot} onClose={() => setForgot(false)} defaultEmail={email} onDone={(e) => { setEmail(e); setPassword(""); setError("Password changed. Sign in with your new password."); }} />
+      <ForgotPasswordModal visible={forgot} onClose={() => setForgot(false)} defaultEmail={email} onDone={(e) => { setEmail(e); setPassword(""); setError(t("auth.passwordChanged")); }} />
     </ScrollView>
   );
 }

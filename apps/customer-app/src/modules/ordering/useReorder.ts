@@ -4,6 +4,7 @@ import { Dish, Order } from "../../shared/api/types";
 import { alertAsync } from "../../shared/util/confirm";
 import { useCatalog } from "../discovery/CatalogContext";
 import { useCart } from "./CartContext";
+import i18n from "../../shared/i18n";
 
 /**
  * "Order again": puts the dishes of an earlier order back in the cart using today's menu and prices.
@@ -17,7 +18,7 @@ export function useReorder(navigation: any) {
 
   const reorder = useCallback(async (order: Order) => {
     const shop = merchantById[order.merchantId];
-    if (!shop) return alertAsync("Stall not available", `${order.merchantName} is not on ScootMeal right now.`);
+    if (!shop) return alertAsync(i18n.t("reorder.noStall"), i18n.t("reorder.noStallText", { name: order.merchantName }));
     setBusyId(order.id);
     try {
       const { dishes } = await api<{ dishes: Dish[] }>("GET", `/dishes?merchantId=${encodeURIComponent(order.merchantId)}`);
@@ -30,7 +31,7 @@ export function useReorder(navigation: any) {
         if (!d || d.soldOut) { skipped.push(i.name); return false; }
         return true;
       });
-      if (!lines.length) return alertAsync("Nothing to add", "None of these dishes are available right now.");
+      if (!lines.length) return alertAsync(i18n.t("reorder.nothing"), i18n.t("reorder.nothingText"));
       let first = true;
       for (const i of lines) {
         const d = byId.get(i.dishId)!;
@@ -39,10 +40,10 @@ export function useReorder(navigation: any) {
         if (!ok) { if (first) return; break; } // customer said no to replacing their cart
         first = false;
       }
-      if (skipped.length) await alertAsync("Some dishes were left out", `${[...new Set(skipped)].join(", ")} ${skipped.length === 1 ? "is" : "are"} not available right now.`);
+      if (skipped.length) await alertAsync(i18n.t("reorder.leftOut"), i18n.t("reorder.leftOutText", { list: [...new Set(skipped)].join(", "), count: skipped.length }));
       navigation.navigate("Cart");
     } catch (e) {
-      await alertAsync("Could not reorder", errorText(e));
+      await alertAsync(i18n.t("reorder.failed"), errorText(e));
     } finally {
       setBusyId("");
     }

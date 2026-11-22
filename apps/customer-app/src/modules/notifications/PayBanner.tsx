@@ -6,6 +6,7 @@ import { navRef } from "../../navigation/navRef";
 import { rm, mmss, useCountdown } from "../../shared/util/format";
 import { colors, fonts, radius, shadow, spacing } from "../../shared/theme/theme";
 import { usePayableOrders } from "../ordering/payments";
+import { useTranslation } from "react-i18next";
 
 // "Ah Seng confirmed #SM-10252 · Pay RM12.00 · 9:42 left": a small banner at the top, on any screen except the
 // order's own screens. Tap it to pay; swipe it up (or tap x) to hide it. The Pay bar on Home and Orders stays until
@@ -26,16 +27,18 @@ function useCurrentRoute() {
 }
 
 function Body({ orderId, merchant, total, payBy }: { orderId: string; merchant: string; total: number; payBy?: number }) {
+  const { t } = useTranslation();
   const s = useCountdown(payBy);
   return (
     <View style={{ flex: 1 }}>
-      <Text style={styles.title} numberOfLines={1}>{merchant} confirmed #{orderId}</Text>
-      <Text style={[styles.sub, s < 60 && { color: colors.chiliSoft }]}>Pay {rm(total)} · {mmss(s)} left</Text>
+      <Text style={styles.title} numberOfLines={1}>{t("popups.confirmedNo", { name: merchant, id: orderId })}</Text>
+      <Text style={[styles.sub, s < 60 && { color: colors.chiliSoft }]}>{t("popups.payLeft", { amount: rm(total), time: mmss(s) })}</Text>
     </View>
   );
 }
 
 export default function PayBanner() {
+  const { t } = useTranslation();
   const payable = usePayableOrders();
   const route = useCurrentRoute();
   const insets = useSafeAreaInsets();
@@ -78,13 +81,13 @@ export default function PayBanner() {
         style={styles.card}
         onPress={() => { if (navRef.isReady()) navRef.navigate("Pay", { orderId: shown.id }); }}
         accessibilityRole="button"
-        accessibilityLabel={`${shown.merchantName} confirmed order ${shown.id}. Pay ${rm(shown.total)}.`}
+        accessibilityLabel={`${t("popups.confirmedNo", { name: shown.merchantName, id: shown.id })}. ${t("pay.payAmount", { amount: rm(shown.total) })}.`}
         testID="pay-banner"
       >
         <View style={styles.icon}><Ionicons name="checkmark" size={18} color={colors.white} /></View>
         <Body orderId={shown.id} merchant={shown.merchantName} total={shown.total} payBy={shown.payBy} />
-        <View style={styles.cta}><Text style={styles.ctaText}>Pay</Text></View>
-        <Pressable onPress={hide} hitSlop={10} accessibilityRole="button" accessibilityLabel="Hide this banner" testID="pay-banner-hide">
+        <View style={styles.cta}><Text style={styles.ctaText}>{t("steps.pay")}</Text></View>
+        <Pressable onPress={hide} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("popups.hideBanner")} testID="pay-banner-hide">
           <Ionicons name="close" size={18} color={colors.stoneSoft} />
         </Pressable>
       </Pressable>

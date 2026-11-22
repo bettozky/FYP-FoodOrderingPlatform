@@ -14,6 +14,7 @@ import { useLive } from "../modules/ordering/LiveDataContext";
 import PayBar from "../modules/ordering/components/PayBar";
 import PressableScale from "../shared/motion/PressableScale";
 import { PopOnChange } from "../shared/motion/PulseRing";
+import { useTranslation } from "react-i18next";
 
 // Main sections, swipeable left/right or chosen from the bottom bar (new layout, Oct 2026):
 // Home · Orders · (Assistant, raised in the middle) · Tables · Account.
@@ -23,19 +24,21 @@ import { PopOnChange } from "../shared/motion/PulseRing";
 //   navigation.popTo("MainTabs", { tab: "book", nonce: Date.now() })
 
 type TabKey = "home" | "orders" | "assistant" | "book" | "account";
-const ROUTES: { key: TabKey; title: string; icon: keyof typeof Ionicons.glyphMap; iconOn: keyof typeof Ionicons.glyphMap }[] = [
-  { key: "home", title: "Home", icon: "home-outline", iconOn: "home" },
-  { key: "orders", title: "Orders", icon: "receipt-outline", iconOn: "receipt" },
-  { key: "assistant", title: "Assistant", icon: "sparkles", iconOn: "sparkles" },
-  { key: "book", title: "Tables", icon: "calendar-outline", iconOn: "calendar" },
-  { key: "account", title: "Account", icon: "person-outline", iconOn: "person" },
-];
+// `title` is a translation key (tabs.*), shown with t().
+const ROUTES = [
+  { key: "home", title: "tabs.home", icon: "home-outline", iconOn: "home" },
+  { key: "orders", title: "tabs.orders", icon: "receipt-outline", iconOn: "receipt" },
+  { key: "assistant", title: "tabs.assistant", icon: "sparkles", iconOn: "sparkles" },
+  { key: "book", title: "tabs.tables", icon: "calendar-outline", iconOn: "calendar" },
+  { key: "account", title: "tabs.account", icon: "person-outline", iconOn: "person" },
+] as const satisfies readonly { key: TabKey; title: string; icon: keyof typeof Ionicons.glyphMap; iconOn: keyof typeof Ionicons.glyphMap }[];
 
 export const TAB_BAR_HEIGHT = 64;
 
 export default function MainTabs({ navigation, route }: any) {
   const layout = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const { notifications } = useLive();
   const unread = notifications.length;
@@ -57,7 +60,7 @@ export default function MainTabs({ navigation, route }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <TabView
-        navigationState={{ index, routes: ROUTES }}
+        navigationState={{ index, routes: ROUTES as unknown as { key: string; title: string }[] }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={{ width: layout.width }}
@@ -78,7 +81,7 @@ export default function MainTabs({ navigation, route }: any) {
           const focused = i === index;
           if (r.key === "assistant") {
             return (
-              <PressableScale key={r.key} scaleTo={0.88} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel="AI assistant" accessibilityState={{ selected: focused }}>
+              <PressableScale key={r.key} scaleTo={0.88} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={t("tabs.aiAssistant")} accessibilityState={{ selected: focused }}>
                 <View style={[styles.centerBtn, focused && styles.centerBtnOn]}>
                   <PopOnChange trigger={focused}>
                     <Ionicons name="sparkles" size={24} color={colors.ink} />
@@ -88,7 +91,7 @@ export default function MainTabs({ navigation, route }: any) {
             );
           }
           return (
-            <PressableScale key={r.key} scaleTo={0.9} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={r.title} accessibilityState={{ selected: focused }}>
+            <PressableScale key={r.key} scaleTo={0.9} style={styles.item} onPress={() => setIndex(i)} hitSlop={6} testID={`tab-${r.key}`} accessibilityRole="tab" accessibilityLabel={t(r.title)} accessibilityState={{ selected: focused }}>
               {/* The icon bounces when its tab becomes the active one. */}
               <View>
                 <PopOnChange trigger={focused}>
@@ -96,7 +99,7 @@ export default function MainTabs({ navigation, route }: any) {
                 </PopOnChange>
                 {r.key === "account" && unread > 0 ? <View style={styles.dot} /> : null}
               </View>
-              <Text style={[styles.label, focused && styles.labelOn]} numberOfLines={1}>{r.title}</Text>
+              <Text style={[styles.label, focused && styles.labelOn]} numberOfLines={1}>{t(r.title)}</Text>
             </PressableScale>
           );
         })}

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import i18n from "i18next";
 import { Animated, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -55,7 +56,7 @@ export function SideDrawer({ header, items }: { header: React.ReactNode; items: 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="drawer">
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "#000", opacity: shade }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityRole="button" accessibilityLabel="Close menu" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityRole="button" accessibilityLabel={i18n.t("drawer.close")} />
       </Animated.View>
       <Animated.View {...pan.panHandlers} style={[styles.panel, { width: panelWidth, paddingTop: insets.top + spacing.md, paddingBottom: Math.max(insets.bottom, spacing.md), transform: [{ translateX: x }] }]}>
         <View style={styles.header}>{header}</View>
@@ -93,7 +94,7 @@ export function DrawerEdge({ top = 80, bottom = 90 }: { top?: number; bottom?: n
 export function MenuButton({ badge, style }: { badge?: number; style?: object }) {
   const { open } = useDrawer();
   return (
-    <Pressable onPress={open} hitSlop={8} style={[styles.menuBtn, style]} accessibilityRole="button" accessibilityLabel={badge ? `Menu, ${badge} unread` : "Menu"} testID="menu-button">
+    <Pressable onPress={open} hitSlop={8} style={[styles.menuBtn, style]} accessibilityRole="button" accessibilityLabel={badge ? i18n.t("drawer.menuUnread", { count: badge }) : i18n.t("drawer.menu")} testID="menu-button">
       <Ionicons name="menu" size={22} color={colors.ink} />
       {badge ? <View style={styles.dot}><Text style={styles.dotText}>{badge > 9 ? "9+" : badge}</Text></View> : null}
     </Pressable>

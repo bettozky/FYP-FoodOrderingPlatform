@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from "i18next";
 import { StyleSheet, View } from "react-native";
 import MapView, { Marker, UrlTile } from "react-native-maps";
 import { colors, radius } from "../theme/theme";
@@ -10,7 +11,7 @@ export default function LocationMap({ lat, lng, height = 150 }: { lat: number; l
     <View style={[styles.box, { height }]}>
       <MapView style={StyleSheet.absoluteFill} region={region} pitchEnabled={false} rotateEnabled={false}>
         <UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} />
-        <Marker coordinate={{ latitude: lat, longitude: lng }} title="You are here" pinColor={colors.turmeric} />
+        <Marker coordinate={{ latitude: lat, longitude: lng }} title={i18n.t("map.youAreHere")} pinColor={colors.turmeric} />
       </MapView>
     </View>
   );

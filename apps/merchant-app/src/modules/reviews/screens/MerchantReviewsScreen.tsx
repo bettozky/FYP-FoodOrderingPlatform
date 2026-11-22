@@ -8,12 +8,15 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { locale } from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 type Review = { id: string; dishName?: string; userName: string; rating: number; comment?: string; createdAt: number; reply?: { text: string; at: number } };
 type Data = { average: number | null; count: number; unanswered: number; reviews: Review[] };
 
 // Customer reviews of this shop's dishes. Replies are public and the customer gets a notification.
 export default function MerchantReviewsScreen() {
+  const { t } = useTranslation();
   const [data, setData] = useState<Data | null>(null);
   const [onlyNew, setOnlyNew] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +38,7 @@ export default function MerchantReviewsScreen() {
   const openReply = (r: Review) => { setReplying(r); setText(r.reply?.text ?? ""); setError(""); };
   const send = async () => {
     if (!replying) return;
-    if (!text.trim()) return setError("Write a short reply first.");
+    if (!text.trim()) return setError(t("reviews.writeFirst"));
     setBusy(true);
     try {
       await api("PUT", `/merchant/reviews/${replying.id}/reply`, { text: text.trim() });
@@ -48,16 +51,16 @@ export default function MerchantReviewsScreen() {
     }
   };
   const removeReply = async (r: Review) => {
-    if (!(await confirmAsync("Remove your reply?", "The customer will no longer see it.", "Remove"))) return;
+    if (!(await confirmAsync(t("reviews.removeTitle"), t("reviews.removeBody"), t("photo.remove")))) return;
     try { await api("DELETE", `/merchant/reviews/${r.id}/reply`); await load(); } catch (e) { setError(errorText(e)); }
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Customer reviews" subtitle={data ? `${data.average ?? "–"}★ from ${data.count} ${data.count === 1 ? "review" : "reviews"}` : undefined} />
+      <ScreenHeader title={t("drawer.reviews")} subtitle={data ? t("reviews.subtitle", { avg: data.average ?? "–", count: data.count }) : undefined} />
       <View style={styles.filters}>
-        {([[false, "All"], [true, `Needs reply${data?.unanswered ? ` (${data.unanswered})` : ""}`]] as [boolean, string][]).map(([v, label]) => (
-          <Pressable key={label} onPress={() => setOnlyNew(v)} style={[styles.chip, onlyNew === v && styles.chipOn]} accessibilityRole="button">
+        {([[false, t("menu.all")], [true, `${t("reviews.needsReply")}${data?.unanswered ? ` (${data.unanswered})` : ""}`]] as [boolean, string][]).map(([v, label]) => (
+          <Pressable key={String(v)} onPress={() => setOnlyNew(v)} style={[styles.chip, onlyNew === v && styles.chipOn]} accessibilityRole="button">
             <Text style={[styles.chipText, onlyNew === v && { color: colors.white }]}>{label}</Text>
           </Pressable>
         ))}
@@ -69,7 +72,7 @@ export default function MerchantReviewsScreen() {
           keyExtractor={(r) => r.id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
-          ListEmptyComponent={<EmptyState icon="star-outline" title={onlyNew ? "Nothing waiting for a reply" : "No reviews yet"} hint="Reviews appear after customers receive and rate their food." />}
+          ListEmptyComponent={<EmptyState icon="star-outline" title={onlyNew ? t("reviews.noneWaiting") : t("reviews.none")} hint={t("reviews.noneHint")} />}
           renderItem={({ item: r }) => (
             <View style={styles.card} testID={`review-${r.id}`}>
               <View style={styles.top}>
@@ -78,21 +81,21 @@ export default function MerchantReviewsScreen() {
                   {[1, 2, 3, 4, 5].map((n) => <Ionicons key={n} name={n <= r.rating ? "star" : "star-outline"} size={14} color={colors.turmeric} />)}
                 </View>
               </View>
-              <Text style={type.small}>{r.dishName} · {new Date(r.createdAt).toLocaleDateString()}</Text>
+              <Text style={type.small}>{r.dishName} · {new Date(r.createdAt).toLocaleDateString(locale())}</Text>
               {r.comment ? <Text style={type.bodyMuted}>{r.comment}</Text> : null}
               {r.reply ? (
                 <View style={styles.reply}>
-                  <Text style={styles.replyHead}>Your reply</Text>
+                  <Text style={styles.replyHead}>{t("reviews.yourReply")}</Text>
                   <Text style={type.bodyMuted}>{r.reply.text}</Text>
                 </View>
               ) : null}
               <View style={styles.actions}>
                 <Pressable onPress={() => openReply(r)} style={styles.action} accessibilityRole="button" testID={`reply-${r.id}`}>
-                  <Ionicons name="chatbubble-outline" size={15} color={colors.ink} /><Text style={styles.actionText}>{r.reply ? "Edit reply" : "Reply"}</Text>
+                  <Ionicons name="chatbubble-outline" size={15} color={colors.ink} /><Text style={styles.actionText}>{r.reply ? t("reviews.editReply") : t("reviews.reply")}</Text>
                 </Pressable>
                 {r.reply ? (
                   <Pressable onPress={() => removeReply(r)} style={styles.action} accessibilityRole="button">
-                    <Ionicons name="trash-outline" size={15} color={colors.chili} /><Text style={[styles.actionText, { color: colors.chili }]}>Remove reply</Text>
+                    <Ionicons name="trash-outline" size={15} color={colors.chili} /><Text style={[styles.actionText, { color: colors.chili }]}>{t("reviews.removeReply")}</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -104,13 +107,13 @@ export default function MerchantReviewsScreen() {
       <Modal visible={!!replying} transparent animationType="fade" onRequestClose={() => setReplying(null)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.backdrop}>
           <View style={styles.modal}>
-            <Text style={type.h2}>Reply to {replying?.userName}</Text>
+            <Text style={type.h2}>{t("reviews.replyTo", { name: replying?.userName ?? "" })}</Text>
             {replying?.comment ? <Text style={type.bodyMuted}>“{replying.comment}”</Text> : null}
-            <TextInput style={styles.input} value={text} onChangeText={setText} placeholder="Thank them, or explain what you will fix" placeholderTextColor={colors.textFaint} multiline maxLength={300} testID="reply-text" />
+            <TextInput style={styles.input} value={text} onChangeText={setText} placeholder={t("reviews.replyPh")} placeholderTextColor={colors.textFaint} multiline maxLength={300} testID="reply-text" />
             <Text style={[type.small, { textAlign: "right" }]}>{text.length}/300</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            <PrimaryButton label="Post reply" onPress={send} loading={busy} testID="post-reply" />
-            <PrimaryButton label="Cancel" variant="outline" onPress={() => setReplying(null)} disabled={busy} />
+            <PrimaryButton label={t("reviews.post")} onPress={send} loading={busy} testID="post-reply" />
+            <PrimaryButton label={t("common.cancel")} variant="outline" onPress={() => setReplying(null)} disabled={busy} />
           </View>
         </KeyboardAvoidingView>
       </Modal>

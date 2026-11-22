@@ -20,6 +20,9 @@ import { colors, spacing, type } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
 import { ALLERGENS } from "../../onboarding/signup/types";
 import DealControl, { type Deal } from "../DealControl";
+import i18n from "../../../shared/i18n";
+import { allergenList, allergenName } from "../../../shared/i18n/labels";
+import { useTranslation } from "react-i18next";
 
 export interface ExtendedDish {
   id: string;
@@ -41,10 +44,10 @@ export interface ExtendedDish {
 
 const NO_LIMIT = 999;
 const DIETARY = [
-  { key: "vegetarian", label: "Vegetarian" },
-  { key: "plant_based", label: "Plant-based" },
-  { key: "spicy", label: "Spicy" },
-  { key: "allergy_free", label: "Allergy-free" },
+  { key: "vegetarian", get label() { return i18n.t("diet.vegetarian"); } },
+  { key: "plant_based", get label() { return i18n.t("diet.plantBased"); } },
+  { key: "spicy", get label() { return i18n.t("diet.spicy"); } },
+  { key: "allergy_free", get label() { return i18n.t("diet.allergyFree"); } },
 ];
 
 const fromApi = (d: any): ExtendedDish => ({
@@ -55,6 +58,7 @@ const fromApi = (d: any): ExtendedDish => ({
 });
 
 export default function MerchantMenuScreen() {
+  const { t } = useTranslation();
   const [menu, setMenu] = useState<ExtendedDish[]>([]);
   const [message, setMessage] = useState("");
 
@@ -101,7 +105,7 @@ export default function MerchantMenuScreen() {
   // Manual Stock Toggle with Guardrail
   const toggleSoldOut = (dish: ExtendedDish) => {
     if (dish.soldOut && dish.quantity <= 0) {
-      alert("Cannot mark In Stock with 0 quantity. Please click 'Edit Price, Cost & Stock' and restock the quantity first.");
+      alert(t("menu.cannotRestock"));
       return;
     }
 
@@ -179,7 +183,7 @@ export default function MerchantMenuScreen() {
         } catch (e) {
           // The dish itself is saved; only the picture failed. Keep the form open on the saved dish so they can retry.
           setEditingDishId(saved.dish.id);
-          setMessage(`Dish saved, but the photo did not upload: ${errorText(e)}`);
+          setMessage(t("menu.photoFailed", { error: errorText(e) }));
           load();
           return;
         }
@@ -207,14 +211,14 @@ export default function MerchantMenuScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Menu Management"
-        subtitle={`${menu.length} total dishes · ${menu.filter((d) => !d.soldOut && d.quantity > 0).length} in stock`}
+        title={t("dash.menu")}
+        subtitle={t("menu.subtitle", { total: menu.length, inStock: menu.filter((d) => !d.soldOut && d.quantity > 0).length })}
       />
       {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
 
       <FlatList
         data={filteredMenu}
-        ListEmptyComponent={<EmptyState icon="restaurant-outline" title="No dishes here" hint="Add your first dish to start taking orders." />}
+        ListEmptyComponent={<EmptyState icon="restaurant-outline" title={t("menu.empty")} hint={t("menu.emptyHint")} />}
         keyExtractor={(d) => d.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
@@ -224,7 +228,7 @@ export default function MerchantMenuScreen() {
               style={({ hovered }: any) => [styles.addBtn, hovered && styles.btnHover]}
               onPress={handleOpenAddModal}
             >
-              <Text style={styles.addBtnText}>+ Add New Dish</Text>
+              <Text style={styles.addBtnText}>+ {t("menu.add")}</Text>
             </Pressable>
 
             {/* Dynamic Category Filter Chips */}
@@ -251,7 +255,7 @@ export default function MerchantMenuScreen() {
                         isActive && styles.categoryTextActive,
                       ]}
                     >
-                      {cat}
+                      {cat === "All" ? t("menu.all") : cat}
                     </Text>
                   </Pressable>
                 );
@@ -284,15 +288,15 @@ export default function MerchantMenuScreen() {
                       RM {item.price.toFixed(2)}
                     </Text>
                     <Text style={styles.costLabel}>
-                      Cost: RM {(item.cost || 0).toFixed(2)}
+                      {t("menu.cost", { amount: (item.cost || 0).toFixed(2) })}
                     </Text>
                     <Text style={[styles.profitLabel, profit >= 0 ? styles.profitPos : styles.profitNeg]}>
-                      Profit: RM {profit.toFixed(2)}
+                      {t("menu.profit", { amount: profit.toFixed(2) })}
                     </Text>
                   </View>
 
                   {item.allergens.length ? (
-                    <Text style={styles.costLabel}>Contains: {item.allergens.join(", ")}</Text>
+                    <Text style={styles.costLabel}>{t("menu.contains", { list: allergenList(item.allergens) })}</Text>
                   ) : null}
 
                   {/* Sprint 3: last-hour deal (not for sold-out dishes) */}
@@ -306,7 +310,7 @@ export default function MerchantMenuScreen() {
                         item.quantity === 0 ? styles.qtyZero : styles.qtyActive,
                       ]}
                     >
-                      {item.quantity === 0 ? "0 in stock (Sold Out)" : item.quantity >= NO_LIMIT ? "No stock limit" : `${item.quantity} available`}
+                      {item.quantity === 0 ? t("menu.zeroStock") : item.quantity >= NO_LIMIT ? t("menu.noLimit") : t("menu.available", { n: item.quantity })}
                     </Text>
                   </View>
                 </View>
@@ -314,7 +318,7 @@ export default function MerchantMenuScreen() {
                 {/* Real-Time Out-of-Stock Toggle */}
                 <View style={styles.toggleCol}>
                   <Badge
-                    label={isUnavailable ? "Sold Out" : "In Stock"}
+                    label={isUnavailable ? t("menu.soldOut") : t("menu.inStock")}
                     tone={isUnavailable ? "warning" : "success"}
                   />
                   <Switch
@@ -336,7 +340,7 @@ export default function MerchantMenuScreen() {
                   ]}
                   onPress={() => handleOpenEditModal(item)}
                 >
-                  <Text style={styles.editBtnText}>Edit Price, Cost & Stock</Text>
+                  <Text style={styles.editBtnText}>{t("menu.editBtn")}</Text>
                 </Pressable>
 
                 <Pressable
@@ -347,7 +351,7 @@ export default function MerchantMenuScreen() {
                   ]}
                   onPress={() => handleDeleteDish(item.id)}
                 >
-                  <Text style={styles.deleteBtnText}>Remove</Text>
+                  <Text style={styles.deleteBtnText}>{t("photo.remove")}</Text>
                 </Pressable>
               </View>
             </View>
@@ -361,40 +365,40 @@ export default function MerchantMenuScreen() {
           <View style={styles.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false} style={{ flexShrink: 1 }}>
               <Text style={type.h2}>
-                {editingDishId ? "Edit Dish & Category" : "Add New Dish"}
+                {editingDishId ? t("menu.editTitle") : t("menu.add")}
               </Text>
               <Text style={[type.bodyMuted, styles.modalSubtitle]}>
-                Set item title, custom category, prices, and stock inventory.
+                {t("menu.formIntro")}
               </Text>
 
               {/* Dish Name */}
-              <Text style={styles.inputLabel}>Dish Name</Text>
+              <Text style={styles.inputLabel}>{t("menu.name")}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. Claypot Chicken Rice"
+                placeholder={t("menu.namePh")}
                 value={dishName}
                 onChangeText={setDishName}
               />
 
               {/* Dish photo: choose from the gallery or take one now. It is resized on the phone, then uploaded on save. */}
               <View style={{ marginTop: spacing.md }}>
-                <PhotoField label="Dish photo" current={dishPhoto} picked={dishFile} aspect={[4, 3]} busy={saving} onPick={setDishFile} onRemove={() => { setDishFile(null); setDishPhoto(""); }} />
+                <PhotoField label={t("menu.photo")} current={dishPhoto} picked={dishFile} aspect={[4, 3]} busy={saving} onPick={setDishFile} onRemove={() => { setDishFile(null); setDishPhoto(""); }} />
               </View>
 
               {/* Category: Manual Typing + Quick Pick Chips */}
               <Text style={styles.inputLabel}>
-                Food Category (Type any custom category)
+                {t("menu.category")}
               </Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. Noodles, Desserts, Western, Breakfast"
+                placeholder={t("menu.categoryPh")}
                 value={dishCategory}
                 onChangeText={setDishCategory}
               />
 
               {/* Quick Pick Existing Categories */}
               <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4, marginBottom: 4 }}>
-                Or select from existing categories:
+                {t("menu.pickCategory")}
               </Text>
               <View style={styles.quickCategoryRow}>
                 {existingCategoriesList.map((cat) => {
@@ -424,10 +428,10 @@ export default function MerchantMenuScreen() {
               {/* Price & Cost in a 2-Column Row */}
               <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Selling Price (RM)</Text>
+                  <Text style={styles.inputLabel}>{t("menu.price")}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="e.g. 12.50"
+                    placeholder={t("menu.eg", { v: "12.50" })}
                     keyboardType="numeric"
                     value={dishPrice}
                     onChangeText={setDishPrice}
@@ -435,10 +439,10 @@ export default function MerchantMenuScreen() {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Ingredient Cost (RM)</Text>
+                  <Text style={styles.inputLabel}>{t("menu.costLabel")}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="e.g. 5.00"
+                    placeholder={t("menu.eg", { v: "5.00" })}
                     keyboardType="numeric"
                     value={dishCost}
                     onChangeText={setDishCost}
@@ -450,7 +454,7 @@ export default function MerchantMenuScreen() {
               {numPrice > 0 && (
                 <View style={styles.previewBox}>
                   <Text style={{ fontSize: 12, color: colors.textMuted }}>
-                    Estimated Profit:{" "}
+                    {t("menu.estProfit")}{" "}
                     <Text
                       style={{
                         fontWeight: "700",
@@ -464,20 +468,20 @@ export default function MerchantMenuScreen() {
               )}
 
               {/* Stock Quantity */}
-              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Available Stock Quantity</Text>
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>{t("menu.stock")}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Leave empty for no limit (0 = Sold Out)"
+                placeholder={t("menu.stockPh")}
                 keyboardType="numeric"
                 value={dishQuantity}
                 onChangeText={setDishQuantity}
               />
               <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
-                * Setting quantity to 0 will automatically mark the dish as sold out.
+                * {t("menu.zeroHint")}
               </Text>
 
               {/* Dietary tags (customers can filter by these - FR-1.4) */}
-              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Dietary tags</Text>
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>{t("menu.dietary")}</Text>
               <View style={styles.quickCategoryRow}>
                 {DIETARY.map((d) => {
                   const on = dishDietary.includes(d.key);
@@ -489,31 +493,31 @@ export default function MerchantMenuScreen() {
                 })}
               </View>
               {/* Allergens: customers see "Contains: ..." on the dish page. */}
-              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Allergens in this dish</Text>
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>{t("menu.allergens")}</Text>
               <View style={styles.quickCategoryRow}>
                 {ALLERGENS.map(({ name }) => {
                   const on = dishAllergens.includes(name);
                   return (
                     <Pressable key={name} style={[styles.quickCatChip, on && styles.quickCatChipActive]} onPress={() => setDishAllergens((p) => (on ? p.filter((x) => x !== name) : [...p, name]))} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`dish-allergen-${name}`}>
-                      <Text style={[styles.quickCatText, on && styles.quickCatTextActive]}>{name}</Text>
+                      <Text style={[styles.quickCatText, on && styles.quickCatTextActive]}>{allergenName(name)}</Text>
                     </Pressable>
                   );
                 })}
               </View>
               <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
-                Hidden ones count: kicap has soy and gluten, belacan and oyster sauce are shellfish.
+                {t("menu.hiddenAllergens")}
               </Text>
 
-              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Dry or wet</Text>
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>{t("menu.dryWet")}</Text>
               <View style={styles.quickCategoryRow}>
-                {([["", "Not set"], ["dry", "Dry"], ["wet", "Wet / soup"]] as const).map(([k, label]) => (
+                {([["", t("menu.notSet")], ["dry", t("menu.dry")], ["wet", t("menu.wet")]] as const).map(([k, label]) => (
                   <Pressable key={k} style={[styles.quickCatChip, dishStyle === k && styles.quickCatChipActive]} onPress={() => setDishStyle(k)}>
                     <Text style={[styles.quickCatText, dishStyle === k && styles.quickCatTextActive]}>{label}</Text>
                   </Pressable>
                 ))}
               </View>
-              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Customisations customers can pick (comma separated)</Text>
-              <TextInput style={styles.input} placeholder="e.g. No spring onion, Extra sambal, Less sweet" value={dishCustom} onChangeText={setDishCustom} />
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>{t("menu.custom")}</Text>
+              <TextInput style={styles.input} placeholder={t("menu.customPh")} value={dishCustom} onChangeText={setDishCustom} />
 
               <View style={{ height: spacing.md }} />
             </ScrollView>
@@ -528,7 +532,7 @@ export default function MerchantMenuScreen() {
                   testID="dish-cancel"
                   onPress={() => !saving && setIsModalOpen(false)}
                 >
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                  <Text style={styles.cancelBtnText}>{t("common.cancel")}</Text>
                 </Pressable>
 
                 <Pressable
@@ -537,7 +541,7 @@ export default function MerchantMenuScreen() {
                   onPress={handleSaveDish}
                 >
                   <Text style={styles.saveBtnText}>
-                    {saving ? "Saving…" : editingDishId ? "Update Dish" : "Create Dish"}
+                    {saving ? t("common.saving") : editingDishId ? t("menu.update") : t("menu.create")}
                   </Text>
                 </Pressable>
               </View>

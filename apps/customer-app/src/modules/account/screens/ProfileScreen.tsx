@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
@@ -10,6 +11,7 @@ import { useAuth } from "../../auth/AuthContext";
 
 // "Edit profile": change name / phone, and change password. Both are saved on the server.
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { user, updateProfile, changePassword, deleteAccount, setAvatar } = useAuth();
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoMsg, setPhotoMsg] = useState("");
@@ -37,12 +39,12 @@ export default function ProfileScreen() {
   const [savingPw, setSavingPw] = useState(false);
 
   const saveProfile = async () => {
-    if (!name.trim()) return setProfileMsg({ ok: false, text: "Your name cannot be empty." });
+    if (!name.trim()) return setProfileMsg({ ok: false, text: t("profile.nameEmpty") });
     setSavingProfile(true);
     setProfileMsg(null);
     try {
       await updateProfile({ name: name.trim(), phone: phone.trim() });
-      setProfileMsg({ ok: true, text: "Profile saved." });
+      setProfileMsg({ ok: true, text: t("profile.saved") });
     } catch (e) {
       setProfileMsg({ ok: false, text: errorText(e) });
     } finally {
@@ -51,14 +53,14 @@ export default function ProfileScreen() {
   };
 
   const savePassword = async () => {
-    if (!current || !next) return setPwMsg({ ok: false, text: "Fill in both password boxes." });
+    if (!current || !next) return setPwMsg({ ok: false, text: t("profile.fillBoth") });
     setSavingPw(true);
     setPwMsg(null);
     try {
       await changePassword(current, next);
       setCurrent("");
       setNext("");
-      setPwMsg({ ok: true, text: "Password changed. Your other devices were signed out." });
+      setPwMsg({ ok: true, text: t("profile.pwChanged") });
     } catch (e) {
       setPwMsg({ ok: false, text: errorText(e) });
     } finally {
@@ -70,8 +72,8 @@ export default function ProfileScreen() {
   const [delMsg, setDelMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
   const removeAccount = async () => {
-    if (!delPw) return setDelMsg({ ok: false, text: "Type your password to confirm." });
-    if (!(await confirmAsync("Delete your account?", "This cannot be undone. Your saved addresses, saved dishes and notifications are erased, and your reviews show as \"Deleted user\".", "Delete"))) return;
+    if (!delPw) return setDelMsg({ ok: false, text: t("profile.typePassword") });
+    if (!(await confirmAsync(t("profile.deleteConfirmTitle"), t("profile.deleteConfirmText"), t("common.delete")))) return;
     setDeleting(true);
     setDelMsg(null);
     try {
@@ -87,50 +89,50 @@ export default function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Edit profile" subtitle="Your name and phone are shown to stalls and riders on your orders." />
+      <ScreenHeader title={t("profile.title")} subtitle={t("profile.subtitle")} />
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         <View style={[styles.card, { alignItems: "center" }]}>
           <Avatar uri={user?.avatar} name={user?.name} size={96} />
           {photoBusy ? <ActivityIndicator color={colors.ink} /> : (
             <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap", justifyContent: "center" }}>
-              <Pressable onPress={() => changePhoto("library")} style={styles.photoBtn} accessibilityRole="button" testID="photo-library"><Text style={styles.photoBtnText}>Choose photo</Text></Pressable>
-              {Platform.OS !== "web" ? <Pressable onPress={() => changePhoto("camera")} style={styles.photoBtn} accessibilityRole="button" testID="photo-camera"><Text style={styles.photoBtnText}>Take photo</Text></Pressable> : null}
-              {user?.avatar ? <Pressable onPress={() => changePhoto("remove")} style={styles.photoBtn} accessibilityRole="button" testID="photo-remove"><Text style={[styles.photoBtnText, { color: colors.danger }]}>Remove</Text></Pressable> : null}
+              <Pressable onPress={() => changePhoto("library")} style={styles.photoBtn} accessibilityRole="button" testID="photo-library"><Text style={styles.photoBtnText}>{t("profile.choosePhoto")}</Text></Pressable>
+              {Platform.OS !== "web" ? <Pressable onPress={() => changePhoto("camera")} style={styles.photoBtn} accessibilityRole="button" testID="photo-camera"><Text style={styles.photoBtnText}>{t("profile.takePhoto")}</Text></Pressable> : null}
+              {user?.avatar ? <Pressable onPress={() => changePhoto("remove")} style={styles.photoBtn} accessibilityRole="button" testID="photo-remove"><Text style={[styles.photoBtnText, { color: colors.danger }]}>{t("profile.removePhoto")}</Text></Pressable> : null}
             </View>
           )}
           {photoMsg ? <Text style={{ color: colors.danger, fontSize: 13, textAlign: "center" }}>{photoMsg}</Text> : null}
         </View>
 
         <View style={styles.card}>
-          <Text style={type.bodyMuted}>Email (cannot be changed)</Text>
+          <Text style={type.bodyMuted}>{t("profile.emailFixed")}</Text>
           <Text style={type.body}>{user?.email}</Text>
-          <Text style={[type.bodyMuted, { marginTop: spacing.sm }]}>Name</Text>
+          <Text style={[type.bodyMuted, { marginTop: spacing.sm }]}>{t("profile.name")}</Text>
           <TextInput style={styles.input} value={name} onChangeText={setName} maxLength={80} testID="profile-name" />
-          <Text style={type.bodyMuted}>Phone</Text>
+          <Text style={type.bodyMuted}>{t("stall.phone")}</Text>
           <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" maxLength={30} testID="profile-phone" />
           <Msg m={profileMsg} />
           <Pressable style={styles.btn} onPress={saveProfile} disabled={savingProfile} accessibilityRole="button" testID="save-profile">
-            {savingProfile ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>Save profile</Text>}
+            {savingProfile ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>{t("profile.save")}</Text>}
           </Pressable>
         </View>
 
         <View style={styles.card}>
-          <Text style={type.h3}>Change password</Text>
-          <TextInput style={styles.input} value={current} onChangeText={setCurrent} placeholder="Current password" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-current" />
-          <TextInput style={styles.input} value={next} onChangeText={setNext} placeholder="New password (at least 6 characters)" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-new" />
+          <Text style={type.h3}>{t("forgot.change")}</Text>
+          <TextInput style={styles.input} value={current} onChangeText={setCurrent} placeholder={t("profile.currentPw")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-current" />
+          <TextInput style={styles.input} value={next} onChangeText={setNext} placeholder={t("forgot.newPassword")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-new" />
           <Msg m={pwMsg} />
           <Pressable style={styles.btn} onPress={savePassword} disabled={savingPw} accessibilityRole="button" testID="save-password">
-            {savingPw ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>Change password</Text>}
+            {savingPw ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>{t("forgot.change")}</Text>}
           </Pressable>
         </View>
 
         <View style={styles.card}>
-          <Text style={[type.h3, { color: colors.danger }]}>Delete account</Text>
-          <Text style={type.bodyMuted}>Removes your account and personal data. You cannot do this while an order or table booking is still open.</Text>
-          <TextInput style={styles.input} value={delPw} onChangeText={setDelPw} placeholder="Your password" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="delete-password" />
+          <Text style={[type.h3, { color: colors.danger }]}>{t("profile.deleteTitle")}</Text>
+          <Text style={type.bodyMuted}>{t("profile.deleteText")}</Text>
+          <TextInput style={styles.input} value={delPw} onChangeText={setDelPw} placeholder={t("profile.yourPassword")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="delete-password" />
           <Msg m={delMsg} />
           <Pressable style={[styles.btn, { backgroundColor: colors.danger }]} onPress={removeAccount} disabled={deleting} accessibilityRole="button" testID="delete-account">
-            {deleting ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.btnText, { color: colors.white }]}>Delete my account</Text>}
+            {deleting ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.btnText, { color: colors.white }]}>{t("profile.deleteButton")}</Text>}
           </Pressable>
         </View>
       </ScrollView>

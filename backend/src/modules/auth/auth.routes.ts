@@ -26,7 +26,7 @@ function session(u: User) {
 export function publicUser(u: User) {
   const m = u.merchantId ? db.merchants.get(u.merchantId) : undefined;
   return {
-    id: u.id, role: u.role, email: u.email, name: u.name, phone: u.phone, dob: u.dob, avatar: u.avatar,
+    id: u.id, role: u.role, email: u.email, name: u.name, phone: u.phone, dob: u.dob, avatar: u.avatar, language: u.language,
     merchant: m ? { id: m.id, name: m.name, approval: m.approval } : undefined,
   };
 }
@@ -178,6 +178,10 @@ authRouter.patch("/me", auth(), (req, res) => {
   if (b.name !== undefined) u.name = str(b.name, "Name", { max: 80 });
   if (b.phone !== undefined) u.phone = str(b.phone, "Phone", { optional: true, max: 30 }) || undefined;
   if (b.avatar !== undefined) u.avatar = str(b.avatar, "Avatar", { optional: true, max: 400 }) || undefined;
+  if (b.language !== undefined) {
+    if (!["en", "ms", "zh"].includes(b.language)) throw new HttpError(400, "language must be en, ms or zh");
+    u.language = b.language;
+  }
   res.json({ user: publicUser(u) });
 });
 
