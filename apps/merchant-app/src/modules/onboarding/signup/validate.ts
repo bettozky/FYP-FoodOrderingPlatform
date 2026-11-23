@@ -1,5 +1,6 @@
 import { normalisePhone, PickedFile, ShopApplication } from "./types";
 import i18n from "../../../shared/i18n";
+import { passwordOk } from "../../../shared/util/password";
 
 const v = (k: string, opts?: Record<string, unknown>) => i18n.t(`val.${k}` as "val.ownerName", opts as any) as string;
 
@@ -42,7 +43,7 @@ export function validateStep(step: number, a: ShopApplication, filesRequired = t
       else if (a.ownerName.trim().length > 80) e.ownerName = v("nameLong");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email.trim())) e.email = v("email");
       if (!isMalaysianPhone(a.phone)) e.phone = v("phone");
-      if (a.password.length < 6) e.password = v("password");
+      if (!passwordOk(a.password)) e.password = v("password");
       else if (a.password !== a.passwordConfirm) e.passwordConfirm = v("passwordMatch");
       break;
     case 1:

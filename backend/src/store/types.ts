@@ -10,6 +10,8 @@ export interface User {
   name: string;
   phone?: string;
   dob?: string; // YYYY-MM-DD
+  // Under GUARDIAN_AGE at sign-up: the parent or guardian who approved the account, and when.
+  guardian?: { name: string; phone: string; consentAt: number };
   passwordHash: string;
   merchantId?: string;
   avatar?: string; // emoji or image link

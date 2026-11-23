@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { api, setOnUnauthorized, setToken } from "../../shared/api/client";
 import { form, LocalFile } from "../../shared/util/files";
 import i18n, { currentLanguage, isLang, Lang, setLanguage } from "../../shared/i18n";
+import type { Guardian } from "./components/GuardianModal";
 
 type User = { id: string; name: string; email: string; phone?: string; avatar?: string; language?: Lang };
 
@@ -11,8 +12,9 @@ type AuthContextValue = {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   /** "Continue with Google". Returns { needsDob } for a brand-new person: ask their date of birth, then call again with `dob`. */
-  loginWithGoogle: (idToken: string, dob?: string) => Promise<{ needsDob: true; name: string; email: string } | null>;
-  register: (input: { name: string; email: string; phone: string; dob: string; password: string }) => Promise<void>;
+  loginWithGoogle: (idToken: string, dob?: string, guardian?: Guardian) => Promise<{ needsDob: true; name: string; email: string } | null>;
+  /** Under 16 (GUARDIAN_AGE on the server) a parent or guardian must approve: pass their name, phone and consent. */
+  register: (input: { name: string; email: string; phone: string; dob: string; password: string; guardian?: Guardian }) => Promise<void>;
   logout: () => void;
   /** Edit my name / phone (PATCH /auth/me). */
   updateProfile: (input: { name?: string; phone?: string }) => Promise<void>;
@@ -65,8 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api("POST", "/auth/login", { email, password, role: "customer" });
     start(res);
   };
-  const loginWithGoogle: AuthContextValue["loginWithGoogle"] = async (idToken, dob) => {
-    const res = await api<any>("POST", "/auth/google", { idToken, dob });
+  const loginWithGoogle: AuthContextValue["loginWithGoogle"] = async (idToken, dob, guardian) => {
+    const res = await api<any>("POST", "/auth/google", { idToken, dob, ...(guardian ? { guardian } : {}) });
     if (res.needsDob) return { needsDob: true, name: res.name, email: res.email };
     start(res);
     return null;

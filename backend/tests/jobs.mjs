@@ -93,7 +93,7 @@ r = await call("GET", `/api/applications/${app1.id}`, merch);
 ok(r.status === 403 || r.status === 404, "shops cannot use the applicant endpoints");
 
 // another shop cannot read it
-const reg = await call("POST", "/api/auth/register-merchant", null, { email: "other@x.com", password: "secret1", ownerName: "O", phone: "012", businessName: "Other", cuisine: "x", open: "09:00", close: "21:00" });
+const reg = await call("POST", "/api/auth/register-merchant", null, { email: "other@x.com", password: "Secret1!", ownerName: "O", phone: "012", businessName: "Other", cuisine: "x", open: "09:00", close: "21:00" });
 r = await call("GET", `/api/merchant/applications/${app1.id}`, reg.body.token);
 ok(r.status === 403 || r.status === 404, "another shop cannot read someone else's applicants");
 
@@ -144,16 +144,16 @@ ok(r.status === 400, "bad email refused");
 r = await call("POST", "/api/auth/forgot", null, { email: "demo@scootmeal.test" });
 const code = r.body.devCode;
 ok(r.status === 200 && /^\d{6}$/.test(code), "code issued (returned only because RESET_CODE_IN_RESPONSE is on for tests)");
-r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code: "000000", newPassword: "brandnew1" });
+r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code: "000000", newPassword: "Brandnew1!" });
 ok(r.status === 400, "wrong code refused");
 r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code, newPassword: "abc" });
 ok(r.status === 400, "weak new password refused");
-r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code, newPassword: "brandnew1" });
+r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code, newPassword: "Brandnew1!" });
 ok(r.status === 200, "password reset with the code");
 r = await call("GET", "/api/auth/me", cust);
 ok(r.status === 401, "reset signs the old sessions out");
-ok(Boolean(await login("demo@scootmeal.test", "brandnew1")), "new password works");
-r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code, newPassword: "again123" });
+ok(Boolean(await login("demo@scootmeal.test", "Brandnew1!")), "new password works");
+r = await call("POST", "/api/auth/reset", null, { email: "demo@scootmeal.test", code, newPassword: "Again123!" });
 ok(r.status === 400, "a code works only once");
 r = await call("POST", "/api/auth/forgot", null, { email: "admin@scootmeal.test" });
 ok(r.status === 200 && !r.body.devCode, "admin accounts cannot be reset by email");

@@ -49,14 +49,14 @@ ok(r.body.breakdown.length === 5 && r.body.count > 0, "review breakdown");
 // ---- profile ----
 r = await call("PATCH", "/api/auth/me", cust, { name: "Demo Student 2", phone: "+60 12-000 0000" });
 ok(r.status === 200 && r.body.user.name === "Demo Student 2", "customer edits profile");
-r = await call("POST", "/api/auth/password", cust, { currentPassword: "wrong", newPassword: "newpass1" });
+r = await call("POST", "/api/auth/password", cust, { currentPassword: "wrong", newPassword: "Newpass1!" });
 ok(r.status === 403, "wrong current password is refused");
-r = await call("POST", "/api/auth/password", cust, { currentPassword: "demo123", newPassword: "newpass1" });
+r = await call("POST", "/api/auth/password", cust, { currentPassword: "demo123", newPassword: "Newpass1!" });
 ok(r.status === 200, "password changed");
 ok((await call("POST", "/api/auth/login", null, { email: "demo@scootmeal.test", password: "demo123" })).status === 401, "old password no longer works");
-const cust2 = await login("demo@scootmeal.test", "newpass1");
+const cust2 = await login("demo@scootmeal.test", "Newpass1!");
 ok(Boolean(cust2), "new password works");
-await call("POST", "/api/auth/password", cust2, { currentPassword: "newpass1", newPassword: "demo123" });
+await call("POST", "/api/auth/password", cust2, { currentPassword: "Newpass1!", newPassword: "Demo123!" });
 
 // ---- addresses ----
 const a = { label: "Hostel", line: "Hostel A, Room 12", lat: 1.556, lng: 110.362 };
@@ -114,7 +114,7 @@ r = await call("GET", "/api/reviews/mine", cust2);
 ok(r.status === 200 && Array.isArray(r.body.reviews), "my reviews");
 
 // ---- delete my account ----
-const gone = await call("POST", "/api/auth/register", null, { name: "Temp User", email: "temp@x.com", phone: "012", dob: "2000-01-01", password: "secret1" });
+const gone = await call("POST", "/api/auth/register", null, { name: "Temp User", email: "temp@x.com", phone: "012", dob: "2000-01-01", password: "Secret1!" });
 ok(gone.status === 201, "temporary account created");
 const goneTok = gone.body.token;
 await call("POST", "/api/addresses", goneTok, { label: "Home", line: "Somewhere", lat: 1.55, lng: 110.36 });
@@ -122,20 +122,20 @@ r = await call("DELETE", "/api/auth/me", goneTok, { password: "wrong" });
 ok(r.status === 403, "deleting needs the right password");
 r = await call("DELETE", "/api/auth/me", merch, { password: "merchant123" });
 ok(r.status === 403, "shops cannot use the customer delete");
-r = await call("DELETE", "/api/auth/me", goneTok, { password: "secret1" });
+r = await call("DELETE", "/api/auth/me", goneTok, { password: "Secret1!" });
 ok(r.status === 200, "account deleted");
 r = await call("GET", "/api/auth/me", goneTok);
 ok(r.status === 401, "deleted account's token no longer works");
-r = await call("POST", "/api/auth/login", null, { email: "temp@x.com", password: "secret1" });
+r = await call("POST", "/api/auth/login", null, { email: "temp@x.com", password: "Secret1!" });
 ok(r.status === 401 || r.status === 400, "deleted account cannot log in");
 r = await call("POST", "/api/orders", cust2, { merchantId: "m1", items: [{ dishId: "d1", mode: "takeaway", qty: 1 }] });
 ok(r.status === 201, "an open order exists");
-r = await call("DELETE", "/api/auth/me", cust2, { password: "demo123" });
+r = await call("DELETE", "/api/auth/me", cust2, { password: "Demo123!" });
 ok(r.status === 409, "cannot delete while an order is open");
 
 // ---- merchant sign-up with the wizard's application + uploads ----
 const reg = await call("POST", "/api/auth/register-merchant", null, {
-  email: "newshop@x.com", password: "secret1", ownerName: "Mei", phone: "+60 12-999 0000", businessName: "Mei's Kitchen", cuisine: "Chinese, Noodles", open: "09:00", close: "21:00",
+  email: "newshop@x.com", password: "Secret1!", ownerName: "Mei", phone: "+60 12-999 0000", businessName: "Mei's Kitchen", cuisine: "Chinese, Noodles", open: "09:00", close: "21:00",
   application: {
     location: { lat: 1.55, lng: 110.36 },
     service: { prepMinutes: 20, hours: [{ day: "mon", open: "08:00", close: "20:00", closed: false }, { day: "tue", closed: true }] },

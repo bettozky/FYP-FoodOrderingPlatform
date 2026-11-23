@@ -3,6 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, St
 import { api, errorText } from "../api/client";
 import { colors, fonts, radius, spacing, type } from "../theme/theme";
 import { useTranslation } from "react-i18next";
+import { passwordOk } from "../util/password";
 
 // Forgot password, in two steps: (1) type your email and we send a 6-digit code, (2) type the code and a new password.
 export default function ForgotPasswordModal({ visible, onClose, defaultEmail = "", onDone }: { visible: boolean; onClose: () => void; defaultEmail?: string; onDone?: (email: string) => void }) {
@@ -33,6 +34,7 @@ export default function ForgotPasswordModal({ visible, onClose, defaultEmail = "
   });
 
   const reset = () => run(async () => {
+    if (!passwordOk(password)) throw new Error(t("auth.passwordRule"));
     await api("POST", "/auth/reset", { email: email.trim(), code: code.trim(), newPassword: password });
     onDone?.(email.trim());
     onClose();

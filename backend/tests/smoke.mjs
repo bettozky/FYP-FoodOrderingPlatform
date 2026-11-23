@@ -17,7 +17,7 @@ const merch = await login("ahseng@scootmeal.test", "merchant123");
 const admin = await login("admin@scootmeal.test", "admin123");
 
 // age block
-let r = await call("POST", "/api/auth/register", null, { name: "Kid", email: "kid@x.com", password: "secret1", dob: new Date(Date.now() - 10 * 365 * 864e5).toISOString().slice(0, 10) });
+let r = await call("POST", "/api/auth/register", null, { name: "Kid", email: "kid@x.com", password: "Secret1!", dob: new Date(Date.now() - 10 * 365 * 864e5).toISOString().slice(0, 10) });
 ok(r.status === 403, "under-age sign up blocked");
 r = await call("POST", "/api/orders", null, {});
 ok(r.status === 401, "no guest ordering");
@@ -159,7 +159,7 @@ ok(!r.body.unread[`order:${o6.id}`], "reading clears unread");
 r = await call("POST", `/api/chat/order/${o6.id}`, merch, { text: "Sure, noted." });
 r = await call("GET", `/api/chat/order/${o6.id}?after=1`, cust);
 ok(r.body.messages.length === 1 && r.body.messages[0].from === "merchant", "customer receives the reply (incremental fetch)");
-const outsider = (await call("POST", "/api/auth/register", null, { name: "Eve", email: "eve@x.com", password: "secret1", dob: "1999-01-01" })).body.token;
+const outsider = (await call("POST", "/api/auth/register", null, { name: "Eve", email: "eve@x.com", password: "Secret1!", dob: "1999-01-01" })).body.token;
 r = await call("GET", `/api/chat/order/${o6.id}`, outsider);
 ok(r.status === 404, "other customers cannot read the chat");
 r = await call("POST", `/api/chat/order/${o6.id}`, cust, { text: "" });
@@ -215,7 +215,7 @@ const m2 = await call("POST", "/api/auth/login", null, { email: "ahseng@scootmea
 r = await call("POST", `/api/merchant/reservations/${rs.id}/respond`, merch, { accept: true, table: "T1" });
 ok(r.status === 404, "other merchant's reservation hidden");
 // register a second merchant, approve through admin
-r = await call("POST", "/api/auth/register-merchant", null, { email: "kak@x.com", password: "secret1", ownerName: "Kak Yah", phone: "+6012", businessName: "Test Stall" });
+r = await call("POST", "/api/auth/register-merchant", null, { email: "kak@x.com", password: "Secret1!", ownerName: "Kak Yah", phone: "+6012", businessName: "Test Stall" });
 const pm = r.body.token;
 r = await call("GET", "/api/merchant/dishes", pm);
 ok(r.status === 403, "pending merchant is blocked");

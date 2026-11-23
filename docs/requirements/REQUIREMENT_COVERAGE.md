@@ -5,7 +5,7 @@ Status: **Done** = implemented against the real backend and covered by `backend/
 | ID | Requirement | Where | Status |
 |---|---|---|---|
 | FR-1.1 | Login required, no guest (login screen now also explains the app before sign-in) | customer `AuthScreen`, backend `auth` | Done |
-| FR-1.2 | Date of birth, age block (18+) | `AuthScreen`, `auth.routes` (`MIN_AGE`) | Done |
+| FR-1.2 | Date of birth, age rule (13+; under 16 needs parent or guardian approval) | `AuthScreen`, `GuardianModal`, `auth.routes` (`MIN_AGE`, `GUARDIAN_AGE`) | Done |
 | FR-1.3-1.6 | Search, dietary + dry/wet filters, distance, open/closed | `HomeScreen`, `merchants.routes` | Done |
 | FR-2.2/2.3 | Per-item mode (delivery / dine-in / takeaway) in one payment | `DishDetailScreen`, `CartScreen`, `placeOrder` | Done |
 | FR-2.4 | Payment (after merchant confirms) | `payOrder`, `OrderTrackingScreen` pay panel | Simulated Stripe (4242… ok, …0002 declined) |

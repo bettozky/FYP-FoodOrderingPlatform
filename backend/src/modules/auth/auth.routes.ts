@@ -37,23 +37,45 @@ function checkEmail(raw: unknown): string {
   if ([...db.users.values()].some((u) => u.email === email)) throw new HttpError(409, "That email is already registered");
   return email;
 }
+// Password rule for every new password (sign-up, merchant sign-up, change, reset): at least 8 characters,
+// with at least one number and one symbol (anything that is not a letter or a number, e.g. ! @ # $ _ -).
+// Existing accounts keep their password until they change it.
+export const PASSWORD_RULE = "Password must be at least 8 characters with at least 1 number and 1 symbol (e.g. ! @ # $)";
+export function passwordOk(pw: string) {
+  return [...pw].length >= 8 && /[0-9]/.test(pw) && /[^\p{L}\p{N}\s]/u.test(pw);
+}
 function checkPw(raw: unknown): string {
   const pw = str(raw, "Password", { max: 100 });
-  if (pw.length < 6) throw new HttpError(400, "Password must be at least 6 characters");
+  if (!passwordOk(pw)) throw new HttpError(400, PASSWORD_RULE);
   return pw;
+}
+
+// FR-1.2 age rule. Under env.minAge: refused. Under env.guardianAge: a parent or guardian must approve, so the request
+// must carry guardian: { name, phone, consent: true }; their details are kept on the account.
+const GUARDIAN_PHONE = /^\+?[0-9][0-9 -]{6,18}[0-9]$/;
+function checkAge(dobRaw: unknown, guardianRaw: unknown): { dob: string; guardian?: User["guardian"] } {
+  const dob = str(dobRaw, "Date of birth");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob))) throw new HttpError(400, "Date of birth must be YYYY-MM-DD");
+  const age = ageOn(dob);
+  if (age < 0) throw new HttpError(400, "Date of birth cannot be in the future");
+  if (age < env.minAge) throw new HttpError(403, `You must be at least ${env.minAge} years old to use ScootMeal.`);
+  if (age >= env.guardianAge) return { dob };
+  const g = (guardianRaw ?? {}) as Record<string, unknown>;
+  if (g.consent !== true) throw new HttpError(403, `Users under ${env.guardianAge} need a parent or guardian to approve the account.`);
+  const name = str(g.name, "Guardian name", { max: 80 });
+  const phone = str(g.phone, "Guardian phone", { max: 30 });
+  if (!GUARDIAN_PHONE.test(phone)) throw new HttpError(400, "Enter the guardian's phone number with the country code, e.g. +60 12-345 6789");
+  return { dob, guardian: { name, phone, consentAt: Date.now() } };
 }
 
 // FR-1.1 / FR-1.2: customers register with a date of birth; under-age sign-ups are blocked.
 authRouter.post("/register", (req, res) => {
   const b = req.body ?? {};
   const name = str(b.name, "Name", { max: 80 });
-  const dob = str(b.dob, "Date of birth");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob))) throw new HttpError(400, "Date of birth must be YYYY-MM-DD");
-  if (ageOn(dob) < 0) throw new HttpError(400, "Date of birth cannot be in the future");
-  if (ageOn(dob) < env.minAge) throw new HttpError(403, `You must be at least ${env.minAge} years old to use ScootMeal.`);
+  const { dob, guardian } = checkAge(b.dob, b.guardian);
   const email = checkEmail(b.email);
   const u: User = {
-    id: uid("u"), role: "customer", email, name, dob, phone: str(b.phone, "Phone", { optional: true, max: 30 }) || undefined,
+    id: uid("u"), role: "customer", email, name, dob, ...(guardian ? { guardian } : {}), phone: str(b.phone, "Phone", { optional: true, max: 30 }) || undefined,
     passwordHash: hashPassword(checkPw(b.password)),
   };
   db.users.set(u.id, u);
@@ -73,13 +95,11 @@ authRouter.post("/google", async (req, res) => {
     if (!u.googleSub) u.googleSub = g.sub; // first Google sign-in on an existing account with the same verified email
     return res.json(session(u));
   }
-  const dob = typeof req.body?.dob === "string" ? req.body.dob.trim() : "";
-  if (!dob) return res.json({ needsDob: true, name: g.name, email: g.email });
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob))) throw new HttpError(400, "Date of birth must be YYYY-MM-DD");
-  if (ageOn(dob) < 0) throw new HttpError(400, "Date of birth cannot be in the future");
-  if (ageOn(dob) < env.minAge) throw new HttpError(403, `You must be at least ${env.minAge} years old to use ScootMeal.`);
+  const dobText = typeof req.body?.dob === "string" ? req.body.dob.trim() : "";
+  if (!dobText) return res.json({ needsDob: true, name: g.name, email: g.email });
+  const { dob, guardian } = checkAge(dobText, req.body?.guardian);
   u = {
-    id: uid("u"), role: "customer", email: g.email, name: g.name, dob, googleSub: g.sub, noPassword: true,
+    id: uid("u"), role: "customer", email: g.email, name: g.name, dob, ...(guardian ? { guardian } : {}), googleSub: g.sub, noPassword: true,
     phone: str(req.body?.phone, "Phone", { optional: true, max: 30 }) || undefined,
     passwordHash: hashPassword(randomBytes(24).toString("hex")),
     ...(g.picture ? { avatar: g.picture } : {}),
