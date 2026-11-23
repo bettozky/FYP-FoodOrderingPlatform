@@ -1,6 +1,7 @@
 // CHAT mode: the typing chat, without the edge glow, plus a mic button for speech-to-text.
 // The dark background fades; the white sheet slides up/down.
 // Speaking fills the message box so the merchant can check it; nothing is sent until they press send.
+// A proposed change (sold out, busy mode, deal) shows Yes / No buttons under the bubble.
 import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -42,7 +43,7 @@ const SUGGESTIONS = [
 export default function ChatSheet({ active, chat, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const { messages, loading, send, clear } = chat;
+  const { messages, loading, send, answer, clear } = chat;
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<ScrollViewInstance>(null);
   const inputRef = useRef<TextInputInstance>(null);
@@ -150,10 +151,30 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
                   <Text style={[styles.bubbleText, m.from === "user" && styles.userText, m.error && styles.errorText]}>
                     {m.text}
                   </Text>
-                    <Text style={[styles.bubbleText, m.from === "user" && styles.userText, m.error && styles.errorText]}>
-                    {m.text}
-                  </Text>
                   {m.card && <StatsChart card={m.card} />}
+                  {m.confirm && m.confirmState === "pending" && (
+                    <View style={styles.confirm}>
+                      <Text style={styles.confirmText}>{m.confirm.summary}</Text>
+                      <View style={styles.confirmRow}>
+                        <Pressable
+                          onPress={() => void answer(m.id, false)}
+                          style={[styles.choice, styles.choiceNo]}
+                          accessibilityRole="button"
+                          accessibilityLabel="No, don't change anything"
+                        >
+                          <Text style={styles.choiceNoText}>No</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => void answer(m.id, true)}
+                          style={[styles.choice, styles.choiceYes]}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Yes: ${m.confirm.summary}`}
+                        >
+                          <Text style={styles.choiceYesText}>Yes</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  )}
                 </View>
               ))
             )}
@@ -288,6 +309,14 @@ const styles = StyleSheet.create({
   botBubble: { alignSelf: "flex-start", backgroundColor: colors.paperDim, borderBottomLeftRadius: 6 },
   errorBubble: { backgroundColor: colors.chiliSoft },
     chartBubble: { width: "85%" }, // a chart needs room, so the bubble takes its full width
+  confirm: { marginTop: 10, gap: 8 },
+  confirmText: { fontFamily: fonts.serifSemiBold, fontSize: 14, color: colors.ink },
+  confirmRow: { flexDirection: "row", gap: 8 },
+  choice: { flex: 1, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
+  choiceNo: { borderWidth: 1, borderColor: colors.stoneLine, backgroundColor: colors.paper },
+  choiceYes: { backgroundColor: colors.ink },
+  choiceNoText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  choiceYesText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.white },
   bubbleText: { fontFamily: fonts.serif, fontSize: 15, lineHeight: 21, color: colors.ink },
   userText: { color: colors.white },
   errorText: { color: colors.chiliText },
