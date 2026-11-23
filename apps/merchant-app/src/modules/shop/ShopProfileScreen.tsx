@@ -5,7 +5,7 @@ import ScreenHeader from "../../shared/components/ScreenHeader";
 import { api, errorText } from "../../shared/api/client";
 import { LocalFile, form } from "../../shared/util/files";
 import { confirmAsync } from "../../shared/util/confirm";
-import { colors, spacing, type } from "../../shared/theme/theme";
+import { colors, spacing, type, font } from "../../shared/theme/theme";
 import { useLive } from "../orders/LiveDataContext";
 
 // The shop's profile photo (logo) and banner. Customers see them on the shop card and the shop page.
@@ -50,8 +50,8 @@ export default function ShopProfileScreen() {
         <PhotoField label="Profile photo (logo)" shape="round" aspect={[1, 1]} current={profile?.logo} busy={busy} onPick={(f) => upload("logo", f)} onRemove={() => remove("logo")} />
         <PhotoField label="Banner photo" aspect={[16, 9]} current={profile?.cover} busy={busy} onPick={(f) => upload("cover", f)} onRemove={() => remove("cover")} />
         <Text style={type.small}>Dish photos are set on the Menu page: tap a dish, then "Edit".</Text>
-        {msg ? <Text style={{ color: colors.herb, fontSize: 13.5 }}>{msg}</Text> : null}
-        {err ? <Text style={{ color: colors.chiliText, fontSize: 13.5 }}>{err}</Text> : null}
+        {msg ? <Text style={{ color: colors.herb, fontSize: 14 }}>{msg}</Text> : null}
+        {err ? <Text style={{ color: colors.chiliText, fontSize: 14 }}>{err}</Text> : null}
       </ScrollView>
     </View>
   );

@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, spacing, type } from "../theme/theme";
+import { colors, layout, spacing, type, ui } from "../theme/theme";
 
 type Props = {
   title: string;
@@ -15,19 +16,27 @@ export default function ScreenHeader({ title, subtitle, showBack = true, right }
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top + spacing.md }]}>
+    <View style={[styles.wrap, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.left}>
         {showBack && navigation.canGoBack() && (
-          <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.backBtn} testID="back">
-            <Text style={styles.backArrow}>{"‹"}</Text>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={8}
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.6 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            testID="back"
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />
           </Pressable>
         )}
-        <View>
-          <Text style={type.h2}>{title}</Text>
-          {subtitle ? <Text style={type.bodyMuted}>{subtitle}</Text> : null}
+        {/* flex:1 + minWidth:0 lets a long title/subtitle wrap inside the screen width */}
+        <View style={styles.titleCol}>
+          <Text style={type.h2} accessibilityRole="header" numberOfLines={2}>{title}</Text>
+          {subtitle ? <Text style={[type.bodyMuted, { marginTop: 2 }]} numberOfLines={2}>{subtitle}</Text> : null}
         </View>
       </View>
-      {right}
+      {right ? <View style={styles.right}>{right}</View> : null}
     </View>
   );
 }
@@ -37,20 +46,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingHorizontal: layout.gutter,
     paddingBottom: spacing.md,
     backgroundColor: colors.bg,
   },
-  left: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 4,
-  },
-  backArrow: { fontSize: 22, color: colors.text, marginTop: -2 },
+  left: { flexDirection: "row", alignItems: "center", gap: spacing.md, flex: 1, minWidth: 0 },
+  titleCol: { flex: 1, minWidth: 0 },
+  right: { flexShrink: 0, marginLeft: spacing.sm },
+  backBtn: { ...ui.iconButton },
 });

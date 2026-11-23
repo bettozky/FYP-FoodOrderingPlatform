@@ -7,7 +7,7 @@ import EmptyState from "../../../shared/components/EmptyState";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { confirmAsync } from "../../../shared/util/confirm";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, layout } from "../../../shared/theme/theme";
 
 type Review = { id: string; dishName?: string; userName: string; rating: number; comment?: string; createdAt: number; reply?: { text: string; at: number } };
 type Data = { average: number | null; count: number; unanswered: number; reviews: Review[] };
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   chip: { minHeight: 34, paddingHorizontal: 14, justifyContent: "center", borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: { fontSize: 13, color: colors.ink },
-  list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 3 },
+  list: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 3 },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.sm, gap: 2 },
   top: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   reply: { marginTop: spacing.sm, backgroundColor: colors.bg, borderRadius: radius.sm, padding: spacing.sm, gap: 2 },
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.sm },
   action: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 32 },
   actionText: { fontSize: 13, color: colors.ink },
-  error: { color: colors.chili, fontSize: 13, paddingHorizontal: spacing.lg },
+  error: { color: colors.chiliText, fontSize: 13, paddingHorizontal: spacing.lg },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", padding: spacing.lg },
   modal: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   input: { minHeight: 90, textAlignVertical: "top", borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, color: colors.ink },

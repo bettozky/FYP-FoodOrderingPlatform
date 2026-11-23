@@ -13,7 +13,7 @@ import {
 import { api, errorText } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
-import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout, ui } from "../../../shared/theme/theme";
 
 export interface Voucher {
   id: string;
@@ -108,10 +108,10 @@ export default function MerchantVouchersScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Promotions & Vouchers"
+        title="Promotions & vouchers"
         subtitle={`${vouchers.filter((v) => v.isActive).length} active campaigns`}
       />
-      {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
+      {message ? <Text style={{ color: colors.chiliText, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
 
       <FlatList
         data={vouchers}
@@ -119,16 +119,16 @@ export default function MerchantVouchersScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <>
+          <View style={styles.header}>
             {/* ================= 1. BUDGET & COST OVERVIEW ================= */}
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>RM {totalCostSpent.toFixed(2)}</Text>
-                <Text style={type.small}>Total Cost Spent</Text>
+                <Text style={[type.small, { color: colors.stoneSoft }]}>Total cost spent</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>{totalVouchersRemaining}</Text>
-                <Text style={type.small}>Vouchers Remaining</Text>
+                <Text style={[type.small, { color: colors.stoneSoft }]}>Vouchers remaining</Text>
               </View>
             </View>
 
@@ -137,9 +137,9 @@ export default function MerchantVouchersScreen() {
               style={({ hovered }: any) => [styles.createBtn, hovered && styles.btnHover]}
               onPress={() => setIsModalOpen(true)}
             >
-              <Text style={styles.createBtnText}>+ Create New Voucher</Text>
+              <Text style={styles.createBtnText}>Create a voucher</Text>
             </Pressable>
-          </>
+          </View>
         }
         renderItem={({ item }) => {
           const remaining = item.totalLimit - item.claimedCount;
@@ -162,7 +162,7 @@ export default function MerchantVouchersScreen() {
                 </View>
 
                 <Badge
-                  label={!item.isActive ? "Paused" : isSoldOut ? "Fully Claimed" : "Active"}
+                  label={!item.isActive ? "Paused" : isSoldOut ? "Fully claimed" : "Active"}
                   tone={!item.isActive ? "neutral" : isSoldOut ? "warning" : "success"}
                 />
               </View>
@@ -184,14 +184,14 @@ export default function MerchantVouchersScreen() {
               {/* Vouchers Still Have & Cost Spent */}
               <View style={styles.metricsBox}>
                 <View style={styles.metricItem}>
-                  <Text style={type.small}>Stock Remaining</Text>
+                  <Text style={type.small}>Stock remaining</Text>
                   <Text style={[type.body, { fontWeight: "700" }]}>
                     {remaining} / {item.totalLimit} left
                   </Text>
                 </View>
 
                 <View style={styles.metricItem}>
-                  <Text style={type.small}>Cost Spent by Store</Text>
+                  <Text style={type.small}>Cost spent by store</Text>
                   <Text style={[type.body, { fontWeight: "700", color: colors.primary }]}>
                     RM {item.costSpent.toFixed(2)}
                   </Text>
@@ -214,10 +214,10 @@ export default function MerchantVouchersScreen() {
                   <Text
                     style={[
                       styles.toggleBtnText,
-                      { color: item.isActive ? colors.chiliText : colors.herb },
+                      { color: item.isActive ? colors.ink : colors.white },
                     ]}
                   >
-                    {item.isActive ? "Pause Campaign" : "Resume Campaign"}
+                    {item.isActive ? "Pause campaign" : "Resume campaign"}
                   </Text>
                 </Pressable>
               </View>
@@ -231,13 +231,13 @@ export default function MerchantVouchersScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={type.h2}>Create Discount Voucher</Text>
+              <Text style={type.h2}>Create discount voucher</Text>
               <Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>
                 Set discount rules, limits, and redemption quota.
               </Text>
 
               {/* Voucher Code */}
-              <Text style={styles.inputLabel}>Voucher Code</Text>
+              <Text style={styles.inputLabel}>Voucher code</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. SUPERSAVER10"
@@ -247,7 +247,7 @@ export default function MerchantVouchersScreen() {
               />
 
               {/* Discount Limit Type Toggle */}
-              <Text style={styles.inputLabel}>Discount Limit Type</Text>
+              <Text style={styles.inputLabel}>Discount limit type</Text>
               <View style={styles.typeSelector}>
                 <Pressable
                   style={[
@@ -296,7 +296,7 @@ export default function MerchantVouchersScreen() {
               />
 
               {/* Minimum Spend */}
-              <Text style={styles.inputLabel}>Minimum Spend Required (RM)</Text>
+              <Text style={styles.inputLabel}>Minimum spend required (RM)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. 30.00"
@@ -306,7 +306,7 @@ export default function MerchantVouchersScreen() {
               />
 
               {/* Quantity Limit (Vouchers Still Have) */}
-              <Text style={styles.inputLabel}>Total Voucher Stock / Limit</Text>
+              <Text style={styles.inputLabel}>Total voucher stock / limit</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. 100"
@@ -316,7 +316,7 @@ export default function MerchantVouchersScreen() {
               />
 
               {/* Expiry Date */}
-              <Text style={styles.inputLabel}>Expiry Date (YYYY-MM-DD)</Text>
+              <Text style={styles.inputLabel}>Expiry date (YYYY-MM-DD)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="YYYY-MM-DD"
@@ -337,7 +337,7 @@ export default function MerchantVouchersScreen() {
                   style={[styles.submitBtn, { flex: 1 }]}
                   onPress={handleCreateVoucher}
                 >
-                  <Text style={styles.submitBtnText}>Create Voucher</Text>
+                  <Text style={styles.submitBtnText}>Create voucher</Text>
                 </Pressable>
               </View>
             </ScrollView>
@@ -349,53 +349,20 @@ export default function MerchantVouchersScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: layout.gutter, paddingBottom: spacing.xxl * 1.5, width: "100%", maxWidth: layout.maxWidth, alignSelf: "center" },
 
   /* Stats summary */
-  statsRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  statValue: {
-    fontSize: 18,
-    fontFamily: fonts.displayExtraBold,
-    color: colors.text,
-  },
+  header: { gap: spacing.lg, marginBottom: spacing.lg },
+  statsRow: { flexDirection: "row", gap: spacing.md },
+  statCard: { flex: 1, ...ui.cardDark, padding: spacing.lg, gap: 2 },
+  statValue: { fontSize: 24, ...font.displayExtraBold, color: colors.white, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
 
   /* Create button */
-  createBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    marginBottom: spacing.lg,
-  },
-  createBtnText: {
-    color: colors.white,
-    fontFamily: fonts.displayBold,
-    fontSize: 14,
-  },
+  createBtn: { ...ui.buttonDark, minHeight: 50, flexDirection: "row", gap: spacing.sm, cursor: "pointer" as any },
+  createBtnText: { ...ui.buttonDarkText, fontSize: 16 },
 
   /* Voucher Card */
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 8,
-  },
+  card: { ...ui.card, padding: spacing.lg, marginBottom: spacing.md, gap: spacing.md },
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -404,131 +371,29 @@ const styles = StyleSheet.create({
   rulesWrap: {
     marginTop: 2,
   },
-  metricsBox: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: colors.bg,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginVertical: 4,
-  },
+  metricsBox: { flexDirection: "row", justifyContent: "space-between", backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md, gap: spacing.md },
   metricItem: {
     gap: 2,
   },
-  toggleBtn: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-  },
-  togglePause: {
-    backgroundColor: colors.chiliSoft,
-    borderColor: colors.chiliBorder,
-  },
-  toggleResume: {
-    backgroundColor: colors.herbLight,
-    borderColor: colors.herbBorder,
-  },
-  toggleBtnText: {
-    fontSize: 12,
-    fontFamily: fonts.displayBold,
-  },
+  toggleBtn: { minHeight: 38, paddingHorizontal: spacing.lg, borderRadius: radius.pill, justifyContent: "center", borderWidth: 1, cursor: "pointer" as any },
+  togglePause: { backgroundColor: colors.paper, borderColor: colors.stoneSoft },
+  toggleResume: { backgroundColor: colors.ink, borderColor: colors.ink },
+  toggleBtnText: { fontSize: 14, ...font.displayBold },
 
   /* Modal Styles */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: spacing.lg,
-  },
-  modalCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.xl,
-    width: "100%",
-    maxWidth: 480,
-    maxHeight: "90%",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontFamily: fonts.displayBold,
-    color: colors.text,
-    marginBottom: 4,
-    marginTop: spacing.sm,
-  },
-  input: {
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 14,
-    color: colors.text,
-  },
-  typeSelector: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  typeBtn: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bg,
-  },
-  typeBtnActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  typeBtnText: {
-    fontSize: 13,
-    color: colors.text,
-    fontFamily: fonts.display,
-  },
-  typeBtnTextActive: {
-    color: colors.white,
-    fontFamily: fonts.displayBold,
-  },
-  cancelBtn: {
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bg,
-  },
-  cancelBtnText: {
-    color: colors.text,
-    fontFamily: fonts.displayBold,
-    fontSize: 14,
-  },
-  submitBtn: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    borderRadius: radius.md,
-  },
-  submitBtnText: {
-    color: colors.white,
-    fontFamily: fonts.displayBold,
-    fontSize: 14,
-  },
+  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: "center", alignItems: "center", padding: spacing.lg },
+  modalCard: { backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, width: "100%", maxWidth: 480, maxHeight: "90%" },
+  inputLabel: { fontSize: 14, ...font.displayBold, color: colors.ink, marginBottom: 6, marginTop: spacing.md },
+  input: { ...ui.input },
+  typeSelector: { ...ui.segTrack },
+  typeBtn: { ...ui.segItem, cursor: "pointer" as any },
+  typeBtnActive: { ...ui.segItemOn },
+  typeBtnText: { ...ui.segText },
+  typeBtnTextActive: { ...ui.segTextOn },
+  cancelBtn: { flex: 1, minHeight: 50, alignItems: "center", justifyContent: "center", borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneSoft, cursor: "pointer" as any },
+  cancelBtnText: { color: colors.ink, ...font.displayBold, fontSize: 16 },
+  submitBtn: { flex: 1, minHeight: 50, alignItems: "center", justifyContent: "center", borderRadius: radius.pill, backgroundColor: colors.ink, cursor: "pointer" as any },
+  submitBtnText: { color: colors.white, ...font.displayBold, fontSize: 16 },
 
-  btnHover: {
-    transform: [{ translateY: -2 }],
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
+  btnHover: { opacity: 0.88 },
 });

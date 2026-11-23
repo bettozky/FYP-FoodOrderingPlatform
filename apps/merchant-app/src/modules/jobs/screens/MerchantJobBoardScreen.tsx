@@ -145,11 +145,11 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Restaurant Job Board"
+        title="Job board"
         subtitle={`${jobs.filter((j) => j.status === "active").length} active vacancies · ${jobs.reduce((acc, j) => acc + j.applicantsCount, 0)} total candidates`}
       />
 
-      {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
+      {message ? <Text style={{ color: colors.chiliText, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
       <FlatList
         data={filteredJobs}
         ListEmptyComponent={<EmptyState icon="briefcase-outline" title="No job postings" hint="Post an opening and students on ScootMeal will see it." />}
@@ -162,7 +162,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               style={({ hovered }: any) => [s.postBtn, hovered && s.btnHover]}
               onPress={handleOpenAddModal}
             >
-              <Text style={s.postBtnText}>+ Post New Job Opening</Text>
+              <Text style={s.postBtnText}>Post a job</Text>
             </Pressable>
 
             {/* Status Filter Tabs */}
@@ -177,10 +177,10 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   >
                     <Text style={[s.tabText, isActive && s.tabTextActive]}>
                       {tab === "active"
-                        ? "Active Vacancies"
+                        ? "Active"
                         : tab === "closed"
-                        ? "Closed / Filled"
-                        : "All Postings"}
+                        ? "Closed"
+                        : "All"}
                     </Text>
                   </Pressable>
                 );
@@ -203,7 +203,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                 </View>
 
                 <Badge
-                  label={isClosed ? "CLOSED" : "HIRING ACTIVE"}
+                  label={isClosed ? "Closed" : "Hiring"}
                   tone={isClosed ? "neutral" : "success"}
                 />
               </View>
@@ -220,7 +220,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
 
                 <View style={s.applicantBadge}>
                   <Text style={s.applicantText}>
-                    <Ionicons name="people-outline" size={13} /> {item.applicantsCount} Applicants ({item.openings} Openings)
+                    <Ionicons name="people-outline" size={13} /> {item.applicantsCount} {item.applicantsCount === 1 ? "applicant" : "applicants"} · {item.openings} {item.openings === 1 ? "opening" : "openings"}
                   </Text>
                 </View>
 
@@ -235,7 +235,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               {/* Perks & Benefits Box */}
               {item.perks ? (
                 <View style={s.perksBox}>
-                  <Text style={s.perksTitle}>Staff Benefits & Welfare</Text>
+                  <Text style={s.perksTitle}>Staff benefits & welfare</Text>
                   <Text style={s.perksContent}>{item.perks}</Text>
                 </View>
               ) : null}
@@ -261,7 +261,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   style={[s.actionBtn, s.editBtn]}
                   onPress={() => handleOpenEditModal(item)}
                 >
-                  <Text style={s.editBtnText}>Edit Details</Text>
+                  <Text style={s.editBtnText}>Edit details</Text>
                 </Pressable>
 
                 <Pressable
@@ -273,7 +273,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   onPress={() => handleToggleStatus(item.id)}
                 >
                   <Text style={isClosed ? s.reopenBtnText : s.closeBtnText}>
-                    {isClosed ? "Reopen Vacancy" : "Close Vacancy"}
+                    {isClosed ? "Reopen vacancy" : "Close vacancy"}
                   </Text>
                 </Pressable>
 
@@ -295,14 +295,14 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
           <View style={s.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={type.h2}>
-                {editingJobId ? "Edit Job Vacancy" : "Post New Job Opening"}
+                {editingJobId ? "Edit job vacancy" : "Post a job"}
               </Text>
               <Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>
                 Recruit kitchen, service, and floor staff for your restaurant.
               </Text>
 
               {/* Job Title */}
-              <Text style={s.inputLabel}>Job Title</Text>
+              <Text style={s.inputLabel}>Job title</Text>
               <TextInput
                 style={s.input}
                 placeholder="e.g. Full-Time Sarawak Laksa Line Cook"
@@ -311,7 +311,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               />
 
               {/* F&B Primary Role Picker */}
-              <Text style={s.inputLabel}>Role Category</Text>
+              <Text style={s.inputLabel}>Role category</Text>
               <View style={s.quickChipRow}>
                 {COMMON_ROLES.map((role) => {
                   const isSelected = jobRole === role;
@@ -330,7 +330,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               </View>
 
               {/* Employment Type */}
-              <Text style={s.inputLabel}>Employment Type</Text>
+              <Text style={s.inputLabel}>Employment type</Text>
               <View style={s.quickChipRow}>
                 {JOB_TYPES.map((jt) => {
                   const isSelected = jobType === jt;
@@ -351,7 +351,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               {/* Salary Range & Number of Openings */}
               <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs }}>
                 <View style={{ flex: 2 }}>
-                  <Text style={s.inputLabel}>Salary / Wages</Text>
+                  <Text style={s.inputLabel}>Salary / wages</Text>
                   <TextInput
                     style={s.input}
                     placeholder="e.g. RM 2,200 - RM 2,600 / month"
@@ -373,7 +373,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               </View>
 
               {/* Responsibilities & Description */}
-              <Text style={s.inputLabel}>Responsibilities & Duties</Text>
+              <Text style={s.inputLabel}>Responsibilities & duties</Text>
               <TextInput
                 style={[s.input, s.textArea]}
                 placeholder="Key expectations (e.g. food prep, table service, cash handling)"
@@ -384,7 +384,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               />
 
               {/* Staff Perks & Welfare */}
-              <Text style={s.inputLabel}>Staff Perks & Benefits</Text>
+              <Text style={s.inputLabel}>Staff perks & benefits</Text>
               <TextInput
                 style={s.input}
                 placeholder="e.g. Staff meals, EPF/SOCSO, OT allowance, medical"
@@ -406,7 +406,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   onPress={handleSaveJob}
                 >
                   <Text style={s.saveBtnText}>
-                    {editingJobId ? "Save Changes" : "Publish Vacancy"}
+                    {editingJobId ? "Save changes" : "Publish vacancy"}
                   </Text>
                 </Pressable>
               </View>

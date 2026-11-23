@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api, errorText } from "../../shared/api/client";
 import ScreenHeader from "../../shared/components/ScreenHeader";
 import EmptyState from "../../shared/components/EmptyState";
-import { colors, fonts, radius, shadow, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, shadow, spacing, type, font, layout } from "../../shared/theme/theme";
 
 type DishForecast = { dishId: string; name: string; expected: number; low: number; high: number; history: number[]; trend: "up" | "down" | "flat" };
 type Forecast = { date: string; weekday: number; dates: string[]; expectedOrders: number; rushHour: number | null; dishes: DishForecast[] };
@@ -135,26 +135,26 @@ function DishRow({ d, max, index, dates }: { d: DishForecast; max: number; index
 }
 
 const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
+  body: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.md },
   days: { gap: spacing.sm, paddingBottom: spacing.xs },
   dayChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white },
   dayChipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  dayText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
-  dayTextOn: { color: colors.white, fontFamily: fonts.displayBold },
-  error: { fontFamily: fonts.displayBold, color: colors.chiliText },
+  dayText: { ...font.display, fontSize: 13, color: colors.ink },
+  dayTextOn: { color: colors.white, ...font.displayBold },
+  error: { ...font.displayBold, color: colors.chiliText },
   hero: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.card },
-  heroLabel: { fontSize: 11, fontFamily: fonts.displayBold, color: colors.textFaint, letterSpacing: 1.2 },
+  heroLabel: { fontSize: 11, ...font.displayBold, color: colors.textFaint },
   heroRow: { flexDirection: "row" },
   heroStat: { flex: 1, alignItems: "center", gap: 3, paddingHorizontal: 4 },
-  heroValue: { fontSize: 20, fontFamily: fonts.displayExtraBold, color: colors.white },
-  heroStatLabel: { fontSize: 11.5, fontFamily: fonts.display, color: colors.textFaint },
-  heroHint: { fontSize: 12, fontFamily: fonts.display, color: colors.textFaint },
+  heroValue: { fontSize: 20, ...font.displayExtraBold, color: colors.white },
+  heroStatLabel: { fontSize: 12, ...font.display, color: colors.textFaint },
+  heroHint: { fontSize: 12, ...font.display, color: colors.textFaint },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.lg, ...shadow.soft },
-  cardTitle: { fontSize: 15, fontFamily: fonts.displayBold, color: colors.ink },
+  cardTitle: { fontSize: 15, ...font.displayBold, color: colors.ink },
   dish: { gap: 6 },
   dishTop: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  dishName: { flex: 1, fontSize: 14, fontFamily: fonts.displayBold, color: colors.ink },
-  dishNum: { fontSize: 22, fontFamily: fonts.displayExtraBold, color: colors.ink, minWidth: 30, textAlign: "right" },
+  dishName: { flex: 1, fontSize: 14, ...font.displayBold, color: colors.ink },
+  dishNum: { fontSize: 22, ...font.displayExtraBold, color: colors.ink, minWidth: 30, textAlign: "right" },
   track: { height: 12, borderRadius: 6, backgroundColor: colors.paperDim, overflow: "hidden", position: "relative" },
   range: { position: "absolute", top: 0, bottom: 0, backgroundColor: colors.amberTint, borderRadius: 6 },
   expected: { position: "absolute", left: 0, top: 3, bottom: 3, backgroundColor: colors.turmeric, borderRadius: 3 },
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   histCol: { flex: 1, alignItems: "center", gap: 2 },
   histTrack: { width: "100%", height: 22, justifyContent: "flex-end" },
   histBar: { width: "100%", borderRadius: 3, minHeight: 2 },
-  histLabel: { fontSize: 10, fontFamily: fonts.display, color: colors.stone },
+  histLabel: { fontSize: 11, ...font.display, color: colors.stoneText },
   tip: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", backgroundColor: colors.amberTint, borderRadius: radius.sm, padding: spacing.md },
-  tipText: { flex: 1, fontSize: 12, fontFamily: fonts.display, color: colors.amberText },
+  tipText: { flex: 1, fontSize: 12, ...font.display, color: colors.amberText },
 });

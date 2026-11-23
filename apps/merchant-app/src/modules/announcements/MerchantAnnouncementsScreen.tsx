@@ -8,7 +8,7 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import ScreenHeader from "../../shared/components/ScreenHeader";
 import { api, errorText } from "../../shared/api/client";
 import { confirmAsync } from "../../shared/util/confirm";
-import { colors, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 
 type Item = { id: string; title: string; body: string; pinned: boolean; createdAt: number; expiresAt?: number; expired?: boolean };
 const DURATIONS: { days: number; label: string }[] = [{ days: 3, label: "3 days" }, { days: 7, label: "1 week" }, { days: 30, label: "1 month" }, { days: 0, label: "No end" }];
@@ -107,7 +107,7 @@ export default function MerchantAnnouncementsScreen() {
                 </Pressable>
               ))}
             </View>
-            {error ? <Text style={{ color: colors.chiliText, fontSize: 13.5 }}>{error}</Text> : null}
+            {error ? <Text style={{ color: colors.chiliText, fontSize: 14 }}>{error}</Text> : null}
             <PrimaryButton label={editing === "new" ? "Post announcement" : "Save changes"} onPress={save} loading={busy} testID="ann-save" />
             <PrimaryButton label="Cancel" variant="outline" onPress={() => setEditing(null)} disabled={busy} />
           </View>

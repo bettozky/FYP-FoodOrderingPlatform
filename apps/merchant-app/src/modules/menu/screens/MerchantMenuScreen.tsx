@@ -16,7 +16,8 @@ import Badge from "../../../shared/components/Badge";
 import DishImage from "../../../shared/components/DishImage";
 import PhotoField from "../../../shared/components/PhotoField";
 import { form, LocalFile } from "../../../shared/util/files";
-import { colors, spacing, type } from "../../../shared/theme/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, spacing, type, ui } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
 import { ALLERGENS } from "../../onboarding/signup/types";
 import DealControl, { type Deal } from "../DealControl";
@@ -207,10 +208,10 @@ export default function MerchantMenuScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Menu Management"
+        title="Menu"
         subtitle={`${menu.length} total dishes · ${menu.filter((d) => !d.soldOut && d.quantity > 0).length} in stock`}
       />
-      {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
+      {message ? <Text style={{ color: colors.chiliText, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
 
       <FlatList
         data={filteredMenu}
@@ -224,7 +225,8 @@ export default function MerchantMenuScreen() {
               style={({ hovered }: any) => [styles.addBtn, hovered && styles.btnHover]}
               onPress={handleOpenAddModal}
             >
-              <Text style={styles.addBtnText}>+ Add New Dish</Text>
+              <Ionicons name="add" size={20} color={colors.white} />
+              <Text style={styles.addBtnText}>Add a dish</Text>
             </Pressable>
 
             {/* Dynamic Category Filter Chips */}
@@ -272,7 +274,7 @@ export default function MerchantMenuScreen() {
                 {/* Dish Info & Financial Breakdown */}
                 <View style={{ flex: 1, gap: 3 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <Text style={[type.h3, isUnavailable && styles.textMuted]}>
+                    <Text style={[type.h3, isUnavailable && styles.textMuted]} numberOfLines={2}>
                       {item.name}
                     </Text>
                     {item.category && <Badge label={item.category} tone="neutral" />}
@@ -280,7 +282,7 @@ export default function MerchantMenuScreen() {
 
                   {/* Price, Cost & Profit Info */}
                   <View style={styles.pricingRow}>
-                    <Text style={[type.body, { color: colors.primary, fontWeight: "700" }]}>
+                    <Text style={ui.price}>
                       RM {item.price.toFixed(2)}
                     </Text>
                     <Text style={styles.costLabel}>
@@ -306,7 +308,7 @@ export default function MerchantMenuScreen() {
                         item.quantity === 0 ? styles.qtyZero : styles.qtyActive,
                       ]}
                     >
-                      {item.quantity === 0 ? "0 in stock (Sold Out)" : item.quantity >= NO_LIMIT ? "No stock limit" : `${item.quantity} available`}
+                      {item.quantity === 0 ? "0 in stock (sold out)" : item.quantity >= NO_LIMIT ? "No stock limit" : `${item.quantity} available`}
                     </Text>
                   </View>
                 </View>
@@ -314,14 +316,16 @@ export default function MerchantMenuScreen() {
                 {/* Real-Time Out-of-Stock Toggle */}
                 <View style={styles.toggleCol}>
                   <Badge
-                    label={isUnavailable ? "Sold Out" : "In Stock"}
+                    label={isUnavailable ? "Sold out" : "In stock"}
                     tone={isUnavailable ? "warning" : "success"}
                   />
                   <Switch
                     value={!isUnavailable}
                     onValueChange={() => toggleSoldOut(item)}
-                    trackColor={{ false: colors.border, true: colors.primarySoft }}
-                    thumbColor={isUnavailable ? colors.textFaint : colors.primary}
+                    trackColor={{ false: colors.stoneSoft, true: colors.herb }}
+                    thumbColor={colors.white}
+                    {...({ ios_backgroundColor: colors.stoneSoft, activeThumbColor: colors.white } as object)}
+                    accessibilityLabel={isUnavailable ? `${item.name} is sold out. Turn on to put it back in stock` : `${item.name} is in stock. Turn off to mark it sold out`}
                   />
                 </View>
               </View>
@@ -336,7 +340,7 @@ export default function MerchantMenuScreen() {
                   ]}
                   onPress={() => handleOpenEditModal(item)}
                 >
-                  <Text style={styles.editBtnText}>Edit Price, Cost & Stock</Text>
+                  <Text style={styles.editBtnText}>Edit price, cost & stock</Text>
                 </Pressable>
 
                 <Pressable
@@ -368,7 +372,7 @@ export default function MerchantMenuScreen() {
               </Text>
 
               {/* Dish Name */}
-              <Text style={styles.inputLabel}>Dish Name</Text>
+              <Text style={styles.inputLabel}>Dish name</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. Claypot Chicken Rice"
@@ -393,7 +397,7 @@ export default function MerchantMenuScreen() {
               />
 
               {/* Quick Pick Existing Categories */}
-              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4, marginBottom: 4 }}>
+              <Text style={{ fontSize: 11, color: colors.stoneText, marginTop: 4, marginBottom: 4 }}>
                 Or select from existing categories:
               </Text>
               <View style={styles.quickCategoryRow}>
@@ -424,7 +428,7 @@ export default function MerchantMenuScreen() {
               {/* Price & Cost in a 2-Column Row */}
               <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Selling Price (RM)</Text>
+                  <Text style={styles.inputLabel}>Selling price (RM)</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="e.g. 12.50"
@@ -435,7 +439,7 @@ export default function MerchantMenuScreen() {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Ingredient Cost (RM)</Text>
+                  <Text style={styles.inputLabel}>Ingredient cost (RM)</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="e.g. 5.00"
@@ -449,7 +453,7 @@ export default function MerchantMenuScreen() {
               {/* Dynamic Profit Preview Box */}
               {numPrice > 0 && (
                 <View style={styles.previewBox}>
-                  <Text style={{ fontSize: 12, color: colors.textMuted }}>
+                  <Text style={{ fontSize: 12, color: colors.stoneText }}>
                     Estimated Profit:{" "}
                     <Text
                       style={{
@@ -464,7 +468,7 @@ export default function MerchantMenuScreen() {
               )}
 
               {/* Stock Quantity */}
-              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Available Stock Quantity</Text>
+              <Text style={[styles.inputLabel, { marginTop: spacing.sm }]}>Available stock quantity</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Leave empty for no limit (0 = Sold Out)"
@@ -472,7 +476,7 @@ export default function MerchantMenuScreen() {
                 value={dishQuantity}
                 onChangeText={setDishQuantity}
               />
-              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
+              <Text style={{ fontSize: 11, color: colors.stoneText, marginTop: 3 }}>
                 * Setting quantity to 0 will automatically mark the dish as sold out.
               </Text>
 
@@ -500,7 +504,7 @@ export default function MerchantMenuScreen() {
                   );
                 })}
               </View>
-              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
+              <Text style={{ fontSize: 11, color: colors.stoneText, marginTop: 3 }}>
                 Hidden ones count: kicap has soy and gluten, belacan and oyster sauce are shellfish.
               </Text>
 
@@ -520,7 +524,7 @@ export default function MerchantMenuScreen() {
 
             {/* Buttons stay pinned under the scrolling form so they are always reachable on a small phone. */}
             <View style={styles.modalFooter}>
-              {message ? <Text style={{ color: colors.danger, marginTop: spacing.sm }}>{message}</Text> : null}
+              {message ? <Text style={{ color: colors.chiliText, marginTop: spacing.sm }}>{message}</Text> : null}
 
               <View style={styles.modalBtnRow}>
                 <Pressable
@@ -537,7 +541,7 @@ export default function MerchantMenuScreen() {
                   onPress={handleSaveDish}
                 >
                   <Text style={styles.saveBtnText}>
-                    {saving ? "Saving…" : editingDishId ? "Update Dish" : "Create Dish"}
+                    {saving ? "Saving…" : editingDishId ? "Update dish" : "Create dish"}
                   </Text>
                 </Pressable>
               </View>

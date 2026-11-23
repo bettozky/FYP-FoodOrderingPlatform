@@ -6,7 +6,7 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import { RESTAURANT_TABLES } from "../../shared/tables";
 import { startAlert, stopAlert } from "../../shared/util/alertSound";
 import { mmss, prettyDate, useCountdown } from "../../shared/util/format";
-import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 import ChatPanel from "../chat/ChatPanel";
 import { useChat } from "../chat/ChatContext";
 import { useCall } from "../calls/CallContext";
@@ -118,7 +118,7 @@ function OrderPopup({ order, busy, error, onAnswer }: { order: Order; busy: bool
   return (
     <View style={styles.screen} testID="order-popup">
       <ScrollView contentContainerStyle={styles.body} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-        <Text style={styles.kicker}>NEW ORDER REQUEST</Text>
+        <Text style={styles.kicker}>New order request</Text>
         <Text style={styles.title}>#{order.id} · {order.customerName}</Text>
         <Countdown deadline={order.respondBy} minutes={10} />
         {modes.map((m) => (
@@ -155,7 +155,7 @@ function ReservationPopup(props: {
   return (
     <View style={styles.screen} testID="reservation-popup">
       <ScrollView contentContainerStyle={styles.body} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-        <Text style={styles.kicker}>NEW RESERVATION REQUEST</Text>
+        <Text style={styles.kicker}>New reservation request</Text>
         <Text style={styles.title}>{r.customerName} · {r.partySize} guests</Text>
         <Text style={styles.sub}>{prettyDate(r.date)} at {r.time}</Text>
         <Countdown deadline={r.respondBy} minutes={30} />
@@ -200,18 +200,19 @@ const styles = StyleSheet.create({
   overlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, elevation: 1000, backgroundColor: colors.ink },
   screen: { flex: 1, backgroundColor: colors.ink, paddingTop: Platform.OS === "web" ? 24 : 48 },
   body: { padding: spacing.xl, gap: spacing.md, maxWidth: 560, width: "100%", alignSelf: "center" },
-  kicker: { color: colors.turmeric, fontFamily: fonts.displayExtraBold, letterSpacing: 1.2, fontSize: 12 },
-  title: { color: colors.white, fontFamily: fonts.displayExtraBold, fontSize: 26 },
-  sub: { color: colors.stoneSoft, fontFamily: fonts.display, fontSize: 16 },
+  // What kind of request this is, as a turmeric tag (the one bright thing on the dark screen).
+  kicker: { alignSelf: "flex-start", backgroundColor: colors.turmeric, color: colors.ink, ...font.displayBold, fontSize: 14, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, overflow: "hidden" },
+  title: { color: colors.white, ...font.displayExtraBold, fontSize: 28, letterSpacing: -0.5 },
+  sub: { color: colors.stoneSoft, ...font.display, fontSize: 16 },
   timer: { backgroundColor: colors.herb, borderRadius: radius.lg, padding: spacing.lg, alignItems: "center" },
-  timerNum: { color: colors.white, fontFamily: fonts.displayExtraBold, fontSize: 44 },
-  timerLabel: { color: colors.white, fontFamily: fonts.display, fontSize: 12 },
-  group: { backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.md, gap: 6 },
-  groupHead: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
+  timerNum: { color: colors.white, ...font.displayExtraBold, fontSize: 48, letterSpacing: -1, fontVariant: ["tabular-nums"] },
+  timerLabel: { color: colors.white, ...font.display, fontSize: 14 },
+  group: { backgroundColor: colors.white, borderRadius: radius.md, padding: spacing.lg, gap: 6 },
+  groupHead: { ...font.displayBold, fontSize: 14, color: colors.amberText },
   line: { paddingVertical: 2 },
-  lineText: { fontFamily: fonts.display, fontSize: 16, color: colors.ink },
-  total: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 18 },
+  lineText: { ...font.display, fontSize: 16, color: colors.ink },
+  total: { color: colors.white, ...font.displayExtraBold, fontSize: 20, fontVariant: ["tabular-nums"] },
   tableRow: { flexDirection: "row", justifyContent: "space-between", padding: 12, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border },
-  error: { color: colors.chiliSoft, fontFamily: fonts.display },
+  error: { color: colors.chiliSoft, ...font.display },
   actions: { flexDirection: "row", gap: spacing.sm, padding: spacing.lg, backgroundColor: colors.ink, maxWidth: 560, width: "100%", alignSelf: "center" },
 });
