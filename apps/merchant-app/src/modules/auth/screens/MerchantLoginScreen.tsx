@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, type ScrollViewInstance } from "react-native";
 import { useAuth } from "../AuthContext";
 import { errorText } from "../../../shared/api/client";
-import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, ui } from "../../../shared/theme/theme";
 import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
 import ShopSignupWizard from "../../onboarding/screens/ShopSignupWizard";
 
@@ -52,7 +52,7 @@ export default function MerchantLoginScreen() {
       <View style={styles.seg}>
         {(["login", "register"] as const).map((m) => (
           <Pressable key={m} style={[styles.segBtn, mode === m && styles.segOn]} onPress={() => changeMode(m)} accessibilityRole="tab" accessibilityState={{ selected: mode === m }} testID={`mode-${m}`}>
-            <Text style={[styles.segText, mode === m && { color: colors.white }]}>{m === "login" ? "Sign in" : "Create shop account"}</Text>
+            <Text style={[styles.segText, mode === m && ui.segTextOn]}>{m === "login" ? "Sign in" : "Create shop account"}</Text>
           </Pressable>
         ))}
       </View>
@@ -81,16 +81,16 @@ export default function MerchantLoginScreen() {
 const styles = StyleSheet.create({
   wrap: { flexGrow: 1, backgroundColor: colors.bg, justifyContent: "center", padding: spacing.xl, maxWidth: 520, width: "100%", alignSelf: "center" },
   wrapTop: { justifyContent: "flex-start", paddingTop: spacing.xxl * 1.5, paddingBottom: spacing.xxl * 4 }, // extra room so the last fields can scroll above the keyboard
-  seg: { flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: radius.pill, padding: 3, marginBottom: spacing.sm },
-  segBtn: { flex: 1, alignItems: "center", paddingVertical: 9, borderRadius: radius.pill },
-  segOn: { backgroundColor: colors.ink },
-  segText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  label: { ...type.small, marginBottom: spacing.xs, marginTop: spacing.md },
-  input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, fontFamily: fonts.serifMedium, color: colors.text },
-  cta: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingVertical: spacing.md + 2, alignItems: "center", marginTop: spacing.xl },
-  ctaText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 15 },
-  forgot: { alignSelf: "flex-end", paddingVertical: spacing.sm },
-  forgotText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.turmericDeep },
-  error: { color: colors.chiliText, fontFamily: fonts.display, marginTop: spacing.md },
+  seg: { ...ui.segTrack, marginBottom: spacing.md },
+  segBtn: { ...ui.segItem },
+  segOn: { ...ui.segItemOn },
+  segText: { ...ui.segText },
+  label: { ...font.displayBold, fontSize: 14, color: colors.ink, marginBottom: 6, marginTop: spacing.lg },
+  input: { ...ui.input },
+  cta: { ...ui.buttonDark, minHeight: 52, marginTop: spacing.xl },
+  ctaText: { ...ui.buttonDarkText, fontSize: 16 },
+  forgot: { alignSelf: "flex-end", minHeight: 40, justifyContent: "center" },
+  forgotText: { ...font.displayBold, fontSize: 14, color: colors.amberText },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14, marginTop: spacing.md },
   hint: { ...type.small, textAlign: "center", marginTop: spacing.md },
 });

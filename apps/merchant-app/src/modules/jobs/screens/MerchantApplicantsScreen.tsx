@@ -54,7 +54,7 @@ export default function MerchantApplicantsScreen({ navigation, route }: any) {
           );
         })}
       </ScrollView>
-      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chili }]}>{error}</Text> : null}
+      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {!data && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
           data={data?.applications ?? []}

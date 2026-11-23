@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 
 // Feature 2 "Ready when you arrive" (merchant side): shows when the customer tapped "I'm 5 min away",
 // so the stall can time dine-in / takeaway food to be fresh when they walk up.
@@ -30,5 +30,5 @@ export default function ArrivingBadge({ arrivingAt, active }: { arrivingAt?: num
 const styles = StyleSheet.create({
   badge: { flexDirection: "row", alignItems: "center", gap: spacing.sm, alignSelf: "flex-start", backgroundColor: colors.turmeric, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 },
   here: { backgroundColor: colors.herb },
-  text: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink },
+  text: { ...font.displayBold, fontSize: 13, color: colors.ink },
 });

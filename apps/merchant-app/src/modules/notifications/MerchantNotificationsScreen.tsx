@@ -6,7 +6,7 @@ import EmptyState from "../../shared/components/EmptyState";
 import ScreenHeader from "../../shared/components/ScreenHeader";
 import { api, errorText } from "../../shared/api/client";
 import { isInboxType } from "./inbox";
-import { colors, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 
 type N = { id: string; type: string; title: string; body: string; data?: Record<string, any>; createdAt: number; ackedAt?: number };
 
@@ -70,7 +70,7 @@ export default function MerchantNotificationsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   readAll: { alignSelf: "flex-end", marginRight: spacing.lg, paddingVertical: 6 },
-  readAllText: { fontWeight: "700", color: colors.turmericDeep, fontSize: 13.5 },
+  readAllText: { fontWeight: "700", color: colors.amberText, fontSize: 14 },
   card: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   unread: { backgroundColor: colors.amberTint, borderColor: colors.turmeric },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.chili, marginTop: 4 },

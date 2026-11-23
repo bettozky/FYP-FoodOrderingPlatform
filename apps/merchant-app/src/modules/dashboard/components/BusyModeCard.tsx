@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../../shared/api/client";
-import { colors, fonts, radius, shadow, spacing } from "../../../shared/theme/theme";
+import { colors, radius, shadow, spacing, font } from "../../../shared/theme/theme";
 
 type BusyMode = { on: boolean; limitMinutes: number; action: "warn" | "pause" };
 type BusyReply = { busyMode: BusyMode; waitMinutes: number; queue: number; ordersPaused: boolean; longWaitWarning: boolean };
@@ -83,7 +83,7 @@ export default function BusyModeCard() {
               return (
                 <Pressable key={a} onPress={() => save({ action: a })} style={[styles.action, on && styles.actionOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`busy-action-${a}`}>
                   <Ionicons name={a === "warn" ? "alert-circle-outline" : "pause-circle-outline"} size={18} color={on ? colors.ink : colors.stone} />
-                  <Text style={[styles.actionTitle, !on && { color: colors.stone }]}>{a === "warn" ? "Warn customers" : "Pause new orders"}</Text>
+                  <Text style={[styles.actionTitle, !on && { color: colors.stoneText }]}>{a === "warn" ? "Warn customers" : "Pause new orders"}</Text>
                   <Text style={styles.actionHint}>{a === "warn" ? "They must accept the long wait" : "Back on by itself when it's quieter"}</Text>
                 </Pressable>
               );
@@ -107,25 +107,25 @@ export default function BusyModeCard() {
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.md, ...shadow.soft },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  title: { fontSize: 15, fontFamily: fonts.displayBold, color: colors.ink },
-  hint: { fontSize: 12, fontFamily: fonts.display, color: colors.stone },
+  title: { fontSize: 15, ...font.displayBold, color: colors.ink },
+  hint: { fontSize: 12, ...font.display, color: colors.stoneText },
   liveRow: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm, flexWrap: "wrap" },
-  liveBig: { fontSize: 24, fontFamily: fonts.displayExtraBold, color: colors.ink },
+  liveBig: { fontSize: 24, ...font.displayExtraBold, color: colors.ink },
   track: { height: 10, borderRadius: 5, backgroundColor: colors.paperDim, overflow: "hidden" },
   fill: { height: 10, borderRadius: 5 },
-  label: { fontSize: 12, fontFamily: fonts.displayBold, color: colors.stone, textTransform: "uppercase", letterSpacing: 0.8 },
+  label: { fontSize: 12, ...font.displayBold, color: colors.stoneText },
   chips: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
   chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
-  chipTextOn: { color: colors.white, fontFamily: fonts.displayBold },
+  chipText: { ...font.display, fontSize: 13, color: colors.ink },
+  chipTextOn: { color: colors.white, ...font.displayBold },
   actions: { flexDirection: "row", gap: spacing.sm },
   action: { flex: 1, borderRadius: radius.sm, borderWidth: 1.5, borderColor: colors.border, padding: spacing.md, gap: 4 },
   actionOn: { borderColor: colors.ink, backgroundColor: colors.paperDim },
-  actionTitle: { fontSize: 13.5, fontFamily: fonts.displayBold, color: colors.ink },
-  actionHint: { fontSize: 11.5, fontFamily: fonts.display, color: colors.stone },
+  actionTitle: { fontSize: 14, ...font.displayBold, color: colors.ink },
+  actionHint: { fontSize: 12, ...font.display, color: colors.stoneText },
   banner: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", borderRadius: radius.sm, padding: spacing.md, borderWidth: 1 },
   bannerRed: { backgroundColor: colors.chiliSoft, borderColor: colors.chiliBorder },
   bannerAmber: { backgroundColor: colors.amberTint, borderColor: colors.amberBorder },
-  bannerText: { flex: 1, fontSize: 12.5, fontFamily: fonts.display },
+  bannerText: { flex: 1, fontSize: 13, ...font.display },
 });

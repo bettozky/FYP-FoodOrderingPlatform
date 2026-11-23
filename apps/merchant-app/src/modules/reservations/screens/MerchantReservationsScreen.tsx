@@ -91,7 +91,7 @@ export default function MerchantReservationsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Table Reservations" subtitle={`${pendingCount} pending requests · ${confirmedCount} confirmed`} />
+      <ScreenHeader title="Table reservations" subtitle={`${pendingCount} pending requests · ${confirmedCount} confirmed`} />
 
       <FlatList
         data={filteredReservations}
@@ -102,7 +102,7 @@ export default function MerchantReservationsScreen() {
             {/* 1. SEATING OVERVIEW (tables given to confirmed bookings) */}
             <View style={s.floorOverviewCard}>
               <View style={s.rowBetween}>
-                <Text style={[type.body, { fontWeight: "700" }]}>Dine-In Seating Plan</Text>
+                <Text style={type.h3}>Seating plan</Text>
                 <Text style={type.small}>
                   {RESTAURANT_TABLES.length - new Set(reservations.filter((r) => holdsTable(r.status) && r.allocatedTable).map((r) => r.allocatedTable)).size} tables not yet booked
                 </Text>
@@ -128,13 +128,13 @@ export default function MerchantReservationsScreen() {
                 return (
                   <Pressable key={tab} style={[s.tabBtn, isActive && s.tabBtnActive]} onPress={() => setActiveTab(tab)} testID={`rtab-${tab}`}>
                     <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                      {tab === "pending" ? "Pending Requests" : tab === "confirmed" ? "Confirmed Dine-In" : "All Bookings"}
+                      {tab === "pending" ? "Pending" : tab === "confirmed" ? "Confirmed" : "All"}
                     </Text>
                   </Pressable>
                 );
               })}
             </View>
-            {error ? <Text style={{ color: colors.danger, marginBottom: 8 }}>{error}</Text> : null}
+            {error ? <Text style={{ color: colors.chiliText, marginBottom: 8 }}>{error}</Text> : null}
           </>
         }
         ListEmptyComponent={<EmptyState icon="calendar-outline" title="No bookings here" hint="New table requests pop up automatically." />}
@@ -180,7 +180,7 @@ export default function MerchantReservationsScreen() {
               {(item.status === "awaiting_restaurant" || item.status === "awaiting_payment" || item.status === "confirmed") && <ChatButtons kind="reservation" id={item.id} allowCall />}
 
               {item.specialRequest ? (
-                <Text style={[type.small, { fontStyle: "italic", color: colors.textMuted }]}>Note: "{item.specialRequest}"</Text>
+                <Text style={[type.small, { fontStyle: "italic", color: colors.stoneText }]}>Note: "{item.specialRequest}"</Text>
               ) : null}
               <Text style={type.small}>{!item.payNow ? "Pay later at the restaurant" : item.paid ? `Paid RM ${item.paid.toFixed(2)}${item.refunded ? ` (refunded RM ${item.refunded.toFixed(2)})` : ""}` : isUnpaid ? `Waiting for the customer to pay RM ${(item.amountDue ?? 0).toFixed(2)}. The table is held until the payment window ends.` : `Customer pays online (RM ${(item.amountDue ?? 0).toFixed(2)}) after you confirm`}</Text>
 
@@ -203,7 +203,7 @@ export default function MerchantReservationsScreen() {
                       ) : (
                         <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: dish.status === "approved" ? colors.herbLight : dish.status === "declined" ? colors.chiliSoft : colors.paperDim }}>
                           <Text style={{ fontSize: 11, fontWeight: "700", color: dish.status === "approved" ? colors.herb : dish.status === "declined" ? colors.chiliText : colors.stone }}>
-                            {dish.status === "approved" ? "Food Accepted" : dish.status === "declined" ? "Kitchen Declined" : "Pending"}
+                            {dish.status === "approved" ? "Food accepted" : dish.status === "declined" ? "Kitchen declined" : "Pending"}
                           </Text>
                         </View>
                       )}
@@ -216,7 +216,7 @@ export default function MerchantReservationsScreen() {
                 {isPending ? (
                   <>
                     <Pressable style={s.confirmBtn} onPress={() => handleOpenAssignTable(item)} testID={`assign-${item.id}`}>
-                      <Text style={s.confirmBtnText}>Assign Table & Accept</Text>
+                      <Text style={s.confirmBtnText}>Assign table & accept</Text>
                     </Pressable>
                     <Pressable style={s.declineBtn} onPress={() => handleDecline(item)} testID={`decline-${item.id}`}>
                       <Text style={s.declineBtnText}>Decline</Text>
@@ -225,7 +225,7 @@ export default function MerchantReservationsScreen() {
                 ) : isConfirmed ? (
                   <>
                     <Pressable style={[s.rescheduleBtn, { flex: 1 }]} onPress={() => handleOpenAssignTable(item)}>
-                      <Text style={s.rescheduleBtnText}>Reassign Table</Text>
+                      <Text style={s.rescheduleBtnText}>Reassign table</Text>
                     </Pressable>
                     <Pressable style={[s.declineBtn, { flex: 1 }]} onPress={() => handleDecline(item)}>
                       <Text style={s.declineBtnText}>Cancel</Text>
@@ -242,7 +242,7 @@ export default function MerchantReservationsScreen() {
       <Modal visible={isTableModalOpen} animationType="slide" transparent>
         <View style={s.modalOverlay}>
           <View style={s.modalCard}>
-            <Text style={type.h2}>Assign Dine-In Table</Text>
+            <Text style={type.h2}>Assign dine-in table</Text>
             <Text style={type.bodyMuted}>Select a table for {selectedRsv?.customerName} ({selectedRsv?.partySize} Pax):</Text>
             <ScrollView style={{ maxHeight: 240 }}>
               <View style={{ gap: 8 }}>

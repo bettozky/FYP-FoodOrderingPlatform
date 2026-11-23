@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../../shared/api/client";
 import type { MerchantProfile } from "../../../shared/api/types";
-import { colors, fonts, radius, shadow, spacing } from "../../../shared/theme/theme";
+import { colors, radius, shadow, spacing, font } from "../../../shared/theme/theme";
 import { DAYS, DayHours, DayKey } from "../../onboarding/signup/types";
 
 const DAY_NUMBER: Record<DayKey, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
@@ -152,7 +152,7 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
               const bad = !!errors[h.day];
               return (
                 <View key={h.day} style={[s.dayRow, i > 0 && s.dayLine]}>
-                  <Text style={[s.dayLabel, h.closed && { color: colors.stone }]}>{name.slice(0, 3)}</Text>
+                  <Text style={[s.dayLabel, h.closed && { color: colors.stoneText }]}>{name.slice(0, 3)}</Text>
                   {h.closed ? (
                     <Text style={[s.closed, { flex: 1 }]}>Closed</Text>
                   ) : (
@@ -191,24 +191,24 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
 const s = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.md, ...shadow.soft },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 32 },
-  title: { fontSize: 15, fontFamily: fonts.displayBold, color: colors.ink },
-  pill: { fontSize: 11.5, fontFamily: fonts.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
-  toggleText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.ink },
-  summary: { fontSize: 14, fontFamily: fonts.serifMedium, color: colors.text, lineHeight: 22 },
+  title: { fontSize: 15, ...font.displayBold, color: colors.ink },
+  pill: { fontSize: 12, ...font.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
+  toggleText: { fontSize: 13, ...font.displayBold, color: colors.ink },
+  summary: { fontSize: 14, ...font.serifMedium, color: colors.text, lineHeight: 22 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
-  link: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.amberText },
+  link: { ...font.displayBold, fontSize: 13, color: colors.amberText },
   days: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md },
   dayRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 50 },
-  dayLine: { borderTopWidth: 1, borderTopColor: colors.stoneLine },
-  dayLabel: { width: 40, fontSize: 14, fontFamily: fonts.displayBold, color: colors.ink },
+  dayLine: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
+  dayLabel: { width: 40, fontSize: 14, ...font.displayBold, color: colors.ink },
   times: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  time: { width: 64, textAlign: "center", borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm, paddingVertical: 6, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.text, backgroundColor: colors.surface },
+  time: { width: 64, textAlign: "center", borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm, paddingVertical: 6, ...font.serifMedium, fontSize: 14, color: colors.text, backgroundColor: colors.surface },
   timeBad: { borderColor: colors.chili, borderWidth: 1.5 },
-  closed: { fontSize: 14, fontFamily: fonts.serif, color: colors.stone },
+  closed: { fontSize: 14, ...font.serif, color: colors.stoneText },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
   ghostBtn: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: 9 },
-  ghostText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.ink },
+  ghostText: { fontSize: 13, ...font.displayBold, color: colors.ink },
   saveBtn: { backgroundColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: 10 },
-  saveText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.white },
-  hint: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
+  saveText: { fontSize: 13, ...font.displayBold, color: colors.white },
+  hint: { fontSize: 12, ...font.serif, color: colors.stoneText },
 });

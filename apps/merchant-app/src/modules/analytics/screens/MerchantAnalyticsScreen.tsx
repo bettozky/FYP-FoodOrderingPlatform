@@ -12,7 +12,7 @@ import {
 import { api } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
-import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout, shadow, ui } from "../../../shared/theme/theme";
 
 type TimePeriod = "daily" | "weekly" | "monthly";
 
@@ -83,7 +83,7 @@ export default function MerchantAnalyticsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Sales Reports & Analytics"
+        title="Sales & analytics"
         subtitle="Revenue, cost breakdown, and customer traffic insights"
       />
 
@@ -149,29 +149,29 @@ export default function MerchantAnalyticsScreen() {
         <View style={styles.statsGrid}>
           {/* Revenue */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Gross Revenue</Text>
+            <Text style={type.small}>Gross revenue</Text>
             <Text style={[styles.statValue, { color: colors.text }]}>
               RM {currentMetrics.revenue.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Text style={{ fontSize: 11, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, fontWeight: "600" }}>
+            <Text style={{ fontSize: 12, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, ...font.displayBold }}>
               {currentMetrics.revenueGrowthPct === null ? "No previous period to compare" : `${currentMetrics.revenueGrowthPct >= 0 ? "+" : ""}${currentMetrics.revenueGrowthPct}% vs previous ${period.replace("ly", "")}`}
             </Text>
           </View>
 
           {/* Operating Cost */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Total Cost & Fees</Text>
+            <Text style={type.small}>Total cost & fees</Text>
             <Text style={[styles.statValue, { color: colors.chiliText }]}>
               RM {currentMetrics.cost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Text style={{ fontSize: 11, color: colors.textMuted }}>
+            <Text style={{ fontSize: 11, color: colors.stoneText }}>
               COGS + Promos + Fees
             </Text>
           </View>
 
           {/* Net Profit */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Net Profit (Margin)</Text>
+            <Text style={type.small}>Net profit (margin)</Text>
             <Text style={[styles.statValue, { color: colors.herb }]}>
               RM {currentMetrics.profit.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
@@ -180,17 +180,17 @@ export default function MerchantAnalyticsScreen() {
 
           {/* Average Order Value */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Average Order Value</Text>
+            <Text style={type.small}>Average order value</Text>
             <Text style={styles.statValue}>
               RM {currentMetrics.avgOrderValue.toFixed(2)}
             </Text>
-            <Text style={{ fontSize: 11, color: colors.textMuted }}>Per transaction</Text>
+            <Text style={{ fontSize: 11, color: colors.stoneText }}>Per transaction</Text>
           </View>
         </View>
 
         {/* ================= 3. CUSTOMER TRAFFIC BREAKDOWN ================= */}
         <View style={styles.card}>
-          <Text style={type.h3}>Customer Traffic & Order Volume</Text>
+          <Text style={type.h3}>Customer traffic & order volume</Text>
           <Text style={type.bodyMuted}>
             Total volume: {currentMetrics.trafficOrders} orders placed
           </Text>
@@ -212,7 +212,7 @@ export default function MerchantAnalyticsScreen() {
             <View style={styles.trafficBlock}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Ionicons name="bicycle-outline" size={18} color={colors.amberText} />
-                <Text style={type.body}>Delivery Orders</Text>
+                <Text style={type.body}>Delivery orders</Text>
               </View>
               <Text style={styles.trafficCount}>{currentMetrics.deliveryTraffic}</Text>
               <Text style={type.small}>
@@ -224,7 +224,7 @@ export default function MerchantAnalyticsScreen() {
 
         {/* ================= 4. REVENUE TREND VISUAL CHART ================= */}
         <View style={styles.card}>
-          <Text style={type.h3}>Revenue Trend Overview</Text>
+          <Text style={type.h3}>Revenue trend overview</Text>
           <Text style={type.bodyMuted}>Comparison across {period} intervals</Text>
 
           <View style={styles.chartContainer}>
@@ -317,31 +317,10 @@ export default function MerchantAnalyticsScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.md },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingBottom: spacing.xxl * 1.5, gap: spacing.md, width: "100%", maxWidth: layout.maxWidth, alignSelf: "center" },
 
-  segmentedTrack: {
-    position: "relative",
-    flexDirection: "row",
-    backgroundColor: colors.stoneLine,
-    borderRadius: radius.pill,
-    padding: 4,
-    height: 44,
-    alignItems: "center",
-  },
-  slidingPill: {
-    position: "absolute",
-    top: 4,
-    bottom: 4,
-    left: 4,
-    backgroundColor: colors.white,
-    borderRadius: radius.pill,
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 1,
-  },
+  segmentedTrack: { position: "relative", flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: 12, padding: 3, height: 42, alignItems: "center" },
+  slidingPill: { position: "absolute", top: 3, bottom: 3, left: 3, backgroundColor: colors.white, borderRadius: 9, ...shadow.soft, zIndex: 1 },
   segmentBtn: {
     flex: 1,
     alignItems: "center",
@@ -349,60 +328,17 @@ const styles = StyleSheet.create({
     height: "100%",
     zIndex: 2,
   },
-  segmentLabel: {
-    fontSize: 13,
-    fontFamily: fonts.display,
-    color: colors.stone,
-  },
+  segmentLabel: { fontSize: 14, ...font.display, color: colors.stoneText },
 
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: "47%",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
-  statValue: {
-    fontSize: 18,
-    fontFamily: fonts.displayExtraBold,
-  },
+  statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
+  statCard: { flex: 1, minWidth: "46%", ...ui.card, padding: spacing.lg, gap: 4 },
+  statValue: { fontSize: 22, ...font.displayExtraBold, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
 
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 6,
-  },
+  card: { ...ui.card, padding: spacing.lg, gap: spacing.sm },
 
-  trafficRow: {
-    flexDirection: "row",
-    gap: spacing.md,
-    marginTop: spacing.xs,
-  },
-  trafficBlock: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 2,
-  },
-  trafficCount: {
-    fontSize: 20,
-    fontFamily: fonts.displayExtraBold,
-    color: colors.text,
-  },
+  trafficRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xs },
+  trafficBlock: { flex: 1, backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md, gap: 2 },
+  trafficCount: { fontSize: 24, ...font.displayExtraBold, color: colors.ink, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
 
   chartContainer: {
     flexDirection: "row",
@@ -419,28 +355,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: 4,
   },
-  barTrack: {
-    width: 22,
-    height: 100,
-    backgroundColor: colors.paperDim,
-    borderRadius: 6,
-    justifyContent: "flex-end",
-    overflow: "hidden",
-  },
-  barFill: {
-    width: "100%",
-    backgroundColor: colors.primary,
-    borderRadius: 6,
-  },
-  chartBarValue: {
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-  chartLabel: {
-    fontSize: 11,
-    color: colors.text,
-    fontFamily: fonts.display,
-  },
+  barTrack: { width: 24, height: 100, backgroundColor: colors.paperDim, borderRadius: 8, justifyContent: "flex-end", overflow: "hidden" },
+  barFill: { width: "100%", backgroundColor: colors.ink, borderRadius: 8 },
+  chartBarValue: { fontSize: 12, color: colors.stoneText, ...font.display, fontVariant: ["tabular-nums"] },
+  chartLabel: { fontSize: 12, color: colors.ink, ...font.display },
 
   /* Best Sellers List (Responsive Layout) */
   sellerRow: {
@@ -458,12 +376,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginRight: spacing.sm,
   },
-  rankNum: {
-    fontSize: 14,
-    fontFamily: fonts.displayExtraBold,
-    color: colors.textMuted,
-    width: 24,
-  },
+  rankNum: { fontSize: 15, ...font.displayExtraBold, color: colors.stoneText, width: 26, fontVariant: ["tabular-nums"] },
   sellerTitleWrap: {
     flex: 1,
   },
@@ -489,7 +402,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.chiliSoft,
   },
   growthBadgeText: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: "700",
   },
   proportionTrack: {

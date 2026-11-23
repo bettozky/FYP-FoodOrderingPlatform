@@ -4,14 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
-import {
-  useFonts,
-  PlusJakartaSans_400Regular,
-  PlusJakartaSans_500Medium,
-  PlusJakartaSans_600SemiBold,
-  PlusJakartaSans_700Bold,
-  PlusJakartaSans_800ExtraBold,
-} from "@expo-google-fonts/plus-jakarta-sans";
 import { AuthProvider } from "./src/modules/auth/AuthContext";
 import { LiveDataProvider } from "./src/modules/orders/LiveDataContext";
 import { ChatProvider } from "./src/modules/chat/ChatContext";
@@ -21,28 +13,14 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import AppDrawer from "./src/navigation/AppDrawer";
 import { navRef } from "./src/navigation/navRef";
 import { DrawerProvider } from "./src/shared/components/SideDrawer";
-import { colors } from "./src/shared/theme/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
-    PlusJakartaSans_400Regular,
-    PlusJakartaSans_500Medium,
-    PlusJakartaSans_600SemiBold,
-    PlusJakartaSans_700Bold,
-    PlusJakartaSans_800ExtraBold,
-  });
-
+  // The app uses the platform's own font (SF Pro / Roboto), so there is nothing to load before the first frame.
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
-      await SplashScreen.hideAsync().catch(() => {});
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
-  }
+    await SplashScreen.hideAsync().catch(() => {});
+  }, []);
 
   return (
     <SafeAreaProvider>

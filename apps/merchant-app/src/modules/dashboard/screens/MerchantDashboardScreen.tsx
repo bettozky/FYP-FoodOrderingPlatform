@@ -13,12 +13,12 @@ import OpeningHoursCard from "../components/OpeningHoursCard";
 import BusyModeCard from "../components/BusyModeCard";
 import { useLive } from "../../orders/LiveDataContext";
 import { useAuth } from "../../auth/AuthContext";
-import NavRow from "../../../shared/components/NavRow";
+import NavRow, { NavGroup } from "../../../shared/components/NavRow";
 import Avatar from "../../../shared/components/Avatar";
 import { DrawerEdge, MenuButton } from "../../../shared/components/SideDrawer";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, shadow, font, layout, ui } from "../../../shared/theme/theme";
 
 type StoreStatus = "online" | "dine_in" | "offline";
 
@@ -129,14 +129,14 @@ export default function MerchantDashboardScreen({ navigation }: any) {
             <Text style={styles.hello}>Merchant dashboard</Text>
             <Text style={styles.storeName} numberOfLines={1}>{profile?.name ?? ""}</Text>
           </View>
-          <Pressable style={styles.iconBtn} onPress={logout} accessibilityLabel="Log out" testID="logout">
+          <Pressable style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]} onPress={logout} hitSlop={4} accessibilityRole="button" accessibilityLabel="Log out" testID="logout">
             <Ionicons name="log-out-outline" size={20} color={colors.ink} />
           </Pressable>
         </View>
 
         {/* ---------- today at a glance ---------- */}
         <View style={styles.hero}>
-          <Text style={styles.heroLabel}>TODAY</Text>
+          <Text style={styles.heroLabel}>Today</Text>
           <View style={styles.heroStats}>
             <Stat icon="receipt-outline" value={String(stats.orders)} label="Orders" />
             <View style={styles.heroDivider} />
@@ -147,13 +147,13 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         </View>
 
         {/* ---------- rating ---------- */}
-        <Pressable style={styles.ratingCard} onPress={() => navigation.navigate("MerchantReviews")} accessibilityRole="button" accessibilityLabel="Customer reviews" testID="rating-card">
+        <Pressable style={({ pressed }) => [styles.ratingCard, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("MerchantReviews")} accessibilityRole="button" accessibilityLabel="Customer reviews" testID="rating-card">
           <Ionicons name="star" size={26} color={colors.turmeric} />
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{rating?.average ? `${rating.average.toFixed(1)} / 5` : "No ratings yet"}</Text>
             <Text style={styles.hint}>{rating ? `${rating.count} review${rating.count === 1 ? "" : "s"}${rating.unanswered ? ` · ${rating.unanswered} waiting for your reply` : ""}` : "Loading…"}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+          <Ionicons name="chevron-forward" size={17} color={colors.stoneSoft} />
         </Pressable>
 
         {/* ---------- store status ---------- */}
@@ -167,8 +167,8 @@ export default function MerchantDashboardScreen({ navigation }: any) {
               <Animated.View style={[styles.slidingPill, { width: itemWidth, transform: [{ translateX }] }]} />
             )}
             {(["online", "dine_in", "offline"] as StoreStatus[]).map((k) => (
-              <Pressable key={k} style={styles.segmentBtn} onPress={() => handleStatusChange(k)} testID={`store-${k}`}>
-                <Text style={[styles.segmentLabel, { color: segLabelColor(k) }, storeStatus === k && { fontFamily: fonts.displayBold }]}>{statusConfig[k].label}</Text>
+              <Pressable key={k} style={styles.segmentBtn} onPress={() => handleStatusChange(k)} accessibilityRole="tab" accessibilityState={{ selected: storeStatus === k }} testID={`store-${k}`}>
+                <Text style={[styles.segmentLabel, { color: segLabelColor(k) }, storeStatus === k && { ...font.displayBold }]}>{statusConfig[k].label}</Text>
               </Pressable>
             ))}
           </View>
@@ -184,19 +184,28 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         {/* ---------- Sprint 3: busy mode / auto-pause ---------- */}
         <BusyModeCard />
 
-        {/* ---------- manage ---------- */}
-        <Text style={styles.section}>Manage</Text>
-        <NavRow icon="receipt-outline" tint={colors.turmericDeep} title="Incoming orders" subtitle={`${pendingCount} active order${pendingCount !== 1 ? "s" : ""}`} badge={pendingCount} onPress={() => navigation.navigate("MerchantOrderQueue")} />
-        <NavRow icon="calendar-outline" tint={colors.herb} title="Table reservations" subtitle="Bookings, seating and pre-orders" badge={pendingReservations} onPress={() => navigation.navigate("MerchantReservations")} />
-        <NavRow icon="restaurant-outline" tint={colors.chili} title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
-        <NavRow icon="pricetags-outline" tint={colors.ink} title="Promotions & Vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
-        <NavRow icon="stats-chart-outline" tint={colors.stoneText} title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
-        <NavRow icon="analytics-outline" tint={colors.herb} title="Prep forecast" subtitle="How much of each dish to prep tomorrow" onPress={() => navigation.navigate("MerchantForecast")} />
-        <NavRow icon="star-outline" tint={colors.turmericDeep} title="Customer reviews" subtitle="Read feedback and reply" onPress={() => navigation.navigate("MerchantReviews")} />
-        <NavRow icon="briefcase-outline" tint={colors.amberText} title="Restaurant Job Board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
-        <NavRow icon="people-outline" tint={colors.herb} title="Applicants" subtitle="CVs and applications from students" badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
-        <NavRow icon="megaphone-outline" tint={colors.chili} title="Announcements" subtitle="Post promos and notices to customers" onPress={() => navigation.navigate("MerchantAnnouncements")} />
-        <NavRow icon="storefront-outline" tint={colors.ink} title="Shop profile & photos" subtitle="Profile photo and banner" onPress={() => navigation.navigate("ShopProfile")} />
+        {/* ---------- manage: the same screens, grouped the iOS way ---------- */}
+        <View style={styles.groups}>
+          <NavGroup title="Orders">
+            <NavRow icon="receipt-outline" title="Incoming orders" subtitle={`${pendingCount} active order${pendingCount !== 1 ? "s" : ""}`} badge={pendingCount} onPress={() => navigation.navigate("MerchantOrderQueue")} />
+            <NavRow icon="calendar-outline" title="Table reservations" subtitle="Bookings, seating and pre-orders" badge={pendingReservations} onPress={() => navigation.navigate("MerchantReservations")} />
+          </NavGroup>
+          <NavGroup title="Your shop">
+            <NavRow icon="restaurant-outline" title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
+            <NavRow icon="pricetags-outline" title="Promotions & vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
+            <NavRow icon="megaphone-outline" title="Announcements" subtitle="Post promos and notices to customers" onPress={() => navigation.navigate("MerchantAnnouncements")} />
+            <NavRow icon="storefront-outline" title="Shop profile & photos" subtitle="Profile photo and banner" onPress={() => navigation.navigate("ShopProfile")} />
+          </NavGroup>
+          <NavGroup title="Insights">
+            <NavRow icon="stats-chart-outline" title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
+            <NavRow icon="analytics-outline" title="Prep forecast" subtitle="How much of each dish to prep tomorrow" onPress={() => navigation.navigate("MerchantForecast")} />
+            <NavRow icon="star-outline" title="Customer reviews" subtitle="Read feedback and reply" onPress={() => navigation.navigate("MerchantReviews")} />
+          </NavGroup>
+          <NavGroup title="Hiring">
+            <NavRow icon="briefcase-outline" title="Job board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
+            <NavRow icon="people-outline" title="Applicants" subtitle="CVs and applications from students" badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
+          </NavGroup>
+        </View>
       </ScrollView>
       <DrawerEdge top={insets.top + 70} bottom={0} />
     </View>
@@ -206,7 +215,7 @@ export default function MerchantDashboardScreen({ navigation }: any) {
 function Stat({ icon, value, label }: { icon: keyof typeof Ionicons.glyphMap; value: string; label: string }) {
   return (
     <View style={styles.stat}>
-      <Ionicons name={icon} size={16} color={colors.turmeric} />
+      <Ionicons name={icon} size={18} color={colors.turmeric} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -214,36 +223,38 @@ function Stat({ icon, value, label }: { icon: keyof typeof Ionicons.glyphMap; va
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: spacing.xxl * 1.5, gap: spacing.md },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingBottom: spacing.xxl * 1.5, gap: spacing.md, width: "100%", maxWidth: layout.maxWidth, alignSelf: "center" },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, marginBottom: spacing.xs },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontSize: 20, fontFamily: fonts.displayExtraBold, color: colors.ink },
-  hello: { fontSize: 12, fontFamily: fonts.display, color: colors.stone, letterSpacing: 0.3 },
-  storeName: { fontSize: 20, fontFamily: fonts.displayExtraBold, color: colors.ink, letterSpacing: -0.3 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  avatarText: { fontSize: 20, ...font.displayExtraBold, color: colors.ink },
+  hello: { fontSize: 13, ...font.display, color: colors.stoneText },
+  storeName: { fontSize: 22, ...font.displayExtraBold, color: colors.ink, letterSpacing: -0.4 },
+  iconBtn: { ...ui.iconButton },
 
-  hero: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, ...shadow.card },
-  heroLabel: { fontSize: 11, fontFamily: fonts.displayBold, color: colors.textFaint, letterSpacing: 1.2 },
+  // Today's numbers on an ink card: the merchant app's signature surface.
+  hero: { ...ui.cardDark, padding: spacing.xl, gap: spacing.lg },
+  heroLabel: { fontSize: 15, ...font.displayBold, color: colors.stoneSoft },
   heroStats: { flexDirection: "row", alignItems: "center" },
-  heroDivider: { width: 1, alignSelf: "stretch", backgroundColor: colors.ink },
-  stat: { flex: 1, alignItems: "center", gap: 3 },
-  statValue: { fontSize: 22, fontFamily: fonts.displayExtraBold, color: colors.white, letterSpacing: -0.4 },
-  statLabel: { fontSize: 11.5, fontFamily: fonts.display, color: colors.textFaint },
+  heroDivider: { width: StyleSheet.hairlineWidth, alignSelf: "stretch", backgroundColor: "rgba(255,255,255,0.18)" },
+  stat: { flex: 1, alignItems: "center", gap: 4 },
+  statValue: { fontSize: 26, ...font.displayExtraBold, color: colors.white, letterSpacing: -0.5, fontVariant: ["tabular-nums"] },
+  statLabel: { fontSize: 13, ...font.display, color: colors.stoneSoft },
 
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.md, ...shadow.soft },
+  card: { ...ui.card, padding: spacing.lg, gap: spacing.md },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardTitle: { fontSize: 15, fontFamily: fonts.displayBold, color: colors.ink },
+  cardTitle: { fontSize: 17, ...font.displayBold, color: colors.ink },
   dot: { width: 10, height: 10, borderRadius: 5 },
 
-  segmentedTrack: { position: "relative", flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: radius.pill, padding: 4, height: 44, alignItems: "center" },
-  slidingPill: { position: "absolute", top: 4, bottom: 4, left: 4, backgroundColor: colors.white, borderRadius: radius.pill, ...shadow.soft },
+  // iOS segmented control with a sliding white pill.
+  segmentedTrack: { position: "relative", flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: 12, padding: 3, height: 42, alignItems: "center" },
+  slidingPill: { position: "absolute", top: 3, bottom: 3, left: 3, backgroundColor: colors.white, borderRadius: 9, ...shadow.soft },
   segmentBtn: { flex: 1, alignItems: "center", justifyContent: "center", height: "100%", zIndex: 2 },
-  segmentLabel: { fontSize: 13, fontFamily: fonts.display },
-  statusBanner: { paddingVertical: 9, paddingHorizontal: spacing.md, borderRadius: radius.sm, borderWidth: 1 },
-  statusBannerText: { fontSize: 12.5, fontFamily: fonts.display },
+  segmentLabel: { fontSize: 14, ...font.display },
+  statusBanner: { paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radius.sm, borderWidth: 1 },
+  statusBannerText: { fontSize: 14, ...font.display },
 
-  hint: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
+  hint: { fontSize: 14, ...font.serif, color: colors.stoneText },
 
-  ratingCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, ...shadow.soft },
-  section: { fontSize: 12, fontFamily: fonts.displayBold, color: colors.stone, letterSpacing: 1.1, textTransform: "uppercase", marginTop: spacing.sm, marginBottom: -spacing.xs },
+  ratingCard: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg },
+  groups: { gap: spacing.xl, marginTop: spacing.md },
 });

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius, spacing } from "../theme/theme";
+import { colors, radius, spacing, font } from "../theme/theme";
 import { isPhoto, mediaUrl } from "../media";
 import { LocalFile, pickImage } from "../util/files";
 
@@ -54,12 +54,12 @@ export default function PhotoField({ current, picked, aspect = [4, 3], label, on
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  label: { ...font.displayBold, fontSize: 13, color: colors.ink },
   preview: { backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center", overflow: "hidden", borderWidth: 1, borderColor: colors.stoneLine },
   row: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   btn: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   remove: { borderColor: colors.chiliBorder, backgroundColor: colors.chiliSoft },
-  btnText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  btnText: { ...font.displayBold, fontSize: 13, color: colors.ink },
   note: { fontSize: 12, color: colors.stoneText },
-  error: { fontSize: 12.5, color: colors.chiliText },
+  error: { fontSize: 13, color: colors.chiliText },
 });
