@@ -185,7 +185,7 @@ export default function CheckoutScreen({ navigation }: any) {
                   <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
                     <Ionicons name="location" size={18} color={colors.ink} />
                     <Text style={[type.body, { flex: 1 }]} numberOfLines={3} testID="checkout-address-line">{address.line}</Text>
-                    <Pressable onPress={() => setPickerOpen(true)} hitSlop={8} accessibilityRole="button" testID="change-address"><Text style={styles.changeText}>Change</Text></Pressable>
+                    <Pressable onPress={() => setPickerOpen(true)} hitSlop={12} accessibilityRole="button" testID="change-address"><Text style={styles.changeText}>Change</Text></Pressable>
                   </View>
                   {usingPin ? <Text style={type.small}>The rider will bring your order to this pin. Check it is the right spot, then confirm.</Text> : null}
                   {usingPin ? <Pressable style={styles.confirmRow} onPress={() => setPinOk((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: pinOk }} testID="confirm-pin">

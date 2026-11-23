@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   title: { ...font.displayBold, fontSize: 20, color: colors.ink },
   body: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingTop: spacing.sm, paddingBottom: 140, gap: spacing.md },
   searchBox: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.lg, minHeight: 48 },
-  searchInput: { flex: 1, fontSize: 15, ...font.serif, color: colors.ink, paddingVertical: 10 },
+  searchInput: { flex: 1, minWidth: 0, fontSize: 15, ...font.serif, color: colors.ink, paddingVertical: 10 },
   results: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: "hidden" },
   resultRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   locateFab: { position: "absolute", right: spacing.md, bottom: spacing.md, flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.border, zIndex: 1100 },

@@ -123,11 +123,11 @@ export default function MerchantVouchersScreen() {
             {/* ================= 1. BUDGET & COST OVERVIEW ================= */}
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>RM {totalCostSpent.toFixed(2)}</Text>
+                <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>RM {totalCostSpent.toFixed(2)}</Text>
                 <Text style={[type.small, { color: colors.stoneSoft }]}>Total cost spent</Text>
               </View>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>{totalVouchersRemaining}</Text>
+                <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{totalVouchersRemaining}</Text>
                 <Text style={[type.small, { color: colors.stoneSoft }]}>Vouchers remaining</Text>
               </View>
             </View>
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   header: { gap: spacing.lg, marginBottom: spacing.lg },
   statsRow: { flexDirection: "row", gap: spacing.md },
   statCard: { flex: 1, ...ui.cardDark, padding: spacing.lg, gap: 2 },
-  statValue: { fontSize: 24, ...font.displayExtraBold, color: colors.white, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
+  statValue: { fontSize: 22, ...font.displayExtraBold, color: colors.white, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
 
   /* Create button */
   createBtn: { ...ui.buttonDark, minHeight: 50, flexDirection: "row", gap: spacing.sm, cursor: "pointer" as any },

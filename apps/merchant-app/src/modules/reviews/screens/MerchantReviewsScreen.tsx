@@ -87,11 +87,11 @@ export default function MerchantReviewsScreen() {
                 </View>
               ) : null}
               <View style={styles.actions}>
-                <Pressable onPress={() => openReply(r)} style={styles.action} accessibilityRole="button" testID={`reply-${r.id}`}>
+                <Pressable onPress={() => openReply(r)} hitSlop={8} style={styles.action} accessibilityRole="button" testID={`reply-${r.id}`}>
                   <Ionicons name="chatbubble-outline" size={15} color={colors.ink} /><Text style={styles.actionText}>{r.reply ? "Edit reply" : "Reply"}</Text>
                 </Pressable>
                 {r.reply ? (
-                  <Pressable onPress={() => removeReply(r)} style={styles.action} accessibilityRole="button">
+                  <Pressable onPress={() => removeReply(r)} hitSlop={8} style={styles.action} accessibilityRole="button">
                     <Ionicons name="trash-outline" size={15} color={colors.chili} /><Text style={[styles.actionText, { color: colors.chili }]}>Remove reply</Text>
                   </Pressable>
                 ) : null}

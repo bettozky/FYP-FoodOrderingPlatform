@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, font } from "../../../shared/theme/theme";
 import PulseRing, { PopOnChange } from "../../../shared/motion/PulseRing";
@@ -9,6 +9,7 @@ import PulseRing, { PopOnChange } from "../../../shared/motion/PulseRing";
 const STEPS = ["Request", "Stall confirms", "Pay"];
 
 export function OrderSteps({ current }: { current: 0 | 1 | 2 | 3 }) {
+  const compact = useWindowDimensions().width < 360;
   return (
     <View style={styles.row} accessible accessibilityLabel={`Step ${Math.min(current + 1, 3)} of 3: ${STEPS[Math.min(current, 2)]}`}>
       {STEPS.map((label, i) => {
@@ -31,7 +32,10 @@ export function OrderSteps({ current }: { current: 0 | 1 | 2 | 3 }) {
                   </View>
                 )}
               </PopOnChange>
-              <Text style={[styles.label, (active || done) && styles.labelOn]} numberOfLines={1}>{label}</Text>
+              {/* Narrow phones (under 360pt) only have room for the current step's name; the others show their number. */}
+              {active || current >= 3 || !compact ? (
+                <Text style={[styles.label, (active || done) && styles.labelOn]} numberOfLines={1}>{label}</Text>
+              ) : null}
             </View>
             {i < STEPS.length - 1 && <View style={[styles.bar, done && styles.barDone]} />}
           </React.Fragment>
@@ -59,7 +63,7 @@ export function NotChargedNote({ children }: { children?: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  step: { flexDirection: "row", alignItems: "center", gap: 6 },
+  step: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1, minWidth: 0 },
   dot: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
   dotActive: { backgroundColor: colors.turmeric },
   dotDone: { backgroundColor: colors.herb },

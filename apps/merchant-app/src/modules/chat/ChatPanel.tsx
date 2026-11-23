@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
   time: { fontSize: 11, ...font.serif, color: colors.textFaint, alignSelf: "flex-end" },
   error: { color: colors.chiliText, fontSize: 12, paddingHorizontal: spacing.md, ...font.display },
   inputRow: { flexDirection: "row", gap: 8, padding: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft, backgroundColor: colors.surface },
-  input: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 9, ...font.serifMedium, fontSize: 15, color: colors.ink },
+  input: { flex: 1, minWidth: 0, backgroundColor: colors.bg, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 9, ...font.serifMedium, fontSize: 15, color: colors.ink },
   send: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
 });

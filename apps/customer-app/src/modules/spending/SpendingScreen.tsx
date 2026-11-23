@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   link: { ...font.displayBold, fontSize: 13, color: colors.ink, textDecorationLine: "underline" },
   quick: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   customRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  input: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 10, ...font.display, color: colors.ink, backgroundColor: colors.paper },
+  input: { flex: 1, minWidth: 0, minHeight: 44, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: 16, ...font.serif, color: colors.ink, backgroundColor: colors.paper },
   error: { ...font.displayBold, color: colors.chiliText },
   chart: { flexDirection: "row", alignItems: "flex-end", height: CHART_H + 40, gap: 6, position: "relative" },
   barCol: { flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 3 },

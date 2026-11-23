@@ -210,7 +210,7 @@ export default function AuthScreen() {
               <Text style={styles.label}>Enter password</Text>
               <View style={styles.passwordRow}>
                 <TextInput
-                  style={[styles.input, { flex: 1, borderWidth: 0 }]}
+                  style={[styles.input, { flex: 1, minWidth: 0, borderWidth: 0 }]}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -224,7 +224,7 @@ export default function AuthScreen() {
                 </Pressable>
               </View>
 
-              <Pressable onPress={() => setForgot(true)} hitSlop={8} style={{ alignSelf: "flex-end", marginTop: spacing.sm }} accessibilityRole="button" testID="forgot-link">
+              <Pressable onPress={() => setForgot(true)} hitSlop={14} style={{ alignSelf: "flex-end", marginTop: spacing.sm }} accessibilityRole="button" testID="forgot-link">
                 <Text style={[type.small, { textDecorationLine: "underline" }]}>Forgot password?</Text>
               </Pressable>
 

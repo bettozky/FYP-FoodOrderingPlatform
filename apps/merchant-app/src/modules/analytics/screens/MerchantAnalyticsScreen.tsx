@@ -150,7 +150,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Revenue */}
           <View style={styles.statCard}>
             <Text style={type.small}>Gross revenue</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>
+            <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.revenue.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Text style={{ fontSize: 12, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, ...font.displayBold }}>
@@ -161,7 +161,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Operating Cost */}
           <View style={styles.statCard}>
             <Text style={type.small}>Total cost & fees</Text>
-            <Text style={[styles.statValue, { color: colors.chiliText }]}>
+            <Text style={[styles.statValue, { color: colors.chiliText }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.cost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Text style={{ fontSize: 11, color: colors.stoneText }}>
@@ -172,7 +172,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Net Profit */}
           <View style={styles.statCard}>
             <Text style={type.small}>Net profit (margin)</Text>
-            <Text style={[styles.statValue, { color: colors.herb }]}>
+            <Text style={[styles.statValue, { color: colors.herb }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.profit.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Badge label={`${currentMetrics.profitMargin} Margin`} tone="success" />
@@ -181,7 +181,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Average Order Value */}
           <View style={styles.statCard}>
             <Text style={type.small}>Average order value</Text>
-            <Text style={styles.statValue}>
+            <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.avgOrderValue.toFixed(2)}
             </Text>
             <Text style={{ fontSize: 11, color: colors.stoneText }}>Per transaction</Text>

@@ -125,8 +125,8 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         <View style={styles.headerRow}>
           <MenuButton badge={badges.unread + badges.newApplicants} />
           <Avatar uri={profile?.logo} name={profile?.name} size={46} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.hello}>Merchant dashboard</Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.hello} numberOfLines={1}>Merchant dashboard</Text>
             <Text style={styles.storeName} numberOfLines={1}>{profile?.name ?? ""}</Text>
           </View>
           <Pressable style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]} onPress={logout} hitSlop={4} accessibilityRole="button" accessibilityLabel="Log out" testID="logout">
@@ -216,7 +216,7 @@ function Stat({ icon, value, label }: { icon: keyof typeof Ionicons.glyphMap; va
   return (
     <View style={styles.stat}>
       <Ionicons name={icon} size={18} color={colors.turmeric} />
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );

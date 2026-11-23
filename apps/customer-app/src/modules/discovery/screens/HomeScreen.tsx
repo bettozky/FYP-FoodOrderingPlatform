@@ -484,7 +484,7 @@ const POPULAR_W = 164;
 
 const styles = StyleSheet.create({
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingHorizontal: layout.gutter },
-  addr: { flex: 1, minWidth: 0, alignItems: "center", gap: 1 },
+  addr: { flex: 1, minWidth: 0, minHeight: 44, alignItems: "center", justifyContent: "center", gap: 1 },
   addrLabel: { ...font.display, fontSize: 12, color: colors.stoneText },
   addrLine: { flexDirection: "row", alignItems: "center", gap: 4, maxWidth: "100%" },
   liveChip: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.herbLight, borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1 },

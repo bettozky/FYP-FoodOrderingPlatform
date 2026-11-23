@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Pressable, Animated } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Pressable, Animated, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -53,6 +53,8 @@ export default function DishDetailScreen({ route }: any) {
   const [justAdded, setJustAdded] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
   const { diet } = useDiet(); // Sprint 3 diet profile
+  // Narrow phones (under 360pt): the stepper leaves less room, so the button says "Add" instead of "Add to cart".
+  const compact = useWindowDimensions().width < 360;
 
   useEffect(() => {
     api<{ dishes: Dish[] }>("GET", "/dishes")
@@ -235,7 +237,7 @@ export default function DishDetailScreen({ route }: any) {
             testID="add-to-cart"
           >
             <Text style={[ui.buttonAccentText, unavailable && { color: colors.stoneText }, justAdded && { color: colors.white }]} numberOfLines={1}>
-              {dish.soldOut ? "Sold out" : !merchant.openNow ? "Stall is closed" : justAdded ? "Added to cart" : `Add to cart · RM ${(dish.price * qty).toFixed(2)}`}
+              {dish.soldOut ? "Sold out" : !merchant.openNow ? "Stall is closed" : justAdded ? (compact ? "Added" : "Added to cart") : `${compact ? "Add" : "Add to cart"} · RM ${(dish.price * qty).toFixed(2)}`}
             </Text>
           </PressableScale>
         </Animated.View>

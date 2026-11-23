@@ -56,7 +56,7 @@ export default function DealControl({ dishId, price, deal, onChanged }: { dishId
           {active.percent}% off · RM {dealPrice(price, active.percent).toFixed(2)} ·{" "}
         </Text>
         <Left endsAt={active.endsAt} />
-        <Pressable onPress={() => run(() => api("DELETE", `/merchant/deals/${dishId}`))} disabled={busy} style={styles.endBtn} accessibilityRole="button" testID={`deal-end-${dishId}`}>
+        <Pressable onPress={() => run(() => api("DELETE", `/merchant/deals/${dishId}`))} disabled={busy} hitSlop={10} style={styles.endBtn} accessibilityRole="button" testID={`deal-end-${dishId}`}>
           <Text style={styles.endText}>End deal</Text>
         </Pressable>
       </View>
@@ -65,7 +65,7 @@ export default function DealControl({ dishId, price, deal, onChanged }: { dishId
 
   if (!open) {
     return (
-      <Pressable onPress={() => setOpen(true)} style={styles.startLink} accessibilityRole="button" testID={`deal-open-${dishId}`}>
+      <Pressable onPress={() => setOpen(true)} hitSlop={10} style={styles.startLink} accessibilityRole="button" testID={`deal-open-${dishId}`}>
         <Ionicons name="flame-outline" size={15} color={colors.chiliText} />
         <Text style={styles.startLinkText}>Last-hour deal</Text>
       </Pressable>

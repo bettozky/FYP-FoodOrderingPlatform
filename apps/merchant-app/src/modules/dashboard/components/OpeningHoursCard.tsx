@@ -124,8 +124,8 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
         accessibilityLabel={`Opening hours, ${expanded ? "hide" : "show and edit"}`}
         testID="hours-toggle"
       >
-        <Text style={s.title}>Opening hours</Text>
-        <Text style={[s.pill, { color: profile?.openNow ? colors.herb : colors.chili, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
+        <Text style={s.title} numberOfLines={1}>Opening hours</Text>
+        <Text numberOfLines={1} style={[s.pill, { color: profile?.openNow ? colors.herb : colors.chiliText, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
           {profile?.openNow ? "Open now" : "Closed now"}
         </Text>
         <View style={{ flex: 1 }} />
@@ -134,7 +134,7 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
       </Pressable>
 
       {!expanded ? (
-        <Pressable onPress={() => setExpanded(true)} accessibilityRole="button" accessibilityLabel="Edit opening hours" testID="hours-summary">
+        <Pressable onPress={() => setExpanded(true)} style={s.summaryRow} accessibilityRole="button" accessibilityLabel="Edit opening hours" testID="hours-summary">
           {summary(rows).map((line) => <Text key={line} style={s.summary}>{line}</Text>)}
           {dirty ? <Text style={[s.hint, { color: colors.amberText }]}>You have unsaved changes. Tap to finish.</Text> : null}
         </Pressable>
@@ -190,9 +190,10 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
 
 const s = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.md, ...shadow.soft },
-  head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 32 },
-  title: { fontSize: 15, ...font.displayBold, color: colors.ink },
-  pill: { fontSize: 12, ...font.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
+  head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
+  summaryRow: { minHeight: 44, justifyContent: "center" },
+  title: { fontSize: 17, ...font.displayBold, color: colors.ink, flexShrink: 1 },
+  pill: { flexShrink: 0, fontSize: 12, ...font.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
   toggleText: { fontSize: 13, ...font.displayBold, color: colors.ink },
   summary: { fontSize: 14, ...font.serifMedium, color: colors.text, lineHeight: 22 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
