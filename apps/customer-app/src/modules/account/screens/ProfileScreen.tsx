@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { passwordChecks, passwordOk } from "../../../shared/util/password";
@@ -108,10 +108,10 @@ export default function ProfileScreen() {
             <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap", justifyContent: "center" }}>
               <Pressable onPress={() => changePhoto("library")} style={styles.photoBtn} accessibilityRole="button" testID="photo-library"><Text style={styles.photoBtnText}>{t("profile.choosePhoto")}</Text></Pressable>
               {Platform.OS !== "web" ? <Pressable onPress={() => changePhoto("camera")} style={styles.photoBtn} accessibilityRole="button" testID="photo-camera"><Text style={styles.photoBtnText}>{t("profile.takePhoto")}</Text></Pressable> : null}
-              {user?.avatar ? <Pressable onPress={() => changePhoto("remove")} style={styles.photoBtn} accessibilityRole="button" testID="photo-remove"><Text style={[styles.photoBtnText, { color: colors.danger }]}>{t("profile.removePhoto")}</Text></Pressable> : null}
+              {user?.avatar ? <Pressable onPress={() => changePhoto("remove")} style={styles.photoBtn} accessibilityRole="button" testID="photo-remove"><Text style={[styles.photoBtnText, { color: colors.chiliText }]}>{t("profile.removePhoto")}</Text></Pressable> : null}
             </View>
           )}
-          {photoMsg ? <Text style={{ color: colors.danger, fontSize: 13, textAlign: "center" }}>{photoMsg}</Text> : null}
+          {photoMsg ? <Text style={{ color: colors.chiliText, fontSize: 13, textAlign: "center" }}>{photoMsg}</Text> : null}
         </View>
 
         <View style={styles.card}>
@@ -158,13 +158,13 @@ export default function ProfileScreen() {
             </View>
           ) : null}
           <Msg m={pwMsg} />
-          <Pressable style={styles.btn} onPress={savePassword} disabled={savingPw} accessibilityRole="button" testID="save-password">
-            {savingPw ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>{t("forgot.change")}</Text>}
+          <Pressable style={[styles.btn, { backgroundColor: colors.ink }]} onPress={savePassword} disabled={savingPw} accessibilityRole="button" testID="save-password">
+            {savingPw ? <ActivityIndicator color={colors.white} /> : <Text style={[styles.btnText, { color: colors.white }]}>{t("forgot.change")}</Text>}
           </Pressable>
         </View>
 
         <View style={styles.card}>
-          <Text style={[type.h3, { color: colors.danger }]}>{t("profile.deleteTitle")}</Text>
+          <Text style={[type.h3, { color: colors.chiliText }]}>{t("profile.deleteTitle")}</Text>
           <Text style={type.bodyMuted}>{t("profile.deleteText")}</Text>
           <TextInput style={styles.input} value={delPw} onChangeText={setDelPw} placeholder={t("profile.yourPassword")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="delete-password" />
           <Msg m={delMsg} />
@@ -178,13 +178,13 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl * 3 },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.md, paddingBottom: spacing.xxl * 3 },
   card: { gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   input: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.bg },
-  btn: { minHeight: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.turmeric, marginTop: spacing.xs },
+  btn: { minHeight: 50, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", backgroundColor: colors.turmeric, marginTop: spacing.xs },
   ruleRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
-  ruleText: { fontFamily: fonts.display, fontSize: 12 },
+  ruleText: { ...font.display, fontSize: 12 },
   photoBtn: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
-  photoBtnText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  btnText: { fontFamily: fonts.displayBold, color: colors.ink },
+  photoBtnText: { ...font.displayBold, fontSize: 13, color: colors.ink },
+  btnText: { ...font.displayBold, fontSize: 16, color: colors.ink },
 });

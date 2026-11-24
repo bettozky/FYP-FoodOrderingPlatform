@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { colors, fonts, spacing } from "../../../shared/theme/theme";
+import { colors, layout, spacing, font } from "../../../shared/theme/theme";
 import { useReducedMotion } from "../../../shared/motion/useReducedMotion";
 import { useTranslation } from "react-i18next";
 
@@ -29,7 +29,7 @@ function Letter({ ch, index, color, bold, reduced }: { ch: string; index: number
   const translateY = v.interpolate({ inputRange: [0, 1], outputRange: [0, -9] });
   const rotate = v.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-5deg"] });
   return (
-    <Animated.Text style={[styles.big, { color, fontFamily: bold ? fonts.displayExtraBold : fonts.displayBold, transform: [{ translateY }, { rotate }] }]}>
+    <Animated.Text style={[styles.big, { color, ...(bold ? font.displayExtraBold : font.displayBold), transform: [{ translateY }, { rotate }] }]}>
       {ch === " " ? " " : ch}
     </Animated.Text>
   );
@@ -58,8 +58,8 @@ export default function WavyGreeting({ name }: { name: string }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingHorizontal: spacing.lg, marginTop: spacing.lg },
+  wrap: { paddingHorizontal: layout.gutter, marginTop: spacing.xl },
   line: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end" },
-  big: { fontSize: 32, lineHeight: 40, letterSpacing: -0.5 },
-  second: { fontSize: 29, lineHeight: 36, fontFamily: fonts.displayBold, color: colors.ink, letterSpacing: -0.5 },
+  big: { fontSize: 30, lineHeight: 38, letterSpacing: -0.6 },
+  second: { fontSize: 30, lineHeight: 36, ...font.displayExtraBold, color: colors.ink, letterSpacing: -0.6 },
 });

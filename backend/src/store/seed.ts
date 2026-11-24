@@ -43,6 +43,12 @@ export function seedDemoData() {
     d({ id: "d10", merchantId: "m5", name: "Iced Lemon Tea", price: 3.5, image: "/media/dishes/d10.jpg", description: "Classic housemade lemon tea, not too sweet.", category: "Drinks", calories: 110, dietary: ["vegetarian", "plant_based", "allergy_free"], customisations: ["Less sweet", "No ice"] }),
     d({ id: "d15", merchantId: "m5", name: "Matcha Oat Latte", price: 7.5, image: "/media/dishes/d15.jpg", description: "Ceremonial matcha with oat milk.", category: "Drinks", calories: 190, dietary: ["vegetarian", "plant_based"], customisations: ["Less sweet"] }),
   ];
+  // Sprint 3 diet profile demo: what the demo dishes contain (the 9 common allergens), so there is something to flag.
+  const demoAllergens: Record<string, string[]> = {
+    d1: ["Soy", "Gluten"], d2: ["Egg", "Gluten", "Soy"], d3: ["Peanuts", "Fish"], d12: ["Peanuts", "Soy"], d5: ["Soy", "Gluten"],
+    d6: ["Egg", "Gluten"], d13: ["Egg", "Soy"], d7: ["Milk"], d8: ["Milk", "Tree nuts"], d14: ["Gluten"], d9: ["Milk"],
+  };
+  for (const x of dishes) if (!x.allergens && demoAllergens[x.id]) x.allergens = demoAllergens[x.id];
   dishes.forEach((x) => db.dishes.set(x.id, x));
 
   db.vouchers.push(

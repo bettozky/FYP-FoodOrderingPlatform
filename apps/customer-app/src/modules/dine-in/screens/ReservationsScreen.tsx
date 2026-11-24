@@ -11,7 +11,9 @@ import { Reservation } from "../../../shared/api/types";
 import { mmss, prettyDate, useCountdown } from "../../../shared/util/format";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { venueName } from "../../../shared/i18n/labels";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import DishImage, { softTint } from "../../../shared/components/DishImage";
+import { colors, font, layout, radius, shadow, spacing, type } from "../../../shared/theme/theme";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
 import { formatCard } from "../../ordering/screens/CheckoutScreen";
@@ -135,15 +137,16 @@ export default function ReservationsScreen({ navigation }: any) {
   const { reservations, refresh, bookingsView, setBookingsView } = useLive();
   const [category, setCategory] = useState("Trending");
   const venues = merchants.filter((m) => m.venueCategory === category);
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={styles.header}>
-        <Text style={type.h1}>{t("book.title")}</Text>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
+        <Text style={type.h1} accessibilityRole="header">{t("book.title")}</Text>
         <View style={styles.seg}>
           {(["book", "mine"] as const).map((v) => (
-            <Pressable key={v} style={[styles.segBtn, bookingsView === v && styles.segOn]} onPress={() => setBookingsView(v)} testID={`seg-${v}`}>
-              <Text style={[styles.segText, bookingsView === v && { color: colors.white }]}>{v === "book" ? t("book.venues") : `${t("book.myBookings")}${reservations.length ? ` (${reservations.length})` : ""}`}</Text>
+            <Pressable key={v} style={[styles.segBtn, bookingsView === v && styles.segOn]} onPress={() => setBookingsView(v)} accessibilityRole="tab" accessibilityLabel={v === "book" ? t("book.venues") : t("book.myBookings")} accessibilityState={{ selected: bookingsView === v }} testID={`seg-${v}`}>
+              <Text style={[styles.segText, bookingsView === v && styles.segTextOn]}>{v === "book" ? t("book.venues") : `${t("book.myBookings")}${reservations.length ? ` (${reservations.length})` : ""}`}</Text>
             </Pressable>
           ))}
         </View>
@@ -162,7 +165,7 @@ export default function ReservationsScreen({ navigation }: any) {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.lg }}
               renderItem={({ item }) => (
-                <Pressable onPress={() => setCategory(item)} style={[styles.chip, category === item && styles.chipOn]} testID={`venue-cat-${item}`}>
+                <Pressable onPress={() => setCategory(item)} style={[styles.chip, category === item && styles.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: category === item }} testID={`venue-cat-${item}`}>
                   <Text style={[styles.chipText, category === item && { color: colors.white }]}>{venueName(item)}</Text>
                 </Pressable>
               )}
@@ -170,14 +173,14 @@ export default function ReservationsScreen({ navigation }: any) {
           }
           ListEmptyComponent={<EmptyState icon="restaurant-outline" title={t("book.noVenues")} hint={t("home.tryAnother")} />}
           renderItem={({ item }) => (
-            <Pressable style={styles.venue} onPress={() => navigation.navigate("BookTable", { merchantId: item.id })} testID={`venue-${item.id}`}>
-              <View style={[styles.venueDot, { backgroundColor: item.color }]}><Ionicons name="restaurant" size={22} color={colors.white} /></View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={type.h3}>{item.name}</Text>
+            <Pressable style={({ pressed }) => [styles.venue, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("BookTable", { merchantId: item.id })} accessibilityRole="button" accessibilityLabel={`Book a table at ${item.name}`} testID={`venue-${item.id}`}>
+              <DishImage image={item.cover || item.logo} size={64} tint={softTint(item.color)} />
+              <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+                <Text style={type.h3} numberOfLines={1}>{item.name}</Text>
                 <Text style={type.bodyMuted}>{item.stallNo} · {item.distanceKm} km</Text>
-                <Text style={type.small}>{item.openNow ? t("book.openNow") : t("book.closedNow")} · {item.hours.open}-{item.hours.close} · ★ {item.rating}</Text>
+                <Text style={type.small}>{item.openNow ? t("book.openNow") : t("book.closedNow")} · {item.hours.open}-{item.hours.close} · {t("common.ratedValue", { rating: item.rating })}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.stone} />
+              <Ionicons name="chevron-forward" size={17} color={colors.stoneSoft} />
             </Pressable>
           )}
         />
@@ -187,7 +190,7 @@ export default function ReservationsScreen({ navigation }: any) {
           keyExtractor={(r) => r.id}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
-            <EmptyState icon="calendar-outline" title={t("book.noBookings")} hint={t("book.noBookingsHint")} />
+            <EmptyState icon="calendar-outline" title={t("book.noBookings")} hint={t("book.noBookingsHint")} action={t("book.seeVenues")} onAction={() => setBookingsView("book")} />
           }
           renderItem={({ item }) => <ReservationCard r={item} onChange={refresh} navigation={navigation} />}
         />
@@ -197,23 +200,24 @@ export default function ReservationsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.md, gap: spacing.md },
-  seg: { flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: radius.pill, padding: 3 },
-  segBtn: { flex: 1, alignItems: "center", paddingVertical: 9, borderRadius: radius.pill },
-  segOn: { backgroundColor: colors.ink },
-  segText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  list: { paddingHorizontal: spacing.lg, paddingBottom: 140 },
-  chip: { paddingHorizontal: spacing.lg, paddingVertical: 9, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.border },
+  header: { paddingHorizontal: layout.gutter, paddingBottom: spacing.md, gap: spacing.lg },
+  // iOS segmented control
+  seg: { flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: 12, padding: 3 },
+  segBtn: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 36, borderRadius: 9 },
+  segOn: { backgroundColor: colors.paper, ...shadow.soft },
+  segText: { ...font.display, fontSize: 14, color: colors.stoneText },
+  segTextOn: { ...font.displayBold, color: colors.ink },
+  list: { paddingHorizontal: layout.gutter, paddingBottom: layout.tabBarClearance },
+  chip: { minHeight: 36, justifyContent: "center", paddingHorizontal: spacing.lg, borderRadius: radius.pill, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
-  venue: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border },
-  venueDot: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border, gap: spacing.sm },
+  chipText: { ...font.display, fontSize: 14, color: colors.ink },
+  venue: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.stoneLine },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.stoneLine, gap: spacing.md },
   cardTop: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md },
-  pre: { backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.sm, gap: 6 },
-  preHead: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.turmericDeep, textTransform: "uppercase" },
+  pre: { backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md, gap: 8 },
+  preHead: { ...font.displayBold, fontSize: 14, color: colors.amberText },
   preRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  error: { color: colors.chili, fontFamily: fonts.display },
-  payBox: { backgroundColor: colors.amberTint, borderRadius: radius.md, borderWidth: 1, borderColor: colors.amberBorder, padding: spacing.md, gap: spacing.sm },
-  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 12, fontSize: 15, fontFamily: fonts.serif, color: colors.text, borderWidth: 1, borderColor: colors.border },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14 },
+  payBox: { backgroundColor: colors.amberTint, borderRadius: radius.md, borderWidth: 1, borderColor: colors.amberBorder, padding: spacing.lg, gap: spacing.sm },
+  input: { backgroundColor: colors.paper, borderRadius: radius.md, paddingHorizontal: spacing.lg, minHeight: 50, paddingVertical: 12, fontSize: 16, ...font.serif, color: colors.text, borderWidth: 1, borderColor: colors.stoneLine },
 });

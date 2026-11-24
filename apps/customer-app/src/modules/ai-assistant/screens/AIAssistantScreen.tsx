@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, radius, spacing, type, fonts, shadow } from "../../../shared/theme/theme";
+import { colors, layout, radius, spacing, type, shadow, font } from "../../../shared/theme/theme";
 import { api } from "../../../shared/api/client";
 
 import { useCart } from "../../ordering/CartContext";
@@ -254,12 +254,12 @@ async function addRecommendation(
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <View style={styles.headerAvatar}>
-          <Ionicons name="sparkles" size={16} color={colors.white} />
+          <Ionicons name="sparkles" size={18} color={colors.turmeric} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={type.h2}>{t("tabs.assistant")}</Text>
+          <Text style={type.h2} accessibilityRole="header">{t("tabs.assistant")}</Text>
           <Text style={styles.draftBadgeText}>{t("ai.poweredBy")}</Text>
         </View>
       </View>
@@ -273,7 +273,7 @@ async function addRecommendation(
           <View key={m.id} style={[styles.bubbleRow, m.from === "user" && styles.bubbleRowUser]}>
             {m.from === "bot" && (
               <View style={styles.botAvatar}>
-                <Ionicons name="sparkles" size={12} color={colors.white} />
+                <Ionicons name="sparkles" size={12} color={colors.turmeric} />
               </View>
             )}
             <View style={[styles.bubble, m.from === "user" ? styles.bubbleUser : styles.bubbleBot, shadow.soft]}>
@@ -301,10 +301,10 @@ async function addRecommendation(
         {typing && (
           <View style={styles.bubbleRow}>
             <View style={styles.botAvatar}>
-              <Ionicons name="sparkles" size={12} color={colors.white} />
+              <Ionicons name="sparkles" size={12} color={colors.turmeric} />
             </View>
-            <View style={[styles.bubble, styles.bubbleBot, shadow.soft]}>
-              <Text style={styles.bubbleTextBot}>···</Text>
+            <View style={[styles.bubble, styles.bubbleBot, shadow.soft]} accessibilityLabel={t("ai.typing")}>
+              <ActivityIndicator size="small" color={colors.stone} />
             </View>
           </View>
         )}
@@ -312,7 +312,7 @@ async function addRecommendation(
         {messages.length <= 1 && (
           <View style={styles.suggestions}>
             {SUGGESTIONS.map((s) => (
-              <Pressable key={s} style={styles.suggestionChip} onPress={() => send(t(s))}>
+              <Pressable key={s} style={({ pressed }) => [styles.suggestionChip, pressed && { backgroundColor: colors.paperDim }]} onPress={() => send(t(s))} accessibilityRole="button">
                 <Text style={styles.suggestionText}>{t(s)}</Text>
               </Pressable>
             ))}
@@ -348,7 +348,7 @@ async function addRecommendation(
               </>
             ) : (
               <>
-                <ActivityIndicator size="small" color={colors.turmericDeep} />
+                <ActivityIndicator size="small" color={colors.ink} />
                 <Text style={styles.voicePillText}>{t("ai.transcribing")}</Text>
               </>
             )}
@@ -358,7 +358,7 @@ async function addRecommendation(
             ref={inputRef}
             style={styles.input}
             placeholder={t("ai.placeholder")}
-            placeholderTextColor={colors.textFaint}
+            placeholderTextColor={colors.stoneText}
             value={input}
             onChangeText={(text) => {
               setInput(text);
@@ -382,13 +382,13 @@ async function addRecommendation(
 
         {!listening && !transcribing && (
           <Pressable
-            style={[styles.sendBtn, !input.trim() && { opacity: 0.4 }]}
+            style={[styles.sendBtn, !input.trim() && { backgroundColor: colors.paperDim }]}
             disabled={!input.trim()}
             onPress={() => send(input)}
             accessibilityRole="button"
             accessibilityLabel={t("chat.send")}
           >
-            <Ionicons name="arrow-up" size={18} color={colors.white} />
+            <Ionicons name="arrow-up" size={20} color={input.trim() ? colors.ink : colors.stoneSoft} />
           </Pressable>
         )}
       </View>
@@ -400,103 +400,105 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+    gap: spacing.md,
+    paddingHorizontal: layout.gutter,
     paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.stoneSoft,
   },
   headerAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.herb,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.ink,
     alignItems: "center",
     justifyContent: "center",
   },
-  draftBadgeText: { fontFamily: fonts.display, fontSize: 11, color: colors.stone, marginTop: 1 },
-  messages: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, gap: spacing.md },
-  bubbleRow: { flexDirection: "row", alignItems: "flex-end", gap: spacing.sm, maxWidth: "90%" },
+  draftBadgeText: { ...font.display, fontSize: 13, color: colors.stoneText, marginTop: 1 },
+  messages: { paddingHorizontal: layout.gutter, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.md },
+  bubbleRow: { flexDirection: "row", alignItems: "flex-end", gap: spacing.sm, maxWidth: "88%" },
   bubbleRowUser: { alignSelf: "flex-end", flexDirection: "row-reverse" },
   botAvatar: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: colors.herb,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.ink,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
   },
-  bubble: { paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radius.lg, maxWidth: "100%" },
-  bubbleBot: { backgroundColor: colors.paper, borderBottomLeftRadius: 4 },
-  bubbleUser: { backgroundColor: colors.turmeric, borderBottomRightRadius: 4 },
-  bubbleTextBot: { fontFamily: fonts.serif, fontSize: 14.5, color: colors.ink, lineHeight: 20 },
-  bubbleTextUser: { fontFamily: fonts.serif, fontSize: 14.5, color: colors.white, lineHeight: 20 },
-  suggestions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm },
+  bubble: { paddingVertical: 11, paddingHorizontal: 14, borderRadius: 20, maxWidth: "100%" },
+  bubbleBot: { backgroundColor: colors.paper, borderBottomLeftRadius: 6 },
+  bubbleUser: { backgroundColor: colors.ink, borderBottomRightRadius: 6 },
+  bubbleTextBot: { ...font.serif, fontSize: 16, color: colors.ink, lineHeight: 22 },
+  bubbleTextUser: { ...font.serif, fontSize: 16, color: colors.white, lineHeight: 22 },
+  suggestions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm, paddingLeft: 26 + spacing.sm },
   suggestionChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.stoneLine,
     backgroundColor: colors.paper,
-    paddingVertical: 8,
-    paddingHorizontal: spacing.md,
+    minHeight: 40,
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
     borderRadius: radius.pill,
   },
-  suggestionText: { fontFamily: fonts.display, fontSize: 12.5, color: colors.turmericDeep },
+  suggestionText: { ...font.display, fontSize: 15, color: colors.ink },
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: layout.gutter,
     paddingTop: spacing.md,
-    paddingBottom: 120,
+    paddingBottom: 110,
     backgroundColor: colors.bg,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.stoneSoft,
   },
   input: {
     flex: 1,
     backgroundColor: colors.paper,
-    borderRadius: radius.pill,
+    borderRadius: 22,
+    minHeight: 44,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 12,
-    fontFamily: fonts.serif,
-    fontSize: 14.5,
+    paddingVertical: 11,
+    ...font.serif,
+    fontSize: 16,
     color: colors.ink,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.stoneLine,
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.turmeric,
     alignItems: "center",
     justifyContent: "center",
   },
-    micBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.border,
+  micBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.paperDim,
     alignItems: "center",
     justifyContent: "center",
   },
-  micBtnActive: { backgroundColor: colors.chili, borderColor: colors.chili },
+  micBtnActive: { backgroundColor: colors.chili },
   voicePill: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
   recDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.chili },
-  voicePillText: { flex: 1, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.ink },
-  voicePillHint: { fontFamily: fonts.serif, fontSize: 12.5, color: colors.stoneText },
+  voicePillText: { flex: 1, ...font.serifMedium, fontSize: 15, color: colors.ink },
+  voicePillHint: { ...font.serif, fontSize: 13, color: colors.stoneText },
   voiceErrorRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginHorizontal: spacing.lg,
+    marginHorizontal: layout.gutter,
     marginBottom: spacing.xs,
+    minHeight: 40,
     paddingVertical: 8,
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.chiliSoft,
   },
-  voiceErrorText: { flex: 1, fontFamily: fonts.serif, fontSize: 12.5, color: colors.chiliText, lineHeight: 17 },
+  voiceErrorText: { flex: 1, ...font.serif, fontSize: 14, color: colors.chiliText, lineHeight: 19 },
 });

@@ -7,7 +7,7 @@ import EmptyState from "../../../shared/components/EmptyState";
 import type { BusyLevel, Merchant } from "../../../shared/api/types";
 import { useCatalog } from "../CatalogContext";
 import { BUSY_STYLE, buildCanteens, busyOf, waitOf, type Slot } from "../canteenMap";
-import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../../shared/theme/theme";
 import { useTranslation } from "react-i18next";
 import i18n, { locale } from "../../../shared/i18n";
 
@@ -208,30 +208,30 @@ function StallSheet({ merchant, bottom, onClose, onOpen }: { merchant: Merchant;
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: spacing.lg, alignItems: "center" },
+  body: { paddingHorizontal: layout.gutter, alignItems: "center" },
   chipRow: { gap: spacing.sm, paddingBottom: spacing.md },
   legend: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: spacing.md, marginBottom: spacing.md },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendText: { fontFamily: fonts.display, fontSize: 11.5, color: colors.stoneText },
+  legendText: { ...font.display, fontSize: 12, color: colors.stoneText },
   room: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 2, borderColor: colors.stoneLine, padding: spacing.md, gap: spacing.md },
-  roomName: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  roomName: { ...font.displayBold, fontSize: 13, color: colors.ink },
   row: { flexDirection: "row", gap: spacing.sm },
   tile: { minHeight: 86, borderRadius: radius.sm, borderWidth: 1.5, padding: 6, gap: 2, overflow: "hidden" },
   tileSelected: { borderWidth: 2.5 },
   glow: { borderRadius: radius.sm, borderWidth: 3 },
   emptyTile: { borderStyle: "dashed", borderColor: colors.stoneLine, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
-  emptyText: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneSoft },
+  emptyText: { ...font.display, fontSize: 11, color: colors.stoneSoft },
   tileTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  slotNo: { fontFamily: fonts.display, fontSize: 10, color: colors.stoneText },
-  tileName: { fontFamily: fonts.displayBold, fontSize: 10.5, lineHeight: 13, color: colors.ink },
-  tileWait: { fontFamily: fonts.displayExtraBold, fontSize: 13, marginTop: "auto" },
+  slotNo: { ...font.display, fontSize: 11, color: colors.stoneText },
+  tileName: { ...font.displayBold, fontSize: 11, lineHeight: 13, color: colors.ink },
+  tileWait: { ...font.displayExtraBold, fontSize: 13, marginTop: "auto" },
   seating: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.lg, borderRadius: radius.md, backgroundColor: colors.bg },
   table: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: colors.stoneLine, alignItems: "center", justifyContent: "center" },
-  seatingText: { width: "100%", textAlign: "center", fontFamily: fonts.display, fontSize: 11, color: colors.stoneSoft },
+  seatingText: { width: "100%", textAlign: "center", ...font.display, fontSize: 11, color: colors.stoneSoft },
   entrance: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, alignSelf: "center", paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: colors.paperDim },
-  entranceText: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneText },
+  entranceText: { ...font.display, fontSize: 11, color: colors.stoneText },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: colors.paper, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, gap: spacing.md, borderTopWidth: 1, borderColor: colors.stoneLine },
   sheetTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   sheetChips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },

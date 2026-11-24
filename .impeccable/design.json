@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-19T16:29:17.075Z",
+  "generatedAt": "2026-11-19T16:59:46.052Z",
   "title": "Design System: ScootMeal",
   "extensions": {
     "colorMeta": {
@@ -372,132 +372,20 @@
           "#F1EEE6"
         ]
       },
-      "icon-orange": {
-        "role": "category",
-        "displayName": "Category Orange",
-        "canonical": "#FF8A3D",
-        "oklch": "oklch(75.0% 0.167 50.5)",
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#EFEBE3",
+        "oklch": "oklch(94.1% 0.012 84.6)",
         "tonalRamp": [
-          "#1D0200",
-          "#470C00",
-          "#761A00",
-          "#A23400",
-          "#CB5B00",
-          "#F48031",
-          "#FFAE73",
-          "#FFDCB3"
-        ]
-      },
-      "icon-red": {
-        "role": "category",
-        "displayName": "Category Red",
-        "canonical": "#F2545B",
-        "oklch": "oklch(66.2% 0.193 21.7)",
-        "tonalRamp": [
-          "#200001",
-          "#4E0006",
-          "#820011",
-          "#B10027",
-          "#DC3E49",
-          "#FF686C",
-          "#FF9C9B",
-          "#FFD0CD"
-        ]
-      },
-      "icon-green": {
-        "role": "category",
-        "displayName": "Category Green",
-        "canonical": "#2DB57A",
-        "oklch": "oklch(68.8% 0.144 159.4)",
-        "tonalRamp": [
-          "#001104",
-          "#003013",
-          "#005226",
-          "#00743E",
-          "#009960",
-          "#3CBF84",
-          "#7FE3AE",
-          "#BEFFDB"
-        ]
-      },
-      "icon-purple": {
-        "role": "category",
-        "displayName": "Category Purple",
-        "canonical": "#8B6CF0",
-        "oklch": "oklch(62.6% 0.190 290.7)",
-        "tonalRamp": [
-          "#0D0424",
-          "#271156",
-          "#44228D",
-          "#623DBE",
-          "#8464E7",
-          "#A78AFF",
-          "#CBB6FF",
-          "#EEE2FF"
-        ]
-      },
-      "icon-blue": {
-        "role": "category",
-        "displayName": "Category Blue",
-        "canonical": "#3B9BF5",
-        "oklch": "oklch(67.6% 0.160 250.3)",
-        "tonalRamp": [
-          "#000B21",
-          "#002350",
-          "#003F85",
-          "#005EB3",
-          "#1C83DB",
-          "#4AA9FF",
-          "#84D0FF",
-          "#BFF4FF"
-        ]
-      },
-      "icon-pink": {
-        "role": "category",
-        "displayName": "Category Pink",
-        "canonical": "#F06AA8",
-        "oklch": "oklch(70.5% 0.177 353.7)",
-        "tonalRamp": [
-          "#1D000D",
-          "#470028",
-          "#760046",
-          "#A21E65",
-          "#CB4888",
-          "#F56FAD",
-          "#FFA0D2",
-          "#FFD2F4"
-        ]
-      },
-      "icon-teal": {
-        "role": "category",
-        "displayName": "Category Teal",
-        "canonical": "#1FB5B0",
-        "oklch": "oklch(70.1% 0.115 191.2)",
-        "tonalRamp": [
-          "#00100F",
-          "#002E2C",
-          "#004F4C",
-          "#00716D",
-          "#009591",
-          "#2BBBB6",
-          "#78DFDA",
-          "#BAFEF9"
-        ]
-      },
-      "icon-brown": {
-        "role": "category",
-        "displayName": "Category Brown",
-        "canonical": "#A9713F",
-        "oklch": "oklch(59.7% 0.097 61.0)",
-        "tonalRamp": [
-          "#150700",
-          "#381C01",
-          "#5F3303",
-          "#844F1A",
-          "#AA7240",
-          "#D19664",
-          "#F2BF94",
-          "#FFE7C9"
+          "#0C0B09",
+          "#262420",
+          "#423F3A",
+          "#615D56",
+          "#838079",
+          "#A8A49D",
+          "#CDCAC4",
+          "#F0EEE9"
         ]
       },
       "overlay": {
@@ -547,22 +435,22 @@
     "shadows": [
       {
         "name": "soft",
-        "value": "0 2px 6px rgba(21,19,15,0.05)",
+        "value": "0 1px 4px rgba(21,19,15,0.06)",
         "purpose": "Round icon buttons over headers and photos. Android elevation 1."
       },
       {
         "name": "card",
-        "value": "0 6px 14px rgba(21,19,15,0.08)",
+        "value": "0 4px 12px rgba(21,19,15,0.06)",
         "purpose": "Raised borderless cards. Android elevation 3."
       },
       {
         "name": "sheet",
-        "value": "0 -6px 18px rgba(21,19,15,0.10)",
+        "value": "0 -4px 16px rgba(21,19,15,0.06)",
         "purpose": "Tab bar and bottom sheets. Android elevation 4."
       },
       {
         "name": "floating",
-        "value": "0 8px 16px rgba(21,19,15,0.22)",
+        "value": "0 8px 18px rgba(21,19,15,0.16)",
         "purpose": "Cart bar and raised Assistant button. Android elevation 6."
       }
     ],
@@ -606,7 +494,7 @@
       "refersTo": "button-accent",
       "description": "The one turmeric primary action per screen.",
       "html": "<button class=\"ds-btn-accent\">Place order</button>",
-      "css": ".ds-btn-accent{font-family:'Plus Jakarta Sans',Inter,sans-serif;min-height:52px;padding:0 24px;border:0;border-radius:999px;background:#F5A623;color:#15130F;font-weight:700;font-size:15px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2),background .15s}.ds-btn-accent:hover{background:#FFC24D}.ds-btn-accent:active{transform:scale(.96)}.ds-btn-accent:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+      "css": ".ds-btn-accent{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:52px;padding:0 24px;border:0;border-radius:999px;background:#F5A623;color:#15130F;font-weight:600;font-size:16px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2),background .15s}.ds-btn-accent:hover{background:#FFC24D}.ds-btn-accent:active{transform:scale(.96)}.ds-btn-accent:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
     },
     {
       "name": "Dark Button",
@@ -614,7 +502,7 @@
       "refersTo": "button-dark",
       "description": "Secondary action, e.g. Call or Browse stalls.",
       "html": "<button class=\"ds-btn-dark\">Browse stalls</button>",
-      "css": ".ds-btn-dark{font-family:'Plus Jakarta Sans',Inter,sans-serif;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:#15130F;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2)}.ds-btn-dark:hover{background:#000}.ds-btn-dark:active{transform:scale(.96)}.ds-btn-dark:focus-visible{outline:3px solid #F5A623;outline-offset:2px}"
+      "css": ".ds-btn-dark{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:#15130F;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2)}.ds-btn-dark:hover{background:#000}.ds-btn-dark:active{transform:scale(.96)}.ds-btn-dark:focus-visible{outline:3px solid #F5A623;outline-offset:2px}"
     },
     {
       "name": "Outline Button",
@@ -622,7 +510,7 @@
       "refersTo": "button-outline",
       "description": "Tertiary action, e.g. Chat.",
       "html": "<button class=\"ds-btn-outline\">Chat</button>",
-      "css": ".ds-btn-outline{font-family:'Plus Jakarta Sans',Inter,sans-serif;min-height:44px;padding:0 16px;border:1.5px solid #ECE7DA;border-radius:999px;background:#fff;color:#15130F;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2),border-color .15s}.ds-btn-outline:hover{border-color:#C9C4B6}.ds-btn-outline:active{transform:scale(.96)}.ds-btn-outline:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+      "css": ".ds-btn-outline{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 16px;border:1px solid #C9C4B6;border-radius:999px;background:#fff;color:#15130F;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2),border-color .15s}.ds-btn-outline:hover{border-color:#C9C4B6}.ds-btn-outline:active{transform:scale(.96)}.ds-btn-outline:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
     },
     {
       "name": "Filter Chips",
@@ -630,7 +518,7 @@
       "refersTo": "chip",
       "description": "Pill filters; selected chip is ink with white text.",
       "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-on\">Nearby</button><button class=\"ds-chip\">Halal</button><button class=\"ds-chip\">Open now</button></div>",
-      "css": ".ds-chips{display:flex;gap:8px}.ds-chip{font-family:'Plus Jakarta Sans',Inter,sans-serif;min-height:34px;padding:7px 14px;border-radius:999px;border:1px solid #ECE7DA;background:#fff;color:#15130F;font-weight:600;font-size:12.5px;cursor:pointer}.ds-chip:hover{border-color:#C9C4B6}.ds-chip-on{background:#15130F;border-color:#15130F;color:#fff}.ds-chip:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+      "css": ".ds-chips{display:flex;gap:8px}.ds-chip{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:36px;padding:7px 14px;border-radius:999px;border:1px solid #ECE7DA;background:#fff;color:#15130F;font-weight:600;font-size:14px;cursor:pointer}.ds-chip:hover{border-color:#C9C4B6}.ds-chip-on{background:#15130F;border-color:#15130F;color:#fff}.ds-chip:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
     },
     {
       "name": "Status Badges",
@@ -638,7 +526,7 @@
       "refersTo": "badge-success",
       "description": "Text-labelled status pills; colour is never the only cue.",
       "html": "<div class=\"ds-badges\"><span class=\"ds-badge ds-ok\">Confirmed</span><span class=\"ds-badge ds-warn\">Awaiting stall</span><span class=\"ds-badge ds-bad\">Cancelled</span></div>",
-      "css": ".ds-badges{display:flex;gap:8px}.ds-badge{font-family:'Plus Jakarta Sans',Inter,sans-serif;padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px}.ds-ok{background:#EAF3EC;color:#2F6F4E}.ds-warn{background:#F3E4C4;color:#8A5200}.ds-bad{background:#F1DAD6;color:#AE2A1F}"
+      "css": ".ds-badges{display:flex;gap:8px}.ds-badge{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px}.ds-ok{background:#EAF3EC;color:#2F6F4E}.ds-warn{background:#F3E4C4;color:#8A5200}.ds-bad{background:#F1DAD6;color:#AE2A1F}"
     },
     {
       "name": "Dish Card",
@@ -646,15 +534,15 @@
       "refersTo": "card",
       "description": "Bordered white card with circular photo, amber price and the round turmeric add button.",
       "html": "<div class=\"ds-dish\"><div class=\"ds-dish-img\"></div><div class=\"ds-dish-body\"><div class=\"ds-dish-name\">Nasi lemak ayam</div><div class=\"ds-dish-meta\">Sambal, egg, peanuts</div><div class=\"ds-dish-price\">RM 8.50</div></div><button class=\"ds-add\" aria-label=\"Add\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#15130F\" stroke-width=\"2.5\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></button></div>",
-      "css": ".ds-dish{font-family:'Plus Jakarta Sans',Inter,sans-serif;display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border:1px solid #ECE7DA;border-radius:16px;max-width:360px;transition:transform .18s}.ds-dish:active{transform:scale(.98)}.ds-dish-img{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFC24D,#D9860B)}.ds-dish-body{flex:1}.ds-dish-name{font-weight:600;font-size:15px;color:#15130F}.ds-dish-meta{font-size:13px;color:#6B675F;margin:2px 0 4px}.ds-dish-price{font-weight:700;font-size:15px;color:#8A5200}.ds-add{width:30px;height:30px;border-radius:50%;border:0;background:#F5A623;display:grid;place-items:center;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2)}.ds-add:active{transform:scale(.9)}.ds-add:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
+      "css": ".ds-dish{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border:1px solid #ECE7DA;border-radius:16px;max-width:360px;transition:transform .18s}.ds-dish:active{transform:scale(.98)}.ds-dish-img{width:84px;height:84px;border-radius:16px;background:radial-gradient(circle at 35% 35%,#FFC24D,#D9860B)}.ds-dish-body{flex:1}.ds-dish-name{font-weight:600;font-size:15px;color:#15130F}.ds-dish-meta{font-size:13px;color:#6B675F;margin:2px 0 4px}.ds-dish-price{font-weight:700;font-size:15px;color:#8A5200}.ds-add{width:30px;height:30px;border-radius:50%;border:0;background:#F5A623;display:grid;place-items:center;cursor:pointer;transition:transform .18s cubic-bezier(.2,.9,.3,1.2)}.ds-add:active{transform:scale(.9)}.ds-add:focus-visible{outline:3px solid #15130F;outline-offset:2px}"
     },
     {
-      "name": "Text Field",
+      "name": "Search Field",
       "kind": "input",
-      "refersTo": null,
-      "description": "Cream well with hairline border inside white cards.",
+      "refersTo": "search-field",
+      "description": "Grey iOS-style search field.",
       "html": "<input class=\"ds-input\" placeholder=\"Search stalls or dishes\">",
-      "css": ".ds-input{font-family:'Plus Jakarta Sans',Inter,sans-serif;min-height:46px;padding:0 12px;border:1px solid #ECE7DA;border-radius:16px;background:#FBFAF6;color:#15130F;font-size:15px;width:280px}.ds-input::placeholder{color:#B8B3A6}.ds-input:focus-visible{outline:none;border-color:#15130F;box-shadow:0 0 0 3px #FDF1DA}"
+      "css": ".ds-input{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 12px;border:0;border-radius:12px;background:#F4F1EA;color:#15130F;font-size:15px;width:280px}.ds-input::placeholder{color:#B8B3A6}.ds-input:focus-visible{outline:none;border-color:#15130F;box-shadow:0 0 0 3px #FDF1DA}"
     },
     {
       "name": "Floating Cart Bar",
@@ -662,7 +550,7 @@
       "refersTo": "bottom-bar",
       "description": "Signature ink pill pinned above the tab bar.",
       "html": "<div class=\"ds-cartbar\"><span>2 items · RM 17.50</span><button class=\"ds-cartbar-btn\">View cart</button></div>",
-      "css": ".ds-cartbar{font-family:'Plus Jakarta Sans',Inter,sans-serif;display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 6px 0 16px;border-radius:999px;background:#15130F;color:#fff;font-weight:700;font-size:14px;max-width:360px;box-shadow:0 8px 16px rgba(21,19,15,.22)}.ds-cartbar-btn{font-family:'Plus Jakarta Sans',Inter,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:#F5A623;color:#15130F;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s}.ds-cartbar-btn:active{transform:scale(.96)}.ds-cartbar-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}"
+      "css": ".ds-cartbar{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 6px 0 16px;border-radius:999px;background:#15130F;color:#fff;font-weight:700;font-size:14px;max-width:360px;box-shadow:0 8px 18px rgba(21,19,15,.16)}.ds-cartbar-btn{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:#F5A623;color:#15130F;font-weight:700;font-size:14px;cursor:pointer;transition:transform .18s}.ds-cartbar-btn:active{transform:scale(.96)}.ds-cartbar-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}"
     },
     {
       "name": "Tab Bar",
@@ -670,7 +558,7 @@
       "refersTo": "tab-bar",
       "description": "White tab bar with the raised turmeric Assistant button.",
       "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab ds-tab-on\">Home</a><a class=\"ds-tab\">Orders</a><a class=\"ds-tab-mid\" aria-label=\"Assistant\">✦</a><a class=\"ds-tab\">Tables</a><a class=\"ds-tab\">Account</a></nav>",
-      "css": ".ds-tabs{font-family:'Plus Jakarta Sans',Inter,sans-serif;display:flex;align-items:center;justify-content:space-around;height:64px;width:360px;background:#fff;border-top:1px solid #ECE7DA;box-shadow:0 -6px 18px rgba(21,19,15,.1)}.ds-tab{font-size:11px;font-weight:600;color:#6B675F;cursor:pointer}.ds-tab-on{color:#15130F;font-weight:700}.ds-tab-mid{width:56px;height:56px;margin-top:-26px;border-radius:50%;background:#F5A623;border:4px solid #fff;display:grid;place-items:center;color:#15130F;font-size:22px;box-shadow:0 8px 16px rgba(21,19,15,.22)}"
+      "css": ".ds-tabs{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;display:flex;align-items:center;justify-content:space-around;height:64px;width:360px;background:#fff;border-top:1px solid #ECE7DA;}.ds-tab{font-size:11px;font-weight:600;color:#6B675F;cursor:pointer}.ds-tab-on{color:#15130F;font-weight:600}.ds-tab-mid{width:56px;height:56px;margin-top:-26px;border-radius:50%;background:#F5A623;border:4px solid #fff;display:grid;place-items:center;color:#15130F;font-size:22px;box-shadow:0 8px 18px rgba(21,19,15,.16)}"
     },
     {
       "name": "Icon Button",
@@ -683,39 +571,50 @@
   ],
   "narrative": {
     "northStar": "The Bold Market",
-    "overview": "ScootMeal looks like a good stall front: clean cream and white surfaces, confident near-black lettering, and one loud turmeric sign that tells you where to go next. The palette comes straight from the food it sells: turmeric, chili, banana-leaf herb green, and kopi-dark ink. It is warm without being cute, and decisive without being loud everywhere at once.\n\nDensity is medium and phone-first. Screens are built from white cards on a warm off-white page, pill-shaped chips and buttons, round icon buttons, and food photography in circles and soft rectangles. Plus Jakarta Sans carries everything, from the 800-weight headlines to 11px tab labels; hierarchy comes from weight and size, not from a second typeface. Motion is small and physical: presses shrink slightly and spring back, lists fade up in a short stagger, the active tab icon pops. All of it collapses to instant when the OS asks for reduced motion.\n\nThe customer app wears turmeric (its icon and splash are turmeric); the merchant app wears ink (its icon is ink, and it leans on dark surfaces for counter-side alerts). Both apps share this one system and one theme file. The web admin is a plain staff tool that borrows the same ink, cream, line and amber values as CSS variables.",
+    "overview": "ScootMeal looks like a good stall front, refined: clean cream and white surfaces, confident near-black lettering, and one turmeric sign that tells you where to go next. The palette comes straight from the food it sells: turmeric, chili, banana-leaf herb green, and kopi-dark ink. The premium pass (Nov 2026) keeps that palette and sets it in the phone's own typeface, so the app feels native on iPhone first and at home on Android.\n\nDensity is medium and phone-first. Screens are built from white cards and inset grouped lists on a warm off-white page, pill-shaped chips and buttons, round icon buttons, grey iOS-style search fields and segmented controls, and food photography that bleeds to the card edge. Hierarchy comes from size and weight in one family. Motion is small and physical: presses shrink slightly and spring back, lists fade up in a short stagger, photos fade in as they load, the active tab icon pops, the cart count pops when it grows, and lists refresh with a pull. All of it collapses to instant when the OS asks for reduced motion.\n\nThe customer app wears turmeric (its icon and splash are turmeric); the merchant app wears ink (its icon is ink, and it leans on dark surfaces for counter-side alerts). Both apps share one palette. The web admin is a plain staff tool that borrows the same ink, cream, line and amber values as CSS variables.",
     "keyCharacteristics": [
       "Warm off-white page (`bg`), white cards, hairline warm-grey borders.",
-      "Ink for text, dark buttons, active chips and the floating cart bar.",
+      "Ink for text, dark buttons, selected chips, selection ticks and the floating cart bar.",
       "Turmeric reserved for the one main action per screen, the raised Assistant tab and the round \"+\" on dishes.",
-      "Pills everywhere: buttons, chips, badges, the cart bar.",
-      "One typeface, Plus Jakarta Sans, in five weights.",
-      "Soft, warm-tinted shadows (ink at 5–22% opacity), never grey or black."
+      "Pills for actions and chips; 16px corners for cards; 12px for search fields and segmented controls.",
+      "The system typeface (SF Pro on iPhone, Roboto on Android) in four weights, 400 to 700.",
+      "Quiet, ink-tinted shadows (6% opacity at rest, 16% for floating bars), never grey or black.",
+      "Home keeps its playful moments: a warm turmeric glow behind the header, the customer's name in multicolour letters, and hand-drawn multicolour food icons in the category row."
     ],
     "rules": [
       {
         "name": "The One Turmeric Rule",
-        "body": "Each screen has at most one turmeric call to action. Everything else is an ink, outline or text button. The raised Assistant tab and the small \"+\" add buttons are the only standing exceptions.",
+        "body": "Each screen has at most one turmeric call to action. Everything else is an ink, outline or text button. The raised Assistant tab, the small \"+\" add buttons and the assistant's send button are the only standing exceptions.",
         "section": "colors"
       },
       {
         "name": "The Dark-Tone Text Rule",
-        "body": "Turmeric, chili, stone and herb-light are for icons, fills and large shapes. Small text uses the text tones: `amber-text`, `chili-text`, `stone-text`, `herb`.",
+        "body": "Turmeric, turmeric-deep, chili, stone and herb-light are for icons, fills and large shapes. Text uses the text tones: `amber-text`, `chili-text`, `stone-text`, `herb`, `ink`.",
         "section": "colors"
       },
       {
-        "name": "The Category-Grid Rule",
-        "body": "The bright `icon-*` colours live only on the Home category icons. They never become buttons, badges or text.",
+        "name": "The Green-Means-Done Rule",
+        "body": "Herb green marks success and reassurance only. It is never a brand accent, an avatar or a decorative card. (The green Halal illustration in the category row is artwork, not UI colour.)",
+        "section": "colors"
+      },
+      {
+        "name": "The Home-Only Play Rule",
+        "body": "The multicolour greeting letters, the turmeric glow and the cartoon category icons live on Home only. Every other screen stays on the core palette.",
         "section": "colors"
       },
       {
         "name": "The One Family Rule",
-        "body": "Plus Jakarta Sans only. Contrast comes from weight (400 to 800) and size, never from a second typeface. The theme's `serif` token names are legacy and point at Plus Jakarta Sans regular and medium.",
+        "body": "The system font only. Contrast comes from weight (400 to 700) and size. Code sets type with `font.*` tokens (`{ ...font.displayBold, fontSize: 16 }`), which carry family and weight together; the token names (`display`, `serif`) are legacy names, not typefaces.",
+        "section": "typography"
+      },
+      {
+        "name": "The 11px Floor Rule",
+        "body": "No text below 11px; descriptions and meta lines are at least 13px.",
         "section": "typography"
       },
       {
         "name": "The Amber Price Rule",
-        "body": "Prices are always bold and always `amber-text`, so \"how much\" is findable at a glance on every card.",
+        "body": "Prices are always bold and `amber-text`, so \"how much\" is findable at a glance on every card.",
         "section": "typography"
       },
       {
@@ -725,20 +624,26 @@
       }
     ],
     "dos": [
-      "**Do** use exactly one turmeric accent button per screen, with an ink label.",
-      "**Do** put every price in bold `amber-text`.",
-      "**Do** use the text tones (`amber-text`, `chili-text`, `stone-text`) for any text under 18px; keep `turmeric`, `chili` and `stone` for icons and shapes.",
+      "**Do** use exactly one turmeric primary button per screen, with an ink label.",
+      "**Do** put every price in bold `amber-text` with tabular figures.",
+      "**Do** set type with `font.*` tokens so family and weight travel together.",
+      "**Do** use the text tones (`amber-text`, `chili-text`, `stone-text`) for text; keep `turmeric`, `turmeric-deep`, `chili` and `stone` for icons and shapes.",
       "**Do** pair every status colour with a text label.",
-      "**Do** tint shadows with ink, and give a card either a hairline border or a shadow, not both.",
-      "**Do** keep tap targets at least 44px, and route every animation through the shared motion helpers so reduced motion is respected.",
-      "**Do** reference tokens from `theme.ts` (`colors.*`, `radius.*`, `spacing.*`, `ui.*`) instead of raw hex or numbers. Only Nathan edits `theme.ts`; ask before adding tokens."
+      "**Do** use `ListGroup` for settings-shaped lists and `SearchField` for search instead of one-off styles.",
+      "**Do** keep tap targets at least 44px, respect the safe area on every top-level screen, and route every animation through the shared motion helpers so reduced motion is respected.",
+      "**Do** use `BottomSheet` for slide-up choices and `confirmAsync` for yes/no questions instead of building new modals.",
+      "**Do** give lists that show live data pull-to-refresh (Home, Orders, Jobs) with an ink spinner.",
+      "**Do** reference tokens from `theme.ts` (`colors.*`, `font.*`, `layout.*`, `radius.*`, `spacing.*`, `ui.*`) instead of raw hex or numbers. Only Nathan edits `theme.ts`; ask before adding tokens."
     ],
     "donts": [
-      "**Don't** put white text on turmeric, or use turmeric for small text.",
-      "**Don't** add a second typeface.",
-      "**Don't** use the bright `icon-*` category colours outside the Home category grid.",
+      "**Don't** put white text on turmeric, or use turmeric or turmeric-deep for text.",
+      "**Don't** add a second typeface or load a custom font.",
+      "**Don't** use emoji or text glyphs as icons, or spread Home's multicolour illustrations to other screens.",
+      "**Don't** use green for anything but success.",
+      "**Don't** put an uppercase eyebrow label above a heading.",
+      "**Don't** make something look like a button unless it does something.",
       "**Don't** use square corners on buttons, chips or cards in the apps.",
-      "**Don't** use grey or pure-black shadows.",
+      "**Don't** use grey or pure-black shadows, or stack a shadow on a bordered card.",
       "**Don't** make colour the only signal for status, allergens or timers."
     ]
   }

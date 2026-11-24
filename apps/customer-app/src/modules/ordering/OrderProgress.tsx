@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Order } from "../../shared/api/types";
-import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font } from "../../shared/theme/theme";
 import PulseRing, { PopOnChange } from "../../shared/motion/PulseRing";
 import FadeInView from "../../shared/motion/FadeInView";
 import i18n, { locale } from "../../shared/i18n";
@@ -70,7 +70,7 @@ export default function OrderProgress({ order }: { order: Order }) {
             {i < steps.length - 1 && <View style={[styles.line, s.state === "done" && styles.lineDone]} />}
           </View>
           <FadeInView index={i} style={styles.body}>
-            <Text style={[styles.label, s.state === "todo" && { color: colors.stoneText, fontFamily: fonts.serifMedium }]}>{s.label}</Text>
+            <Text style={[styles.label, s.state === "todo" && { color: colors.stoneText, ...font.serifMedium }]}>{s.label}</Text>
             {s.state === "current" && <Text style={type.small}>{i18n.t("progress.inProgress")}</Text>}
             {s.time ? <Text style={type.small}>{clock(s.time)}</Text> : null}
           </FadeInView>
@@ -84,11 +84,11 @@ const styles = StyleSheet.create({
   card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg },
   row: { flexDirection: "row", gap: spacing.md, minHeight: 44 },
   rail: { alignItems: "center", width: 22 },
-  dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
+  dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: colors.stoneLine, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
   dotDone: { backgroundColor: colors.herb, borderColor: colors.herb },
   dotCurrent: { borderColor: colors.turmeric, borderWidth: 5 },
-  line: { flex: 1, width: 2, backgroundColor: colors.border, marginVertical: 2 },
+  line: { flex: 1, width: 2, borderRadius: 1, backgroundColor: colors.stoneLine, marginVertical: 3 },
   lineDone: { backgroundColor: colors.herb },
   body: { flex: 1, minWidth: 0, paddingBottom: spacing.md, gap: 1 },
-  label: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  label: { ...font.displayBold, fontSize: 15, color: colors.ink },
 });

@@ -153,7 +153,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
         subtitle={t("jobBoard.subtitle", { active: jobs.filter((j) => j.status === "active").length, total: jobs.reduce((acc, j) => acc + j.applicantsCount, 0) })}
       />
 
-      {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
+      {message ? <Text style={{ color: colors.chiliText, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
       <FlatList
         data={filteredJobs}
         ListEmptyComponent={<EmptyState icon="briefcase-outline" title={t("jobBoard.empty")} hint={t("jobBoard.emptyHint")} />}
@@ -166,7 +166,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               style={({ hovered }: any) => [s.postBtn, hovered && s.btnHover]}
               onPress={handleOpenAddModal}
             >
-              <Text style={s.postBtnText}>+ {t("jobBoard.postNew")}</Text>
+              <Text style={s.postBtnText}>{t("jobBoard.postNew")}</Text>
             </Pressable>
 
             {/* Status Filter Tabs */}

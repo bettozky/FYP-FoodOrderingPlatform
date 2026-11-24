@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../../shared/api/client";
 import type { MerchantProfile } from "../../../shared/api/types";
-import { colors, fonts, radius, shadow, spacing } from "../../../shared/theme/theme";
+import { colors, radius, shadow, spacing, font } from "../../../shared/theme/theme";
 import { DAYS, DayHours, DayKey } from "../../onboarding/signup/types";
 import i18n from "../../../shared/i18n";
 import { useTranslation } from "react-i18next";
@@ -127,8 +127,8 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
         accessibilityLabel={expanded ? t("hours.a11yHide") : t("hours.a11yShow")}
         testID="hours-toggle"
       >
-        <Text style={s.title}>{t("hours.title")}</Text>
-        <Text style={[s.pill, { color: profile?.openNow ? colors.herb : colors.chili, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
+        <Text style={s.title} numberOfLines={1}>{t("hours.title")}</Text>
+        <Text numberOfLines={1} style={[s.pill, { color: profile?.openNow ? colors.herb : colors.chiliText, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
           {profile?.openNow ? t("drawer.openNow") : t("drawer.closedNow")}
         </Text>
         <View style={{ flex: 1 }} />
@@ -137,7 +137,7 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
       </Pressable>
 
       {!expanded ? (
-        <Pressable onPress={() => setExpanded(true)} accessibilityRole="button" accessibilityLabel={t("hours.editA11y")} testID="hours-summary">
+        <Pressable onPress={() => setExpanded(true)} style={s.summaryRow} accessibilityRole="button" accessibilityLabel={t("hours.editA11y")} testID="hours-summary">
           {summary(rows).map((line) => <Text key={line} style={s.summary}>{line}</Text>)}
           {dirty ? <Text style={[s.hint, { color: colors.amberText }]}>{t("hours.unsaved")}</Text> : null}
         </Pressable>
@@ -155,7 +155,7 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
               const bad = !!errors[h.day];
               return (
                 <View key={h.day} style={[s.dayRow, i > 0 && s.dayLine]}>
-                  <Text style={[s.dayLabel, h.closed && { color: colors.stone }]}>{DAYS[i]!.short}</Text>
+                  <Text style={[s.dayLabel, h.closed && { color: colors.stoneText }]}>{DAYS[i]!.short}</Text>
                   {h.closed ? (
                     <Text style={[s.closed, { flex: 1 }]}>{t("hours.closed")}</Text>
                   ) : (
@@ -193,25 +193,26 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
 
 const s = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, gap: spacing.md, ...shadow.soft },
-  head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 32 },
-  title: { fontSize: 15, fontFamily: fonts.displayBold, color: colors.ink },
-  pill: { fontSize: 11.5, fontFamily: fonts.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
-  toggleText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.ink },
-  summary: { fontSize: 14, fontFamily: fonts.serifMedium, color: colors.text, lineHeight: 22 },
+  head: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
+  summaryRow: { minHeight: 44, justifyContent: "center" },
+  title: { fontSize: 17, ...font.displayBold, color: colors.ink, flexShrink: 1 },
+  pill: { flexShrink: 0, fontSize: 12, ...font.displayBold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
+  toggleText: { fontSize: 13, ...font.displayBold, color: colors.ink },
+  summary: { fontSize: 14, ...font.serifMedium, color: colors.text, lineHeight: 22 },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
-  link: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.amberText },
+  link: { ...font.displayBold, fontSize: 13, color: colors.amberText },
   days: { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md },
   dayRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 50 },
-  dayLine: { borderTopWidth: 1, borderTopColor: colors.stoneLine },
-  dayLabel: { width: 40, fontSize: 14, fontFamily: fonts.displayBold, color: colors.ink },
+  dayLine: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
+  dayLabel: { width: 40, fontSize: 14, ...font.displayBold, color: colors.ink },
   times: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  time: { width: 64, textAlign: "center", borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm, paddingVertical: 6, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.text, backgroundColor: colors.surface },
+  time: { width: 64, textAlign: "center", borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm, paddingVertical: 6, ...font.serifMedium, fontSize: 14, color: colors.text, backgroundColor: colors.surface },
   timeBad: { borderColor: colors.chili, borderWidth: 1.5 },
-  closed: { fontSize: 14, fontFamily: fonts.serif, color: colors.stone },
+  closed: { fontSize: 14, ...font.serif, color: colors.stoneText },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: spacing.sm },
   ghostBtn: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: 9 },
-  ghostText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.ink },
+  ghostText: { fontSize: 13, ...font.displayBold, color: colors.ink },
   saveBtn: { backgroundColor: colors.ink, borderRadius: radius.pill, paddingHorizontal: spacing.lg, paddingVertical: 10 },
-  saveText: { fontSize: 13, fontFamily: fonts.displayBold, color: colors.white },
-  hint: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
+  saveText: { fontSize: 13, ...font.displayBold, color: colors.white },
+  hint: { fontSize: 12, ...font.serif, color: colors.stoneText },
 });

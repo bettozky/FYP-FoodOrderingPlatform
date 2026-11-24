@@ -8,7 +8,7 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import ScreenHeader from "../../shared/components/ScreenHeader";
 import { api, errorText } from "../../shared/api/client";
 import { confirmAsync } from "../../shared/util/confirm";
-import { colors, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 import i18n, { locale } from "../../shared/i18n";
 import { useTranslation } from "react-i18next";
 
@@ -115,7 +115,7 @@ export default function MerchantAnnouncementsScreen() {
                 </Pressable>
               ))}
             </View>
-            {error ? <Text style={{ color: colors.chiliText, fontSize: 13.5 }}>{error}</Text> : null}
+            {error ? <Text style={{ color: colors.chiliText, fontSize: 14 }}>{error}</Text> : null}
             <PrimaryButton label={editing === "new" ? t("ann.post") : t("ann.saveChanges")} onPress={save} loading={busy} testID="ann-save" />
             <PrimaryButton label={t("common.cancel")} variant="outline" onPress={() => setEditing(null)} disabled={busy} />
           </View>

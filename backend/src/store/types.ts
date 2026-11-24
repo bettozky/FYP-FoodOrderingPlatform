@@ -15,6 +15,7 @@ export interface User {
   passwordHash: string;
   merchantId?: string;
   avatar?: string; // emoji or image link
+  diet?: DietProfile; // Sprint 3: allergies and diet, used to flag or hide dishes (customers)
   googleSub?: string; // Google account id, set when the customer signs in with Google
   noPassword?: boolean; // created through Google: no password until they use "Forgot password" to choose one
   suspended?: boolean; // set by an admin: the user can no longer log in or use the API
@@ -24,6 +25,13 @@ export interface User {
   appRatingNever?: boolean;
   weeklyBudget?: number; // Sprint 3 spending tracker: the customer's weekly limit in RM (none when unset)
   language?: "en" | "ms" | "zh"; // app language the user picked (English, Bahasa Melayu, Chinese)
+}
+
+/** Sprint 3 diet and allergy profile. prefs: vegetarian | plant_based | no_spicy. */
+export interface DietProfile {
+  allergens: string[]; // names from lib/allergens.ts
+  prefs: string[];
+  hideUnsuitable: boolean; // hide dishes that do not fit instead of only flagging them
 }
 
 export interface Merchant {

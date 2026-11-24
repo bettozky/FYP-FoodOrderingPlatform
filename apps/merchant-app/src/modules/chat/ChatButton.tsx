@@ -2,7 +2,7 @@ import React from "react";
 import i18n from "../../shared/i18n";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius } from "../../shared/theme/theme";
+import { colors, radius, font } from "../../shared/theme/theme";
 import { useCall } from "../calls/CallContext";
 import { ChatKind } from "./ChatPanel";
 import { useChat } from "./ChatContext";
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 8 },
   btn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 11, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.ink, backgroundColor: "transparent" },
   btnDark: { borderColor: colors.stoneText },
-  label: { fontSize: 14, fontFamily: fonts.displayBold },
+  label: { fontSize: 14, ...font.displayBold },
   badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.chili, alignItems: "center", justifyContent: "center", paddingHorizontal: 5 },
-  badgeText: { color: colors.white, fontSize: 11, fontFamily: fonts.displayExtraBold },
+  badgeText: { color: colors.white, fontSize: 11, ...font.displayExtraBold },
 });

@@ -19,6 +19,7 @@ import MyApplicationsScreen from "../modules/jobs/screens/MyApplicationsScreen";
 import AnnouncementsScreen from "../modules/announcements/AnnouncementsScreen";
 import LiveTrackingScreen from "../modules/delivery/screens/LiveTrackingScreen";
 import FavouritesScreen from "../modules/favourites/FavouritesScreen";
+import DietScreen from "../modules/diet/DietScreen";
 import AddressesScreen from "../modules/account/screens/AddressesScreen";
 import PaymentsScreen from "../modules/account/screens/PaymentsScreen";
 import NotificationsScreen from "../modules/notifications/NotificationsScreen";
@@ -75,6 +76,8 @@ export default function RootNavigator() {
           <Stack.Screen name="MyApplications" component={MyApplicationsScreen} />
           <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
+          {/* Sprint 3: diet and allergy profile (Account → Diet & allergies) */}
+          <Stack.Screen name="Diet" component={DietScreen} />
           <Stack.Screen name="Addresses" component={AddressesScreen} />
           <Stack.Screen name="PaymentMethods" component={PaymentsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />

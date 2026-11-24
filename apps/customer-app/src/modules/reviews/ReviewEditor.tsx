@@ -78,5 +78,5 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", padding: spacing.lg },
   card: { backgroundColor: colors.paper, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   input: { minHeight: 90, textAlignVertical: "top", borderRadius: radius.md, borderWidth: 1, borderColor: colors.stoneLine, padding: spacing.md, color: colors.ink },
-  error: { color: colors.danger, fontSize: 13 },
+  error: { color: colors.chiliText, fontSize: 13 },
 });

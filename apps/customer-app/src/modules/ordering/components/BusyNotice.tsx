@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Merchant } from "../../../shared/api/types";
 import PulseRing from "../../../shared/motion/PulseRing";
-import { colors, fonts, radius, spacing } from "../../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../../shared/theme/theme";
 import { useTranslation } from "react-i18next";
 
 // Sprint 3 busy mode, customer side. Shown on the stall menu and at checkout when the stall is over its wait limit:
@@ -46,10 +46,10 @@ const styles = StyleSheet.create({
   paused: { backgroundColor: colors.chiliSoft, borderColor: colors.chiliBorder },
   warn: { backgroundColor: colors.amberTint, borderColor: colors.amberBorder },
   row: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
-  title: { fontFamily: fonts.displayBold, fontSize: 13.5 },
-  text: { fontFamily: fonts.display, fontSize: 12, lineHeight: 16, color: colors.stoneText },
+  title: { ...font.displayBold, fontSize: 14 },
+  text: { ...font.display, fontSize: 12, lineHeight: 16, color: colors.stoneText },
   tick: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingTop: spacing.xs },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.amberText, alignItems: "center", justifyContent: "center" },
   checkboxOn: { backgroundColor: colors.amberText },
-  tickText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  tickText: { ...font.displayBold, fontSize: 13, color: colors.ink },
 });

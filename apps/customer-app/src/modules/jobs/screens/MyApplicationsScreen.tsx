@@ -10,7 +10,7 @@ import { api, errorText } from "../../../shared/api/client";
 import { JobApplication } from "../../../shared/api/types";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { locale } from "../../../shared/i18n";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { fmtDate, fmtWhen, STATUS_HELP, STATUS_LABEL, STATUS_TONE } from "../status";
 
 // "My job applications": what I applied for, where each one stands, interview details, and withdraw.
@@ -40,7 +40,7 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader title={t("jobs.myApplications")} subtitle={t("jobs.trackSubtitle")} />
       {route?.params?.justApplied ? <View style={styles.thanks}><Ionicons name="checkmark-circle" size={18} color={colors.herb} /><Text style={[type.body, { flex: 1 }]}>{t("jobs.sent")}</Text></View> : null}
-      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chili }]}>{error}</Text> : null}
+      {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {apps === null && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
           data={apps ?? []}
@@ -86,7 +86,7 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
                 <View style={styles.actions}>
                   <Pressable onPress={() => navigation.navigate("JobDetail", { jobId: a.jobId })} style={styles.action} accessibilityRole="button"><Text style={styles.actionText}>{t("jobs.viewJob")}</Text></Pressable>
                   {!["hired", "withdrawn", "rejected"].includes(a.status) ? (
-                    <Pressable onPress={() => withdraw(a)} style={styles.action} accessibilityRole="button" testID={`withdraw-${a.id}`}><Text style={[styles.actionText, { color: colors.danger }]}>{t("jobs.withdraw")}</Text></Pressable>
+                    <Pressable onPress={() => withdraw(a)} style={styles.action} accessibilityRole="button" testID={`withdraw-${a.id}`}><Text style={[styles.actionText, { color: colors.chiliText }]}>{t("jobs.withdraw")}</Text></Pressable>
                   ) : null}
                 </View>
               </View>
@@ -104,6 +104,6 @@ const styles = StyleSheet.create({
   interview: { flexDirection: "row", gap: spacing.sm, backgroundColor: colors.amberTint, borderRadius: radius.sm, padding: spacing.sm, marginTop: spacing.sm },
   actions: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.sm },
   action: { minHeight: 32, justifyContent: "center" },
-  actionText: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
+  actionText: { fontSize: 14, fontWeight: "700", color: colors.ink },
   thanks: { flexDirection: "row", gap: spacing.sm, alignItems: "center", margin: spacing.lg, marginBottom: 0, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.herbLight },
 });

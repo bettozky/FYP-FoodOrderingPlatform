@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, Tex
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import PrimaryButton from "../../shared/components/PrimaryButton";
-import { colors, fonts, spacing } from "../../shared/theme/theme";
+import { colors, spacing, font } from "../../shared/theme/theme";
 import { RatingWord, StarPicker } from "../reviews/Stars";
 import { popupStyles } from "./ReviewOrderPopup";
 
@@ -104,5 +104,5 @@ export default function RateAppPopup({ visible, orderId, onDone }: { visible: bo
 const styles = StyleSheet.create({
   ...popupStyles,
   links: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  dot: { fontFamily: fonts.display, color: colors.stoneText },
+  dot: { ...font.display, color: colors.stoneText },
 });

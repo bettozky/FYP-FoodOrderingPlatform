@@ -7,7 +7,7 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { api, errorText } from "../../../shared/api/client";
 import { form, LocalFile, pickDocument } from "../../../shared/util/files";
-import { colors, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../../shared/theme/theme";
 import { useAuth } from "../../auth/AuthContext";
 import { DAYS, DAY_LABEL } from "../status";
 
@@ -164,8 +164,8 @@ export default function ApplyJobScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.sm },
-  section: { fontSize: 13, fontWeight: "700", color: colors.stoneText, textTransform: "uppercase", letterSpacing: 0.5, marginTop: spacing.lg },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.sm },
+  section: { ...font.displayBold, fontSize: 17, color: colors.ink, marginTop: spacing.lg },
   label: { fontSize: 13, color: colors.stoneText },
   input: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.paper },
   multi: { minHeight: 90, textAlignVertical: "top", paddingTop: spacing.sm },
@@ -175,6 +175,6 @@ const styles = StyleSheet.create({
   attach: { minHeight: 34, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.turmeric, justifyContent: "center" },
   attachText: { fontWeight: "700", color: colors.ink, fontSize: 13 },
   confirm: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", marginTop: spacing.md },
-  error: { color: colors.danger, fontSize: 13.5 },
-  footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg, position: "absolute", left: 0, right: 0, bottom: 0 },
+  error: { color: colors.chiliText, fontSize: 14 },
+  footer: { paddingHorizontal: layout.gutter, paddingTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft, backgroundColor: colors.bg, position: "absolute", left: 0, right: 0, bottom: 0 },
 });

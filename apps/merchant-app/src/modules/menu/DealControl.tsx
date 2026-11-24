@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
 import { useCountdown } from "../../shared/util/format";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import i18n from "../../shared/i18n";
 import { useTranslation } from "react-i18next";
 
@@ -59,7 +59,7 @@ export default function DealControl({ dishId, price, deal, onChanged }: { dishId
           {t("deal.on", { pct: active.percent, price: dealPrice(price, active.percent).toFixed(2) })} ·{" "}
         </Text>
         <Left endsAt={active.endsAt} />
-        <Pressable onPress={() => run(() => api("DELETE", `/merchant/deals/${dishId}`))} disabled={busy} style={styles.endBtn} accessibilityRole="button" testID={`deal-end-${dishId}`}>
+        <Pressable onPress={() => run(() => api("DELETE", `/merchant/deals/${dishId}`))} disabled={busy} hitSlop={10} style={styles.endBtn} accessibilityRole="button" testID={`deal-end-${dishId}`}>
           <Text style={styles.endText}>{t("deal.end")}</Text>
         </Pressable>
       </View>
@@ -68,7 +68,7 @@ export default function DealControl({ dishId, price, deal, onChanged }: { dishId
 
   if (!open) {
     return (
-      <Pressable onPress={() => setOpen(true)} style={styles.startLink} accessibilityRole="button" testID={`deal-open-${dishId}`}>
+      <Pressable onPress={() => setOpen(true)} hitSlop={10} style={styles.startLink} accessibilityRole="button" testID={`deal-open-${dishId}`}>
         <Ionicons name="flame-outline" size={15} color={colors.chiliText} />
         <Text style={styles.startLinkText}>{t("deal.start")}</Text>
       </Pressable>
@@ -94,7 +94,7 @@ export default function DealControl({ dishId, price, deal, onChanged }: { dishId
         ))}
       </View>
       <Text style={styles.preview}>
-        {t("deal.pay")} <Text style={{ fontFamily: fonts.displayExtraBold, color: colors.chiliText }}>RM {dealPrice(price, percent).toFixed(2)}</Text> {t("deal.insteadOf", { price: price.toFixed(2) })}
+        {t("deal.pay")} <Text style={{ ...font.displayExtraBold, color: colors.chiliText }}>RM {dealPrice(price, percent).toFixed(2)}</Text> {t("deal.insteadOf", { price: price.toFixed(2) })}
       </Text>
       {error ? <Text style={[styles.preview, { color: colors.chiliText }]}>{error}</Text> : null}
       <View style={styles.chips}>
@@ -111,20 +111,20 @@ export default function DealControl({ dishId, price, deal, onChanged }: { dishId
 
 const styles = StyleSheet.create({
   on: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 4, backgroundColor: colors.chili, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 8, marginTop: spacing.sm },
-  onText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.white },
+  onText: { ...font.displayBold, fontSize: 13, color: colors.white },
   endBtn: { marginLeft: "auto", backgroundColor: colors.white, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
-  endText: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.chiliText },
+  endText: { ...font.displayBold, fontSize: 12, color: colors.chiliText },
   startLink: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", marginTop: spacing.sm, paddingVertical: 4 },
-  startLinkText: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.chiliText, textDecorationLine: "underline" },
+  startLinkText: { ...font.displayBold, fontSize: 13, color: colors.chiliText, textDecorationLine: "underline" },
   panel: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.sm, backgroundColor: colors.chiliSoft, gap: spacing.sm },
-  label: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.chiliText, textTransform: "uppercase", letterSpacing: 0.8 },
+  label: { ...font.displayBold, fontSize: 11, color: colors.chiliText },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.chiliBorder },
   chipOn: { backgroundColor: colors.chili, borderColor: colors.chili },
-  chipText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
-  chipTextOn: { color: colors.white, fontFamily: fonts.displayBold },
-  preview: { fontFamily: fonts.display, fontSize: 12.5, color: colors.ink },
+  chipText: { ...font.display, fontSize: 13, color: colors.ink },
+  chipTextOn: { color: colors.white, ...font.displayBold },
+  preview: { ...font.display, fontSize: 13, color: colors.ink },
   go: { backgroundColor: colors.chili, borderRadius: radius.pill, paddingHorizontal: 16, paddingVertical: 8 },
-  goText: { fontFamily: fonts.displayExtraBold, fontSize: 13, color: colors.white },
+  goText: { ...font.displayExtraBold, fontSize: 13, color: colors.white },
   cancel: { paddingHorizontal: 12, paddingVertical: 8 },
 });

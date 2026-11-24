@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "../../auth/AuthContext";
 import { errorText } from "../../../shared/api/client";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { STEP_COMPONENTS } from "../signup/steps";
 import { emptyApplication, ShopApplication, STEPS, toSignupRequest } from "../signup/types";
 import { Errors, firstIncompleteStep, validateStep } from "../signup/validate";
@@ -66,7 +66,6 @@ export default function ShopSignupWizard({ onCancel, scrollToTop }: { onCancel: 
       <View style={styles.heading}>
         <View style={styles.topline}>
           <Text style={styles.count}>{t("signup.stepOf", { n: step + 1, total: STEPS.length })}</Text>
-          <Text style={styles.count}>{STEPS[step].title.toUpperCase()}</Text>
         </View>
         <View style={styles.track} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: STEPS.length, now: step + 1 }}>
           <View style={[styles.fill, { width: `${((step + 1) / STEPS.length) * 100}%` }]} />
@@ -105,14 +104,14 @@ const styles = StyleSheet.create({
   wrap: { gap: spacing.lg },
   heading: { gap: spacing.sm },
   topline: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  count: { ...type.small, fontFamily: fonts.displayBold, color: colors.herb },
+  count: { ...type.small, ...font.displayBold, color: colors.stoneText },
   track: { height: 5, backgroundColor: colors.paperDim, borderRadius: radius.pill, overflow: "hidden", marginBottom: spacing.xs },
   fill: { height: "100%", backgroundColor: colors.ink, borderRadius: radius.pill },
   fields: { gap: spacing.lg },
   summary: { ...type.small, color: colors.chiliText },
   actions: { flexDirection: "row", gap: spacing.sm, alignItems: "center" },
   back: { minWidth: 88, minHeight: 48, justifyContent: "center", alignItems: "center", borderWidth: 1.5, borderColor: colors.ink, borderRadius: radius.md },
-  backText: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
+  backText: { ...font.displayBold, fontSize: 15, color: colors.ink },
   cta: { flex: 1, minHeight: 48, justifyContent: "center", alignItems: "center", backgroundColor: colors.primary, borderRadius: radius.md },
-  ctaText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 15 },
+  ctaText: { color: colors.white, ...font.displayBold, fontSize: 15 },
 });

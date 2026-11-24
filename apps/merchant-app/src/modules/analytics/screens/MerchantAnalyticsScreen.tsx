@@ -12,7 +12,7 @@ import {
 import { api } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
-import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout, shadow, ui } from "../../../shared/theme/theme";
 import i18n, { locale } from "../../../shared/i18n";
 import { useTranslation } from "react-i18next";
 
@@ -161,10 +161,10 @@ export default function MerchantAnalyticsScreen() {
           {/* Revenue */}
           <View style={styles.statCard}>
             <Text style={type.small}>{t("analytics.gross")}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>
+            <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.revenue.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Text style={{ fontSize: 11, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, fontWeight: "600" }}>
+            <Text style={{ fontSize: 12, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, ...font.displayBold }}>
               {currentMetrics.revenueGrowthPct === null ? t("analytics.noPrevious") : t(`analytics.vs_${period}`, { pct: `${currentMetrics.revenueGrowthPct >= 0 ? "+" : ""}${currentMetrics.revenueGrowthPct}` })}
             </Text>
           </View>
@@ -172,10 +172,10 @@ export default function MerchantAnalyticsScreen() {
           {/* Operating Cost */}
           <View style={styles.statCard}>
             <Text style={type.small}>{t("analytics.cost")}</Text>
-            <Text style={[styles.statValue, { color: colors.chiliText }]}>
+            <Text style={[styles.statValue, { color: colors.chiliText }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.cost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Text style={{ fontSize: 11, color: colors.textMuted }}>
+            <Text style={{ fontSize: 11, color: colors.stoneText }}>
               {t("analytics.costParts")}
             </Text>
           </View>
@@ -183,7 +183,7 @@ export default function MerchantAnalyticsScreen() {
           {/* Net Profit */}
           <View style={styles.statCard}>
             <Text style={type.small}>{t("analytics.net")}</Text>
-            <Text style={[styles.statValue, { color: colors.herb }]}>
+            <Text style={[styles.statValue, { color: colors.herb }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.profit.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Badge label={t("analytics.margin", { pct: currentMetrics.profitMargin })} tone="success" />
@@ -192,10 +192,10 @@ export default function MerchantAnalyticsScreen() {
           {/* Average Order Value */}
           <View style={styles.statCard}>
             <Text style={type.small}>{t("analytics.aov")}</Text>
-            <Text style={styles.statValue}>
+            <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.avgOrderValue.toFixed(2)}
             </Text>
-            <Text style={{ fontSize: 11, color: colors.textMuted }}>{t("analytics.perTx")}</Text>
+            <Text style={{ fontSize: 11, color: colors.stoneText }}>{t("analytics.perTx")}</Text>
           </View>
         </View>
 
@@ -328,31 +328,10 @@ export default function MerchantAnalyticsScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.md },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingBottom: spacing.xxl * 1.5, gap: spacing.md, width: "100%", maxWidth: layout.maxWidth, alignSelf: "center" },
 
-  segmentedTrack: {
-    position: "relative",
-    flexDirection: "row",
-    backgroundColor: colors.stoneLine,
-    borderRadius: radius.pill,
-    padding: 4,
-    height: 44,
-    alignItems: "center",
-  },
-  slidingPill: {
-    position: "absolute",
-    top: 4,
-    bottom: 4,
-    left: 4,
-    backgroundColor: colors.white,
-    borderRadius: radius.pill,
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 1,
-  },
+  segmentedTrack: { position: "relative", flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: 12, padding: 3, height: 42, alignItems: "center" },
+  slidingPill: { position: "absolute", top: 3, bottom: 3, left: 3, backgroundColor: colors.white, borderRadius: 9, ...shadow.soft, zIndex: 1 },
   segmentBtn: {
     flex: 1,
     alignItems: "center",
@@ -360,60 +339,17 @@ const styles = StyleSheet.create({
     height: "100%",
     zIndex: 2,
   },
-  segmentLabel: {
-    fontSize: 13,
-    fontFamily: fonts.display,
-    color: colors.stone,
-  },
+  segmentLabel: { fontSize: 14, ...font.display, color: colors.stoneText },
 
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: "47%",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
-  statValue: {
-    fontSize: 18,
-    fontFamily: fonts.displayExtraBold,
-  },
+  statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
+  statCard: { flex: 1, minWidth: "46%", ...ui.card, padding: spacing.lg, gap: 4 },
+  statValue: { fontSize: 22, ...font.displayExtraBold, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
 
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 6,
-  },
+  card: { ...ui.card, padding: spacing.lg, gap: spacing.sm },
 
-  trafficRow: {
-    flexDirection: "row",
-    gap: spacing.md,
-    marginTop: spacing.xs,
-  },
-  trafficBlock: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 2,
-  },
-  trafficCount: {
-    fontSize: 20,
-    fontFamily: fonts.displayExtraBold,
-    color: colors.text,
-  },
+  trafficRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xs },
+  trafficBlock: { flex: 1, backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md, gap: 2 },
+  trafficCount: { fontSize: 24, ...font.displayExtraBold, color: colors.ink, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
 
   chartContainer: {
     flexDirection: "row",
@@ -430,28 +366,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: 4,
   },
-  barTrack: {
-    width: 22,
-    height: 100,
-    backgroundColor: colors.paperDim,
-    borderRadius: 6,
-    justifyContent: "flex-end",
-    overflow: "hidden",
-  },
-  barFill: {
-    width: "100%",
-    backgroundColor: colors.primary,
-    borderRadius: 6,
-  },
-  chartBarValue: {
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-  chartLabel: {
-    fontSize: 11,
-    color: colors.text,
-    fontFamily: fonts.display,
-  },
+  barTrack: { width: 24, height: 100, backgroundColor: colors.paperDim, borderRadius: 8, justifyContent: "flex-end", overflow: "hidden" },
+  barFill: { width: "100%", backgroundColor: colors.ink, borderRadius: 8 },
+  chartBarValue: { fontSize: 12, color: colors.stoneText, ...font.display, fontVariant: ["tabular-nums"] },
+  chartLabel: { fontSize: 12, color: colors.ink, ...font.display },
 
   /* Best Sellers List (Responsive Layout) */
   sellerRow: {
@@ -469,12 +387,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginRight: spacing.sm,
   },
-  rankNum: {
-    fontSize: 14,
-    fontFamily: fonts.displayExtraBold,
-    color: colors.textMuted,
-    width: 24,
-  },
+  rankNum: { fontSize: 15, ...font.displayExtraBold, color: colors.stoneText, width: 26, fontVariant: ["tabular-nums"] },
   sellerTitleWrap: {
     flex: 1,
   },
@@ -500,7 +413,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.chiliSoft,
   },
   growthBadgeText: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: "700",
   },
   proportionTrack: {

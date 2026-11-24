@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Merchant } from "../../../shared/api/types";
-import { colors, fonts, spacing, ui } from "../../../shared/theme/theme";
+import { colors, layout, spacing, ui, font } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
 import ReadyChip from "./ReadyChip";
@@ -20,7 +20,7 @@ export default function StallCard({ merchant, image, onPress }: { merchant: Merc
       accessibilityLabel={`${merchant.name}, ${merchant.stallNo}, ${t("stall.rated", { rating: merchant.rating })}, ${merchant.openNow ? t("stall.open") : t("stall.closed")}`}
       testID={`stall-${merchant.id}`}
     >
-      <DishImage image={merchant.logo || image} size={60} tint={softTint(merchant.color)} />
+      <DishImage image={merchant.logo || image} size={68} tint={softTint(merchant.color)} />
       <View style={styles.info}>
         <View style={styles.titleRow}>
           <Text style={styles.name} numberOfLines={1}>{merchant.name}</Text>
@@ -31,22 +31,24 @@ export default function StallCard({ merchant, image, onPress }: { merchant: Merc
         <Text style={styles.sub} numberOfLines={1}>{merchant.stallNo}{merchant.tags.length ? ` · ${merchant.tags.join(" · ")}` : ""}</Text>
         <View style={styles.metaRow}>
           <ReadyChip merchant={merchant} variant="text" />
-          <Text style={styles.meta}>· {merchant.rating.toFixed(1)}★ · {merchant.distanceKm} km</Text>
+          <Text style={styles.meta}>·</Text>
+          <Ionicons name="star" size={11} color={colors.turmericDeep} />
+          <Text style={styles.meta}>{merchant.rating.toFixed(1)} · {merchant.distanceKm} km</Text>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.stone} />
+      <Ionicons name="chevron-forward" size={17} color={colors.stoneSoft} />
     </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.md },
-  info: { flex: 1, minWidth: 0, gap: 2 },
+  card: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, marginHorizontal: layout.gutter, marginBottom: spacing.md },
+  info: { flex: 1, minWidth: 0, gap: 3 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  name: { flexShrink: 1, fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  name: { flexShrink: 1, ...font.displayBold, fontSize: 16, color: colors.ink, letterSpacing: -0.1 },
   pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  pillText: { fontFamily: fonts.displayBold, fontSize: 10.5 },
-  sub: { fontFamily: fonts.display, fontSize: 11.5, color: colors.stoneText },
+  pillText: { ...font.displayBold, fontSize: 12 },
+  sub: { ...font.serif, fontSize: 14, color: colors.stoneText },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 3 },
-  meta: { fontFamily: fonts.display, fontSize: 11.5, color: colors.ink },
+  meta: { ...font.display, fontSize: 13, color: colors.ink, fontVariant: ["tabular-nums"] },
 });

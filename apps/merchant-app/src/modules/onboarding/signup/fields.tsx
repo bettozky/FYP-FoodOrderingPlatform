@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Switch, Text, TextInput, TextInputProps, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { canPickFiles, pickFile, PickKind } from "./pickFile";
 import type { PickedFile } from "./types";
 import i18n from "../../../shared/i18n";
@@ -161,7 +161,7 @@ export const styles = StyleSheet.create({
   label: { ...type.small, color: colors.ink },
   input: {
     backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.md, minHeight: 48, fontFamily: fonts.serif, fontSize: 15, color: colors.text,
+    paddingHorizontal: spacing.md, paddingVertical: spacing.md, minHeight: 48, ...font.serif, fontSize: 15, color: colors.text,
   },
   multiline: { minHeight: 88, textAlignVertical: "top" },
   inputError: { borderColor: colors.chili, borderWidth: 1.5 },
@@ -169,7 +169,7 @@ export const styles = StyleSheet.create({
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.stoneLine, backgroundColor: colors.paper, minHeight: 40, justifyContent: "center" },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { fontFamily: fonts.display, fontSize: 13, color: colors.ink },
+  chipText: { ...font.display, fontSize: 13, color: colors.ink },
   chipTextOn: { color: colors.white },
   toggleRow: {
     flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: 14, paddingVertical: spacing.md,

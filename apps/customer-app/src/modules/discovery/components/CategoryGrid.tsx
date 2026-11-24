@@ -1,16 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
-import { colors, fonts, radius, spacing } from "../../../shared/theme/theme";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { colors, font, layout, radius, spacing } from "../../../shared/theme/theme";
 import { useReducedMotion } from "../../../shared/motion/useReducedMotion";
 import CuteIcon, { type IconKind } from "./CuteIcons";
 import Flame from "./Flame";
 import i18n from "../../../shared/i18n";
 
-// Category panel on Home: cute flat food icons in two rows that you swipe sideways (the next column peeks in from the
-// right so people know there is more). Venues come from the stalls, food types from the dishes, plus shortcuts.
+// Category row on Home: the cute multicolour food icons in one swipeable row of white tiles (venue types, Halal,
+// live map, food types, shortcuts). Venues come from the stalls, food types from the dishes, plus shortcuts.
 // "hot" puts the flickering flame on an icon (Trending), "badge" adds a small orange tag (NEW on Halal).
+// The icons bob gently; reduced-motion users get them standing still. A selected tile turns amber with an ink ring.
+export type { IconKind };
 export type GridItem = { key: string; label: string; kind: IconKind; hot?: boolean; badge?: string; selected?: boolean; onPress: () => void; hint?: string };
 
 /** Picks an icon for a venue type or food type by name, with a plate-and-cutlery fallback for new ones. */
@@ -32,61 +33,28 @@ export function lookFor(label: string): { kind: IconKind } {
   return { kind: "plate" };
 }
 
-const CELL = 72;
-const GAP = 6;
-const PAD = 14;
-
 export default function CategoryGrid({ items }: { items: GridItem[] }) {
-  const [atEnd, setAtEnd] = useState(false);
-  const columns = useMemo(() => {
-    const out: GridItem[][] = [];
-    for (let i = 0; i < items.length; i += 2) out.push(items.slice(i, i + 2));
-    return out;
-  }, [items]);
   if (!items.length) return null;
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-    setAtEnd(contentOffset.x + layoutMeasurement.width >= contentSize.width - 8);
-  };
   return (
-    <View style={styles.wrap} accessibilityLabel={i18n.t("home.categoriesLabel")}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={CELL + GAP}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        scrollEventThrottle={32}
-        onScroll={onScroll}
-        contentContainerStyle={styles.scroll}
-        testID="category-scroll"
-      >
-        {columns.map((col, c) => (
-          <View key={c} style={styles.column}>
-            {col.map((it, r) => (
-              <Tile key={it.key} item={it} index={c * 2 + r} />
-            ))}
-          </View>
-        ))}
-      </ScrollView>
-      {!atEnd ? (
-        <View pointerEvents="none" style={styles.fade}>
-          <Svg width={34} height="100%" style={StyleSheet.absoluteFill}>
-            <Defs>
-              <LinearGradient id="catFade" x1="0" y1="0" x2="1" y2="0">
-                <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0" />
-                <Stop offset="0.85" stopColor="#FFFFFF" stopOpacity="1" />
-              </LinearGradient>
-            </Defs>
-            <Rect x="0" y="0" width="34" height="100%" fill="url(#catFade)" />
-          </Svg>
-          <Ionicons name="chevron-forward" size={14} color={colors.stone} style={{ marginRight: 6 }} />
-        </View>
-      ) : null}
-    </View>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.row}
+      style={styles.scroll}
+      decelerationRate="fast"
+      snapToInterval={CELL + spacing.md}
+      snapToAlignment="start"
+      accessibilityLabel={i18n.t("home.categoriesLabel")}
+      testID="category-scroll"
+    >
+      {items.map((it, i) => (
+        <Tile key={it.key} item={it} index={i} />
+      ))}
+    </ScrollView>
   );
 }
 
+/** The small four-point sparkle that twinkles on the Luxury icon. */
 function Twinkle() {
   const reduced = useReducedMotion();
   const v = useRef(new Animated.Value(0)).current;
@@ -114,6 +82,8 @@ function Twinkle() {
 
 function Tile({ item, index }: { item: GridItem; index: number }) {
   const reduced = useReducedMotion();
+  const on = !!item.selected;
+  // Each icon bobs a little, out of step with its neighbours.
   const bob = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (reduced) return;
@@ -129,41 +99,46 @@ function Tile({ item, index }: { item: GridItem; index: number }) {
   }, [reduced, index, bob]);
   const translateY = bob.interpolate({ inputRange: [0, 1], outputRange: [0, -2.5] });
   const rotate = bob.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-2deg"] });
+
   return (
     <Pressable
       onPress={item.onPress}
-      style={({ pressed }) => [styles.cell, pressed && { transform: [{ scale: 0.92 }] }]}
+      style={({ pressed }) => [styles.cell, pressed && { transform: [{ scale: 0.94 }] }]}
       accessibilityRole="button"
       accessibilityLabel={item.hint ?? item.label}
-      accessibilityState={{ selected: !!item.selected }}
+      accessibilityState={{ selected: on }}
       testID={`grid-${item.key}`}
     >
-      {item.hot ? <Flame /> : null}
-      {item.kind === "luxury" ? <Twinkle /> : null}
-      {item.badge ? (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{item.badge}</Text>
-        </View>
-      ) : null}
-      <Animated.View style={[styles.iconWrap, item.selected && styles.iconOn, { transform: [{ translateY }, { rotate }] }]}>
-        <CuteIcon kind={item.kind} size={56} />
-      </Animated.View>
-      <Text style={[styles.label, item.selected && styles.labelOn]} numberOfLines={1}>{item.label}</Text>
+      <View style={[styles.tile, on && styles.tileOn]}>
+        {item.hot ? <Flame /> : null}
+        {item.kind === "luxury" ? <Twinkle /> : null}
+        <Animated.View style={{ transform: [{ translateY }, { rotate }] }}>
+          <CuteIcon kind={item.kind} size={46} />
+        </Animated.View>
+        {item.badge ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.badge}</Text>
+          </View>
+        ) : null}
+      </View>
+      <Text style={[styles.label, on && styles.labelOn]} numberOfLines={1}>{item.label}</Text>
     </Pressable>
   );
 }
 
+const CELL = 72;
+const TILE = 64;
+
 const styles = StyleSheet.create({
-  wrap: { marginHorizontal: spacing.lg, marginTop: spacing.lg, backgroundColor: colors.paper, borderRadius: radius.lg, overflow: "hidden" },
-  scroll: { paddingLeft: PAD, paddingRight: PAD, paddingTop: 40, paddingBottom: 18, flexDirection: "row", gap: GAP },
-  column: { width: CELL, gap: 18 },
+  scroll: { marginTop: spacing.md, flexGrow: 0 },
+  // Top padding leaves room for the Trending flame, which rises above its tile.
+  row: { paddingHorizontal: layout.gutter, paddingTop: 28, paddingBottom: spacing.xs, gap: spacing.md },
   cell: { width: CELL, alignItems: "center", gap: 6 },
-  iconWrap: { width: 60, height: 60, alignItems: "center", justifyContent: "center", borderRadius: 22 },
-  iconOn: { backgroundColor: colors.amberTint, borderWidth: 2, borderColor: colors.ink },
-  label: { fontFamily: fonts.display, fontSize: 12, color: colors.ink, textAlign: "center" },
-  labelOn: { fontFamily: fonts.displayBold },
-  badge: { position: "absolute", top: -6, right: 4, zIndex: 4, backgroundColor: "#FF6A33", paddingHorizontal: 6, paddingVertical: 2, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomRightRadius: 8, borderBottomLeftRadius: 2 },
-  badgeText: { fontFamily: fonts.displayExtraBold, fontSize: 9, letterSpacing: 0.4, color: colors.white },
-  twinkle: { position: "absolute", right: 2, top: -4, zIndex: 3 },
-  fade: { position: "absolute", right: 0, top: 0, bottom: 0, width: 34, alignItems: "flex-end", justifyContent: "center" },
+  tile: { width: TILE, height: TILE, borderRadius: radius.lg, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, alignItems: "center", justifyContent: "center" },
+  tileOn: { backgroundColor: colors.amberTint, borderColor: colors.ink, borderWidth: 2 },
+  label: { ...font.display, fontSize: 13, color: colors.ink, textAlign: "center" },
+  labelOn: { ...font.displayBold },
+  badge: { position: "absolute", top: -7, right: -6, zIndex: 4, backgroundColor: "#FF6A33", paddingHorizontal: 6, paddingVertical: 2, borderTopLeftRadius: 8, borderTopRightRadius: 8, borderBottomRightRadius: 8, borderBottomLeftRadius: 2 },
+  badgeText: { ...font.displayExtraBold, fontSize: 11, letterSpacing: 0.3, color: colors.white },
+  twinkle: { position: "absolute", right: 4, top: 2, zIndex: 3 },
 });

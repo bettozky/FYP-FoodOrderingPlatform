@@ -16,7 +16,8 @@ import Badge from "../../../shared/components/Badge";
 import DishImage from "../../../shared/components/DishImage";
 import PhotoField from "../../../shared/components/PhotoField";
 import { form, LocalFile } from "../../../shared/util/files";
-import { colors, spacing, type } from "../../../shared/theme/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, spacing, type, ui } from "../../../shared/theme/theme";
 import { merchantMenuStyles as styles } from "../styles";
 import { ALLERGENS } from "../../onboarding/signup/types";
 import DealControl, { type Deal } from "../DealControl";
@@ -211,10 +212,10 @@ export default function MerchantMenuScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title={t("dash.menu")}
+        title={t("menu.screenTitle")}
         subtitle={t("menu.subtitle", { total: menu.length, inStock: menu.filter((d) => !d.soldOut && d.quantity > 0).length })}
       />
-      {message ? <Text style={{ color: colors.danger, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
+      {message ? <Text style={{ color: colors.chiliText, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
 
       <FlatList
         data={filteredMenu}
@@ -228,7 +229,8 @@ export default function MerchantMenuScreen() {
               style={({ hovered }: any) => [styles.addBtn, hovered && styles.btnHover]}
               onPress={handleOpenAddModal}
             >
-              <Text style={styles.addBtnText}>+ {t("menu.add")}</Text>
+              <Ionicons name="add" size={20} color={colors.white} />
+              <Text style={styles.addBtnText}>{t("menu.add")}</Text>
             </Pressable>
 
             {/* Dynamic Category Filter Chips */}
@@ -276,7 +278,7 @@ export default function MerchantMenuScreen() {
                 {/* Dish Info & Financial Breakdown */}
                 <View style={{ flex: 1, gap: 3 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <Text style={[type.h3, isUnavailable && styles.textMuted]}>
+                    <Text style={[type.h3, isUnavailable && styles.textMuted]} numberOfLines={2}>
                       {item.name}
                     </Text>
                     {item.category && <Badge label={item.category} tone="neutral" />}
@@ -284,7 +286,7 @@ export default function MerchantMenuScreen() {
 
                   {/* Price, Cost & Profit Info */}
                   <View style={styles.pricingRow}>
-                    <Text style={[type.body, { color: colors.primary, fontWeight: "700" }]}>
+                    <Text style={ui.price}>
                       RM {item.price.toFixed(2)}
                     </Text>
                     <Text style={styles.costLabel}>
@@ -324,8 +326,10 @@ export default function MerchantMenuScreen() {
                   <Switch
                     value={!isUnavailable}
                     onValueChange={() => toggleSoldOut(item)}
-                    trackColor={{ false: colors.border, true: colors.primarySoft }}
-                    thumbColor={isUnavailable ? colors.textFaint : colors.primary}
+                    trackColor={{ false: colors.stoneSoft, true: colors.herb }}
+                    thumbColor={colors.white}
+                    {...({ ios_backgroundColor: colors.stoneSoft, activeThumbColor: colors.white } as object)}
+                    accessibilityLabel={isUnavailable ? `${item.name} is sold out. Turn on to put it back in stock` : `${item.name} is in stock. Turn off to mark it sold out`}
                   />
                 </View>
               </View>
@@ -397,7 +401,7 @@ export default function MerchantMenuScreen() {
               />
 
               {/* Quick Pick Existing Categories */}
-              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 4, marginBottom: 4 }}>
+              <Text style={{ fontSize: 11, color: colors.stoneText, marginTop: 4, marginBottom: 4 }}>
                 {t("menu.pickCategory")}
               </Text>
               <View style={styles.quickCategoryRow}>
@@ -453,7 +457,7 @@ export default function MerchantMenuScreen() {
               {/* Dynamic Profit Preview Box */}
               {numPrice > 0 && (
                 <View style={styles.previewBox}>
-                  <Text style={{ fontSize: 12, color: colors.textMuted }}>
+                  <Text style={{ fontSize: 12, color: colors.stoneText }}>
                     {t("menu.estProfit")}{" "}
                     <Text
                       style={{
@@ -476,7 +480,7 @@ export default function MerchantMenuScreen() {
                 value={dishQuantity}
                 onChangeText={setDishQuantity}
               />
-              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
+              <Text style={{ fontSize: 11, color: colors.stoneText, marginTop: 3 }}>
                 * {t("menu.zeroHint")}
               </Text>
 
@@ -504,7 +508,7 @@ export default function MerchantMenuScreen() {
                   );
                 })}
               </View>
-              <Text style={{ fontSize: 11, color: colors.textMuted, marginTop: 3 }}>
+              <Text style={{ fontSize: 11, color: colors.stoneText, marginTop: 3 }}>
                 {t("menu.hiddenAllergens")}
               </Text>
 
@@ -524,7 +528,7 @@ export default function MerchantMenuScreen() {
 
             {/* Buttons stay pinned under the scrolling form so they are always reachable on a small phone. */}
             <View style={styles.modalFooter}>
-              {message ? <Text style={{ color: colors.danger, marginTop: spacing.sm }}>{message}</Text> : null}
+              {message ? <Text style={{ color: colors.chiliText, marginTop: spacing.sm }}>{message}</Text> : null}
 
               <View style={styles.modalBtnRow}>
                 <Pressable

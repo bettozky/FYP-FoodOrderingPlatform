@@ -105,7 +105,7 @@ export default function MerchantReservationsScreen() {
             {/* 1. SEATING OVERVIEW (tables given to confirmed bookings) */}
             <View style={s.floorOverviewCard}>
               <View style={s.rowBetween}>
-                <Text style={[type.body, { fontWeight: "700" }]}>{t("resv.seatingPlan")}</Text>
+                <Text style={type.h3}>{t("resv.seatingPlan")}</Text>
                 <Text style={type.small}>
                   {t("resv.freeTables", { n: RESTAURANT_TABLES.length - new Set(reservations.filter((r) => holdsTable(r.status) && r.allocatedTable).map((r) => r.allocatedTable)).size })}
                 </Text>
@@ -137,7 +137,7 @@ export default function MerchantReservationsScreen() {
                 );
               })}
             </View>
-            {error ? <Text style={{ color: colors.danger, marginBottom: 8 }}>{error}</Text> : null}
+            {error ? <Text style={{ color: colors.chiliText, marginBottom: 8 }}>{error}</Text> : null}
           </>
         }
         ListEmptyComponent={<EmptyState icon="calendar-outline" title={t("resv.empty")} hint={t("resv.emptyHint")} />}
@@ -183,7 +183,7 @@ export default function MerchantReservationsScreen() {
               {(item.status === "awaiting_restaurant" || item.status === "awaiting_payment" || item.status === "confirmed") && <ChatButtons kind="reservation" id={item.id} allowCall />}
 
               {item.specialRequest ? (
-                <Text style={[type.small, { fontStyle: "italic", color: colors.textMuted }]}>{t("resv.note", { text: item.specialRequest })}</Text>
+                <Text style={[type.small, { fontStyle: "italic", color: colors.stoneText }]}>{t("resv.note", { text: item.specialRequest })}</Text>
               ) : null}
               <Text style={type.small}>{!item.payNow ? t("resv.payLater") : item.paid ? `${t("popup.paid", { amount: item.paid.toFixed(2) })}${item.refunded ? ` ${t("resv.refunded", { amount: item.refunded.toFixed(2) })}` : ""}` : isUnpaid ? t("resv.waitPay", { amount: (item.amountDue ?? 0).toFixed(2) }) : t("resv.payOnline", { amount: (item.amountDue ?? 0).toFixed(2) })}</Text>
 

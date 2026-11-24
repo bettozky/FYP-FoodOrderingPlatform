@@ -5,7 +5,7 @@ import { Dish } from "../../shared/api/types";
 import EmptyState from "../../shared/components/EmptyState";
 import ScreenHeader from "../../shared/components/ScreenHeader";
 import { Pressable } from "react-native";
-import { colors, spacing, type } from "../../shared/theme/theme";
+import { colors, spacing, type, layout } from "../../shared/theme/theme";
 import { useCart } from "../ordering/CartContext";
 import DishCard from "../discovery/components/DishCard";
 import { useCatalog } from "../discovery/CatalogContext";
@@ -80,7 +80,7 @@ export default function FavouritesScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: layout.gutter, paddingBottom: spacing.xxl },
   shop: { flexDirection: "row", alignItems: "center", backgroundColor: colors.paper, borderRadius: 16, borderWidth: 1, borderColor: colors.stoneLine, padding: spacing.md },
   error: { color: colors.chiliText, paddingHorizontal: spacing.lg, marginBottom: spacing.md },
 });

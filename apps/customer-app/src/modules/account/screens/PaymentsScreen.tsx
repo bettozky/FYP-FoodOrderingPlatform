@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, layout } from "../../../shared/theme/theme";
 
 // There is no saved-card feature, so this screen only explains how paying works. Each statement is
 // backed by the app/backend: pay-after-confirm (order tracking), simulated Stripe and "card data is
@@ -35,7 +35,7 @@ export default function PaymentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.sm, paddingBottom: spacing.xxl },
   card: { flexDirection: "row", gap: spacing.md, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
   icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
 });
