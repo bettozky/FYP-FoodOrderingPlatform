@@ -48,11 +48,11 @@ try {
   ok(r.status === 401, "a Google-only account cannot be logged into with a guessed password");
 
   // an existing password account with the same verified email is linked
-  const reg = await call("POST", "/api/auth/register", { name: "Sam", email: "sam@example.com", dob: "2000-02-02", password: "secret1" });
+  const reg = await call("POST", "/api/auth/register", { name: "Sam", email: "sam@example.com", dob: "2000-02-02", password: "Secret1!" });
   ok(reg.status === 201, "(setup) password account created");
   r = await call("POST", "/api/auth/google", { idToken: token({ sub: "g-2002", email: "sam@example.com", name: "Sam G" }) });
   ok(r.status === 200 && r.body.user.id === reg.body.user.id, "Google sign-in with the same verified email signs into the existing account");
-  r = await call("POST", "/api/auth/login", { email: "sam@example.com", password: "secret1" });
+  r = await call("POST", "/api/auth/login", { email: "sam@example.com", password: "Secret1!" });
   ok(r.status === 200, "the password still works afterwards");
 
   // merchants and admins use their own apps

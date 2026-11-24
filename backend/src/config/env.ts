@@ -92,8 +92,11 @@ export const env = {
   callRingMs: num(process.env.CALL_RING_MS, 30 * 1000),
   // FR-5.8: restaurant has 30 minutes to reply to a reservation.
   reservationResponseMs: num(process.env.RESERVATION_RESPONSE_MS, 30 * 60 * 1000),
-  // FR-1.2: minimum age at sign-up. The requirements do not give the number; 18 is an assumption to confirm.
-  minAge: num(process.env.MIN_AGE, 18),
+  // FR-1.2: age rule at sign-up. Under MIN_AGE nobody can sign up; from MIN_AGE up to GUARDIAN_AGE a parent or
+  // guardian must approve (name, phone and consent are saved). The requirements do not give the numbers; 13 and 16 are
+  // assumptions to confirm with the client.
+  minAge: num(process.env.MIN_AGE, 13),
+  guardianAge: num(process.env.GUARDIAN_AGE, 16),
   // Delivery fee for orders with delivery items (simulated quote).
   deliveryFee: num(process.env.DELIVERY_FEE, 3.5),
   // Booking deposit charged when a customer picks "Pay now" for a reservation (assumption to confirm).

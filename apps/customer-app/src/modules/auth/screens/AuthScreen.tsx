@@ -22,6 +22,9 @@ import { useAuth } from "../AuthContext";
 import { errorText } from "../../../shared/api/client";
 import GoogleSignInButton, { googleSignInAvailable } from "../components/GoogleSignInButton";
 import ForgotPasswordModal from "../../../shared/components/ForgotPasswordModal";
+import PhoneInput, { fullPhone, phoneLooksValid } from "../../../shared/components/PhoneInput";
+import { passwordChecks, passwordOk } from "../../../shared/util/password";
+import GuardianModal, { type Guardian } from "../components/GuardianModal";
 import { colors, spacing, type, radius, fonts, shadow } from "../../../shared/theme/theme";
 import { useTranslation } from "react-i18next";
 import LanguagePicker from "../../../shared/i18n/LanguagePicker";
@@ -46,7 +49,10 @@ const PROMISES = [
   { icon: "restaurant-outline", text: "auth.promiseModes" },
   { icon: "calendar-outline", text: "auth.promiseBook" },
 ] as const;
-const MIN_AGE = 18; // FR-1.2 (the number is an assumption to confirm with the client; the server enforces it too)
+// FR-1.2 age rule (the numbers are assumptions to confirm with the client; the server enforces the same rule):
+// under MIN_AGE nobody can sign up; under GUARDIAN_AGE a parent or guardian must approve the account.
+const MIN_AGE = 13;
+const GUARDIAN_AGE = 16;
 
 function ageFrom(y: number, m: number, d: number) {
   const now = new Date();
@@ -77,11 +83,22 @@ export default function AuthScreen() {
   // sign up
   const [fullName, setFullName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
+  const [phoneCode, setPhoneCode] = useState("+60");
   const [phone, setPhone] = useState("");
   const [dd, setDd] = useState("");
   const [mm, setMm] = useState("");
   const [yyyy, setYyyy] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+
+  // Under GUARDIAN_AGE: the sign-up (or Google sign-up) waits here until a parent or guardian approves in the pop-up.
+  const [guardianFor, setGuardianFor] = useState<
+    | { kind: "register"; age: number; input: { name: string; email: string; phone: string; dob: string; password: string } }
+    | { kind: "google"; age: number; idToken: string; dob: string }
+    | null
+  >(null);
+  const [guardianError, setGuardianError] = useState("");
 
   // Google: a brand-new person must give their date of birth (age rule) before the account is created.
   const [googleNew, setGoogleNew] = useState<{ idToken: string; name: string; email: string } | null>(null);
@@ -124,11 +141,20 @@ export default function AuthScreen() {
     if (!googleNew) return;
     const y = Number(gyyyy), m = Number(gmm), d = Number(gdd);
     if (!Number.isInteger(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31 || gyyyy.length !== 4) return setGoogleError(t("auth.dobInvalid"));
-    if (ageFrom(y, m, d) < MIN_AGE) return setGoogleError(t("auth.tooYoung", { age: MIN_AGE }));
+    const age = ageFrom(y, m, d);
+    if (age < 0) return setGoogleError(t("auth.dobFuture"));
+    if (age < MIN_AGE) return setGoogleError(t("auth.tooYoung", { age: MIN_AGE }));
+    const dob = `${gyyyy}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    if (age < GUARDIAN_AGE) {
+      setGuardianError("");
+      setGuardianFor({ kind: "google", age, idToken: googleNew.idToken, dob });
+      setGoogleNew(null);
+      return;
+    }
     setBusy(true);
     setGoogleError("");
     try {
-      await loginWithGoogle(googleNew.idToken, `${gyyyy}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+      await loginWithGoogle(googleNew.idToken, dob);
       setGoogleNew(null);
     } catch (e) {
       setGoogleError(errorText(e));
@@ -137,16 +163,46 @@ export default function AuthScreen() {
     }
   };
 
+  const passwordsMatch = confirmPassword.length > 0 && confirmPassword === signupPassword;
+  const pwChecks = passwordChecks(signupPassword);
+
   const doRegister = () =>
     run(async () => {
       const y = Number(yyyy), m = Number(mm), d = Number(dd);
       if (!fullName.trim()) throw new Error(t("auth.nameRequired"));
+      if (phone.trim() && !phoneLooksValid(phone)) throw new Error(t("auth.phoneInvalid"));
       if (!Number.isInteger(y) || y < 1900 || m < 1 || m > 12 || d < 1 || d > 31 || yyyy.length !== 4)
         throw new Error(t("auth.dobInvalid"));
-      if (ageFrom(y, m, d) < MIN_AGE) throw new Error(t("auth.tooYoung", { age: MIN_AGE }));
+      const age = ageFrom(y, m, d);
+      if (age < 0) throw new Error(t("auth.dobFuture"));
+      if (age < MIN_AGE) throw new Error(t("auth.tooYoung", { age: MIN_AGE }));
+      if (!passwordOk(signupPassword)) throw new Error(t("auth.passwordRule"));
+      if (signupPassword !== confirmPassword) throw new Error(t("auth.passwordsMustMatch"));
       const dob = `${yyyy}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      await register({ name: fullName.trim(), email: signupEmail.trim(), phone: phone.trim(), dob, password: signupPassword });
+      const input = { name: fullName.trim(), email: signupEmail.trim(), phone: fullPhone(phoneCode, phone), dob, password: signupPassword };
+      if (age < GUARDIAN_AGE) {
+        setGuardianError("");
+        setGuardianFor({ kind: "register", age, input });
+        return;
+      }
+      await register(input);
     });
+
+  // The parent or guardian approved in the pop-up: create the account with their details.
+  async function finishWithGuardian(guardian: Guardian) {
+    if (!guardianFor) return;
+    setBusy(true);
+    setGuardianError("");
+    try {
+      if (guardianFor.kind === "register") await register({ ...guardianFor.input, guardian });
+      else await loginWithGoogle(guardianFor.idToken, guardianFor.dob, guardian);
+      setGuardianFor(null);
+    } catch (e) {
+      setGuardianError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const TAB_WIDTH = 88;
   const TAB_GAP = 32;
@@ -260,15 +316,57 @@ export default function AuthScreen() {
                 testID="signup-email"
               />
               <Text style={styles.label}>{t("auth.phone")}</Text>
-              <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+60 1x-xxx xxxx" placeholderTextColor={colors.textFaint} />
-              <Text style={styles.label}>{t("auth.dobMin", { age: MIN_AGE })}</Text>
+              <PhoneInput code={phoneCode} onCode={setPhoneCode} number={phone} onNumber={setPhone} testID="signup-phone" />
+              <Text style={styles.label}>{t("auth.dobMin", { age: MIN_AGE, guardian: GUARDIAN_AGE })}</Text>
               <View style={styles.dobRow}>
-                <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={dd} onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.dd")} placeholderTextColor={colors.textFaint} testID="signup-dd" />
-                <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={mm} onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.mm")} placeholderTextColor={colors.textFaint} testID="signup-mm" />
-                <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={yyyy} onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder={t("auth.yyyy")} placeholderTextColor={colors.textFaint} testID="signup-yyyy" />
+                <TextInput style={[styles.input, styles.dobInput, { flex: 1 }]} value={dd} onChangeText={(v) => setDd(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.dd")} placeholderTextColor={colors.textFaint} testID="signup-dd" />
+                <TextInput style={[styles.input, styles.dobInput, { flex: 1 }]} value={mm} onChangeText={(v) => setMm(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.mm")} placeholderTextColor={colors.textFaint} testID="signup-mm" />
+                <TextInput style={[styles.input, styles.dobInput, { flex: 2 }]} value={yyyy} onChangeText={(v) => setYyyy(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder={t("auth.yyyy")} placeholderTextColor={colors.textFaint} testID="signup-yyyy" />
               </View>
               <Text style={styles.label}>{t("auth.passwordMin")}</Text>
-              <TextInput style={styles.input} value={signupPassword} onChangeText={setSignupPassword} secureTextEntry placeholder="••••••••" placeholderTextColor={colors.textFaint} testID="signup-password" />
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1, borderWidth: 0 }]}
+                  value={signupPassword}
+                  onChangeText={setSignupPassword}
+                  secureTextEntry={!showSignupPassword}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.textFaint}
+                  testID="signup-password"
+                />
+                <Pressable onPress={() => setShowSignupPassword((s) => !s)} hitSlop={12} style={{ paddingRight: spacing.md }} accessibilityRole="button" accessibilityLabel={showSignupPassword ? t("auth.hidePassword") : t("auth.showPassword")}>
+                  <Ionicons name={showSignupPassword ? "eye-off-outline" : "eye-outline"} size={18} color={colors.stone} />
+                </Pressable>
+              </View>
+              {signupPassword.length > 0 ? (
+                <View style={styles.ruleList} testID="signup-password-rules">
+                  {([["length", "auth.ruleLength"], ["number", "auth.ruleNumber"], ["symbol", "auth.ruleSymbol"]] as const).map(([k, label]) => (
+                    <View key={k} style={styles.matchRow}>
+                      <Ionicons name={pwChecks[k] ? "checkmark-circle" : "ellipse-outline"} size={14} color={pwChecks[k] ? colors.herb : colors.stone} />
+                      <Text style={[styles.matchText, { color: pwChecks[k] ? colors.herb : colors.stoneText }]}>{t(label)}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              <Text style={styles.label}>{t("auth.confirmPassword")}</Text>
+              <TextInput
+                style={[styles.input, confirmPassword.length > 0 && !passwordsMatch && styles.inputBad]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showSignupPassword}
+                placeholder={t("auth.confirmPlaceholder")}
+                placeholderTextColor={colors.textFaint}
+                onSubmitEditing={doRegister}
+                testID="signup-password-confirm"
+              />
+              {confirmPassword.length > 0 ? (
+                <View style={styles.matchRow} testID="signup-password-match">
+                  <Ionicons name={passwordsMatch ? "checkmark-circle" : "close-circle"} size={14} color={passwordsMatch ? colors.herb : colors.chiliText} />
+                  <Text style={[styles.matchText, { color: passwordsMatch ? colors.herb : colors.chiliText }]}>
+                    {passwordsMatch ? t("auth.passwordsMatch") : t("auth.passwordsDiffer")}
+                  </Text>
+                </View>
+              ) : null}
 
               {activeTab === 1 && error ? <Text style={styles.error} testID="signup-error">{error}</Text> : null}
 
@@ -286,12 +384,12 @@ export default function AuthScreen() {
             <View style={styles.gBackdrop}>
               <View style={styles.gCard} testID="google-dob-card">
                 <Text style={styles.gTitle}>{t("auth.oneMoreStep")}</Text>
-                <Text style={type.small}>{t("auth.googleWelcome", { name: googleNew?.name, email: googleNew?.email, age: MIN_AGE })}</Text>
+                <Text style={type.small}>{t("auth.googleWelcome", { name: googleNew?.name, email: googleNew?.email, age: MIN_AGE, guardian: GUARDIAN_AGE })}</Text>
                 <Text style={[styles.label, { marginTop: spacing.lg }]}>{t("auth.dob")}</Text>
                 <View style={styles.dobRow}>
-                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gdd} onChangeText={(v) => setGdd(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.dd")} placeholderTextColor={colors.textFaint} testID="google-dd" />
-                  <TextInput style={[styles.input, { flex: 1, textAlign: "center" }]} value={gmm} onChangeText={(v) => setGmm(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.mm")} placeholderTextColor={colors.textFaint} testID="google-mm" />
-                  <TextInput style={[styles.input, { flex: 2, textAlign: "center" }]} value={gyyyy} onChangeText={(v) => setGyyyy(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder={t("auth.yyyy")} placeholderTextColor={colors.textFaint} testID="google-yyyy" />
+                  <TextInput style={[styles.input, styles.dobInput, { flex: 1 }]} value={gdd} onChangeText={(v) => setGdd(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.dd")} placeholderTextColor={colors.textFaint} testID="google-dd" />
+                  <TextInput style={[styles.input, styles.dobInput, { flex: 1 }]} value={gmm} onChangeText={(v) => setGmm(v.replace(/\D/g, "").slice(0, 2))} keyboardType="number-pad" placeholder={t("auth.mm")} placeholderTextColor={colors.textFaint} testID="google-mm" />
+                  <TextInput style={[styles.input, styles.dobInput, { flex: 2 }]} value={gyyyy} onChangeText={(v) => setGyyyy(v.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" placeholder={t("auth.yyyy")} placeholderTextColor={colors.textFaint} testID="google-yyyy" />
                 </View>
                 {googleError ? <Text style={styles.error} testID="google-error">{googleError}</Text> : null}
                 <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={finishGoogle} disabled={busy} testID="google-continue">
@@ -303,6 +401,15 @@ export default function AuthScreen() {
               </View>
             </View>
           </Modal>
+          <GuardianModal
+            visible={!!guardianFor}
+            age={guardianFor?.age ?? 0}
+            guardianAge={GUARDIAN_AGE}
+            busy={busy}
+            error={guardianError}
+            onCancel={() => { setGuardianFor(null); setGuardianError(""); }}
+            onSubmit={finishWithGuardian}
+          />
           <ForgotPasswordModal visible={forgot} onClose={() => setForgot(false)} defaultEmail={email} onDone={(e) => { setEmail(e); setPassword(""); }} />
     </KeyboardAvoidingView>
   );
@@ -420,6 +527,11 @@ const styles = StyleSheet.create({
   hint: { ...type.small, textAlign: "center", marginTop: spacing.md, paddingHorizontal: spacing.xl },
   error: { color: colors.chili, fontFamily: fonts.display, fontSize: 13, marginTop: spacing.md },
   dobRow: { flexDirection: "row", gap: spacing.sm },
+  dobInput: { minWidth: 0, textAlign: "center" }, // minWidth 0 lets the three boxes share the row on the web too
+  inputBad: { borderColor: colors.chili },
+  matchRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 },
+  matchText: { fontFamily: fonts.display, fontSize: 12 },
+  ruleList: { marginTop: 2 },
   guestRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -5,6 +5,9 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
 import { errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
+import { passwordChecks, passwordOk } from "../../../shared/util/password";
+import PhoneInput, { fullPhone, phoneLooksValid, splitPhone } from "../../../shared/components/PhoneInput";
+import { Ionicons } from "@expo/vector-icons";
 import Avatar from "../../../shared/components/Avatar";
 import { pickImage } from "../../../shared/util/files";
 import { useAuth } from "../../auth/AuthContext";
@@ -29,21 +32,26 @@ export default function ProfileScreen() {
     }
   };
   const [name, setName] = useState(user?.name ?? "");
-  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [phoneCode, setPhoneCode] = useState(() => splitPhone(user?.phone).code);
+  const [phone, setPhone] = useState(() => splitPhone(user?.phone).number);
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
+  const [confirmNext, setConfirmNext] = useState("");
+  const nextChecks = passwordChecks(next);
+  const nextMatches = confirmNext.length > 0 && confirmNext === next;
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [savingPw, setSavingPw] = useState(false);
 
   const saveProfile = async () => {
     if (!name.trim()) return setProfileMsg({ ok: false, text: t("profile.nameEmpty") });
+    if (phone.trim() && !phoneLooksValid(phone)) return setProfileMsg({ ok: false, text: t("auth.phoneInvalid") });
     setSavingProfile(true);
     setProfileMsg(null);
     try {
-      await updateProfile({ name: name.trim(), phone: phone.trim() });
+      await updateProfile({ name: name.trim(), phone: fullPhone(phoneCode, phone) });
       setProfileMsg({ ok: true, text: t("profile.saved") });
     } catch (e) {
       setProfileMsg({ ok: false, text: errorText(e) });
@@ -54,12 +62,15 @@ export default function ProfileScreen() {
 
   const savePassword = async () => {
     if (!current || !next) return setPwMsg({ ok: false, text: t("profile.fillBoth") });
+    if (!passwordOk(next)) return setPwMsg({ ok: false, text: t("auth.passwordRule") });
+    if (next !== confirmNext) return setPwMsg({ ok: false, text: t("auth.passwordsMustMatch") });
     setSavingPw(true);
     setPwMsg(null);
     try {
       await changePassword(current, next);
       setCurrent("");
       setNext("");
+      setConfirmNext("");
       setPwMsg({ ok: true, text: t("profile.pwChanged") });
     } catch (e) {
       setPwMsg({ ok: false, text: errorText(e) });
@@ -109,7 +120,7 @@ export default function ProfileScreen() {
           <Text style={[type.bodyMuted, { marginTop: spacing.sm }]}>{t("profile.name")}</Text>
           <TextInput style={styles.input} value={name} onChangeText={setName} maxLength={80} testID="profile-name" />
           <Text style={type.bodyMuted}>{t("stall.phone")}</Text>
-          <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" maxLength={30} testID="profile-phone" />
+          <PhoneInput code={phoneCode} onCode={setPhoneCode} number={phone} onNumber={setPhone} testID="profile-phone" />
           <Msg m={profileMsg} />
           <Pressable style={styles.btn} onPress={saveProfile} disabled={savingProfile} accessibilityRole="button" testID="save-profile">
             {savingProfile ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>{t("profile.save")}</Text>}
@@ -120,6 +131,32 @@ export default function ProfileScreen() {
           <Text style={type.h3}>{t("forgot.change")}</Text>
           <TextInput style={styles.input} value={current} onChangeText={setCurrent} placeholder={t("profile.currentPw")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-current" />
           <TextInput style={styles.input} value={next} onChangeText={setNext} placeholder={t("forgot.newPassword")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="pw-new" />
+          {next.length > 0 ? (
+            <View testID="pw-rules">
+              {([["length", "auth.ruleLength"], ["number", "auth.ruleNumber"], ["symbol", "auth.ruleSymbol"]] as const).map(([k, label]) => (
+                <View key={k} style={styles.ruleRow}>
+                  <Ionicons name={nextChecks[k] ? "checkmark-circle" : "ellipse-outline"} size={14} color={nextChecks[k] ? colors.herb : colors.stone} />
+                  <Text style={[styles.ruleText, { color: nextChecks[k] ? colors.herb : colors.stoneText }]}>{t(label)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <TextInput
+            style={[styles.input, confirmNext.length > 0 && !nextMatches && { borderColor: colors.chili }]}
+            value={confirmNext}
+            onChangeText={setConfirmNext}
+            placeholder={t("profile.confirmNewPw")}
+            placeholderTextColor={colors.textFaint}
+            secureTextEntry
+            autoCapitalize="none"
+            testID="pw-new-confirm"
+          />
+          {confirmNext.length > 0 ? (
+            <View style={styles.ruleRow} testID="pw-match">
+              <Ionicons name={nextMatches ? "checkmark-circle" : "close-circle"} size={14} color={nextMatches ? colors.herb : colors.chiliText} />
+              <Text style={[styles.ruleText, { color: nextMatches ? colors.herb : colors.chiliText }]}>{nextMatches ? t("auth.passwordsMatch") : t("auth.passwordsDiffer")}</Text>
+            </View>
+          ) : null}
           <Msg m={pwMsg} />
           <Pressable style={styles.btn} onPress={savePassword} disabled={savingPw} accessibilityRole="button" testID="save-password">
             {savingPw ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.btnText}>{t("forgot.change")}</Text>}
@@ -145,6 +182,8 @@ const styles = StyleSheet.create({
   card: { gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
   input: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, color: colors.ink, backgroundColor: colors.bg },
   btn: { minHeight: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.turmeric, marginTop: spacing.xs },
+  ruleRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+  ruleText: { fontFamily: fonts.display, fontSize: 12 },
   photoBtn: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
   photoBtnText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
   btnText: { fontFamily: fonts.displayBold, color: colors.ink },

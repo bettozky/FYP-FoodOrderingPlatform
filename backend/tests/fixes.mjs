@@ -8,8 +8,8 @@ async function call(method, path, token, body) {
 }
 const login = async (email, password) => (await call("POST", "/api/auth/login", null, { email, password })).body.token;
 async function newCustomer(tag) {
-  await call("POST", "/api/auth/register", null, { name: "QA " + tag, email: `qa-${tag}@x.com`, phone: "012", dob: "2000-01-01", password: "secret12" });
-  return login(`qa-${tag}@x.com`, "secret12");
+  await call("POST", "/api/auth/register", null, { name: "QA " + tag, email: `qa-${tag}@x.com`, phone: "012", dob: "2000-01-01", password: "Secret12!" });
+  return login(`qa-${tag}@x.com`, "Secret12!");
 }
 const merch = await login("ahseng@scootmeal.test", "merchant123");
 const pay = (t, id) => call("POST", `/api/orders/${id}/pay`, t, { card: { number: "4242 4242 4242 4242" } });
