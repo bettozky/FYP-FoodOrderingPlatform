@@ -4,8 +4,9 @@ import { approvedMerchant, auth } from "../../middleware/auth.js";
 import { db } from "../../store/db.js";
 import type { ChatMessage } from "./ai-assistant.service.js";
 import { readAudio, speechKeywords, transcribeUpload } from "./ai-assistant.speech.js";
+import { answerAction } from "./ai-merchant.actions.js";
 import { getMerchantContext } from "./ai-merchant.data.js";
-import { generateMerchantReply } from "./ai-merchant.service.js";
+import { generateMerchantReply, speakMoney } from "./ai-merchant.service.js";
 
 // Merchant assistant routes, mounted at /api/ai/merchant (see ai-assistant.routes.ts).
 export const aiMerchantRouter = Router();
@@ -47,7 +48,21 @@ aiMerchantRouter.post("/chat", async (req, res) => {
   const merchant = approvedMerchant(res);
   const context = getMerchantContext(merchant);
 
-  res.json(await generateMerchantReply({ message, history, context }));
+  res.json(await generateMerchantReply({ message, history, context, merchant }));
+});
+
+// POST /api/ai/merchant/actions/:id  { answer: "yes" | "no" }
+// The merchant's answer to a proposed change (sold out, busy mode, deal). Only "yes" changes anything.
+// Each proposal works once, for 2 minutes, and only for the merchant it was made for.
+aiMerchantRouter.post("/actions/:id", (req, res) => {
+  const answer = req.body?.answer;
+  if (answer !== "yes" && answer !== "no") throw new HttpError(400, 'answer must be "yes" or "no"');
+
+  const merchant = approvedMerchant(res);
+  const result = answerAction(merchant, String(req.params.id), answer === "yes");
+  if (result.status === "expired") throw new HttpError(410, result.reply);
+
+  res.json({ ...result, spoken: speakMoney(result.reply, result.language) });
 });
 
 // POST /api/ai/merchant/transcribe  (multipart/form-data, field "audio")

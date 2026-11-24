@@ -2,6 +2,8 @@
 // Opening it starts listening straight away. It stops by itself when the merchant goes quiet (or when they
 // tap the orb), turns the speech into text, asks the assistant, shows the answer in the card and reads it
 // out loud. If the answer asks the merchant something, it listens again by itself.
+// When the assistant proposes a change (sold out, busy mode, deal), the card shows Yes / No buttons, and the
+// merchant can also just say "yes" or "no" (English, Malay or Chinese). Nothing changes until they say Yes.
 // Tapping anywhere closes it, except the orb and the chat button. Android back and the screen-reader
 // "escape" gesture also close it. Closing stops the microphone and the voice.
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -11,9 +13,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, fonts } from "../../shared/theme/theme";
 import EdgeGlow, { type GlowMode } from "./EdgeGlow";
 import Orb from "./Orb";
+import StatsChart from "./StatsChart";
 import type { MerchantChat } from "./useMerchantChat";
 import { useSpeaker } from "./useSpeaker";
 import { useSpeechToText } from "./useSpeechToText";
+import { yesOrNo } from "./yesNo";
 
 type Props = { active: boolean; chat: MerchantChat; onClose: () => void; onOpenChat: () => void };
 
@@ -24,7 +28,7 @@ const useNative = Platform.OS !== "web";
 
 export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Props) {
   const insets = useSafeAreaInsets();
-  const { messages, loading, send } = chat;
+  const { messages, loading, send, answer: answerAction, pending } = chat;
   const speaker = useSpeaker();
 
   // `activeRef` lets late results (a transcription or reply that arrives after closing) be ignored.
@@ -42,9 +46,13 @@ export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Prop
   }, []);
 
   // Speech -> text -> ask the assistant. Voice mode stops by itself when the merchant goes quiet.
+  // While a proposal is waiting, a spoken "yes" / "no" answers it; anything else is a new question.
   const speech = useSpeechToText(
     (text) => {
-      if (activeRef.current) void ask(text);
+      if (!activeRef.current) return;
+      const yes = pending ? yesOrNo(text) : null;
+      if (pending && yes !== null) void respond(pending.id, yes);
+      else void ask(text);
     },
     { autoStop: true }
   );
@@ -73,6 +81,16 @@ export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Prop
     // Read the answer out loud. If it asked the merchant something and wasn't interrupted, listen again.
     const finished = await speaker.speak(reply.spoken || reply.reply, reply.language ?? "en");
     if (finished && reply.asksQuestion && activeRef.current) void speech.start();
+  }
+
+  // Yes / No (tapped or spoken): only now does anything change. The result is shown and read out.
+  async function respond(messageId: string, yes: boolean) {
+    speaker.stop();
+    void speech.cancel();
+    const result = await answerAction(messageId, yes);
+    if (!result || !activeRef.current) return;
+    if (screenReader.current) AccessibilityInfo.announceForAccessibility(result.reply);
+    else void speaker.speak(result.spoken || result.reply, result.language);
   }
 
   // Opening: start listening (after the fade-in). Closing: stop the microphone and the voice.
@@ -122,7 +140,33 @@ export default function VoiceOverlay({ active, chat, onClose, onOpenChat }: Prop
           {question.text}
         </Text>
         {answer ? (
-          <Text style={[styles.answer, answer.error && styles.error]}>{answer.text}</Text>
+          <>
+            <Text style={[styles.answer, answer.error && styles.error]}>{answer.text}</Text>
+            {answer.card && <StatsChart card={answer.card} />}
+            {answer.confirm && answer.confirmState === "pending" && (
+              <View style={styles.confirm}>
+                <Text style={styles.confirmText}>{answer.confirm.summary}</Text>
+                <View style={styles.confirmRow}>
+                  <Pressable
+                    onPress={() => void respond(answer.id, false)}
+                    style={[styles.choice, styles.choiceNo]}
+                    accessibilityRole="button"
+                    accessibilityLabel="No, don't change anything"
+                  >
+                    <Text style={styles.choiceNoText}>No</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void respond(answer.id, true)}
+                    style={[styles.choice, styles.choiceYes]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Yes: ${answer.confirm.summary}`}
+                  >
+                    <Text style={styles.choiceYesText}>Yes</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          </>
         ) : (
           <ActivityIndicator style={styles.spinner} color={colors.turmericDeep} />
         )}
@@ -175,6 +219,14 @@ const styles = StyleSheet.create({
   answer: { fontFamily: fonts.serif, fontSize: 16, lineHeight: 23, color: colors.ink },
   error: { color: colors.chiliText },
   spinner: { alignSelf: "flex-start" },
+  confirm: { marginTop: 8, gap: 10 },
+  confirmText: { fontFamily: fonts.serifSemiBold, fontSize: 15, color: colors.ink },
+  confirmRow: { flexDirection: "row", gap: 10 },
+  choice: { flex: 1, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  choiceNo: { borderWidth: 1, borderColor: colors.stoneLine, backgroundColor: colors.paper },
+  choiceYes: { backgroundColor: colors.ink },
+  choiceNoText: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.ink },
+  choiceYesText: { fontFamily: fonts.displayBold, fontSize: 15, color: colors.white },
   bottom: { flex: 1, justifyContent: "flex-end", paddingHorizontal: 24 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   chatButton: {

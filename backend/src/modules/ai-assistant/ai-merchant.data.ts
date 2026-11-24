@@ -4,6 +4,7 @@ import { money } from "../../lib/http.js";
 import { db } from "../../store/db.js";
 import type { Merchant, Order } from "../../store/types.js";
 import { merchantView } from "../merchants/merchants.view.js";
+import { chartsForContext } from "./ai-merchant.charts.js";
 
 const ACTIVE = new Set<Order["status"]>(["awaiting_merchant", "awaiting_payment", "preparing"]);
 const NOT_SOLD = new Set(["out_of_stock", "cancelled"]);
@@ -75,6 +76,7 @@ export function getMerchantContext(merchant: Merchant) {
   return {
     source: "ScootMeal server demo store",
     stall: {
+      id: merchant.id,
       name: merchant.name,
       stallNo: merchant.stallNo,
       openNow: view.openNow,
@@ -101,6 +103,8 @@ export function getMerchantContext(merchant: Merchant) {
     reviewCount: reviews.length,
     recentReviews,
     recentReviewsLimit: MAX_REVIEWS,
+    // Sales over time and best sellers (the same numbers the chart card shows).
+    charts: chartsForContext(merchant.id),
   };
 }
 
