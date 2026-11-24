@@ -986,6 +986,24 @@
     "micBlockedPhone": "Allow microphone access in your phone settings to use voice input.",
     "micFailed": "Could not start the microphone.",
     "tooShort": "That was too short. Tap the mic, speak, then tap stop.",
-    "heardNothing": "I couldn't hear anything. Please try again."
+    "heardNothing": "I couldn't hear anything. Please try again.",
+    "voiceNoSpeech": "I didn't hear anything. Tap the orb to try again.",
+    "orbIdle": "Assistant, tap to talk",
+    "orbListening": "Assistant, listening, tap when done",
+    "orbThinking": "Assistant, thinking",
+    "orbSpeaking": "Assistant, speaking, tap to stop",
+    "openChat": "Open chat",
+    "closeAssistant": "Close assistant",
+    "close": "Close",
+    "clearChat": "Clear chat",
+    "send": "Send",
+    "yes": "Yes",
+    "no": "No",
+    "noChange": "No, don't change anything",
+    "nothingChanged": "OK, nothing changed.",
+    "openCartAsk": "Added {{name}} to your cart. Open your cart?",
+    "openingPay": "Opening payment.",
+    "openingCart": "Opening your cart.",
+    "pickOrder": "Pay this order: {{label}}"
   }
 }

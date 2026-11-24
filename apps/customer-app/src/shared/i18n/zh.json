@@ -975,6 +975,24 @@
     "micBlockedPhone": "请在手机设置里允许麦克风来使用语音输入。",
     "micFailed": "无法启动麦克风。",
     "tooShort": "太短了。点麦克风，说话，然后点停止。",
-    "heardNothing": "我什么都没听到，请再试一次。"
+    "heardNothing": "我什么都没听到，请再试一次。",
+    "voiceNoSpeech": "我没听到声音。点一下圆球再试一次。",
+    "orbIdle": "助手，点一下说话",
+    "orbListening": "助手正在听，说完请点一下",
+    "orbThinking": "助手正在思考",
+    "orbSpeaking": "助手正在说话，点一下停止",
+    "openChat": "打开聊天",
+    "closeAssistant": "关闭助手",
+    "close": "关闭",
+    "clearChat": "清空聊天",
+    "send": "发送",
+    "yes": "是",
+    "no": "不",
+    "noChange": "不用，什么都别改",
+    "nothingChanged": "好的，没有任何更改。",
+    "openCartAsk": "已把 {{name}} 加入购物车。要打开购物车吗？",
+    "openingPay": "正在打开付款页面。",
+    "openingCart": "正在打开购物车。",
+    "pickOrder": "付这笔订单：{{label}}"
   }
 }
