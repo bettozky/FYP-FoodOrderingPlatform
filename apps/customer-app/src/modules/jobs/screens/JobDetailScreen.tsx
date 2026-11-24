@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import Badge from "../../../shared/components/Badge";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
@@ -14,6 +15,7 @@ import { STATUS_HELP, STATUS_LABEL, STATUS_TONE } from "../status";
 // One vacancy: what the job is, what it pays, and the Apply button (or the state of my application).
 export default function JobDetailScreen({ navigation, route }: any) {
   const { jobId } = route.params;
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [job, setJob] = useState<Job | null>(null);
   const [mine, setMine] = useState<JobApplication | null>(null);
@@ -27,7 +29,7 @@ export default function JobDetailScreen({ navigation, route }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Job details" />
+      <ScreenHeader title={t("jobs.details")} />
       {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {!job && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : null}
       {job ? (
@@ -38,18 +40,18 @@ export default function JobDetailScreen({ navigation, route }: any) {
             <View style={styles.chips}>
               <Badge label={job.type} tone="primary" />
               {job.role ? <Badge label={job.role} tone="neutral" /> : null}
-              {job.openings ? <Badge label={`${job.openings} opening${job.openings > 1 ? "s" : ""}`} tone="neutral" /> : null}
+              {job.openings ? <Badge label={t("jobs.openings", { count: job.openings })} tone="neutral" /> : null}
             </View>
             <View style={styles.pay}><Ionicons name="cash-outline" size={18} color={colors.ink} /><Text style={type.price}>{job.pay}</Text></View>
-            {job.description ? <><Text style={styles.h}>About the job</Text><Text style={type.body}>{job.description}</Text></> : null}
-            {job.perks ? <><Text style={styles.h}>Perks</Text><Text style={type.body}>{job.perks}</Text></> : null}
-            <Text style={styles.h}>What you will need to apply</Text>
-            <Text style={type.bodyMuted}>Your contact details, the days you can work, and a short note. A CV is welcome (PDF, Word, JPG or PNG). If you have no CV, tell the shop about any experience.</Text>
+            {job.description ? <><Text style={styles.h}>{t("jobs.about")}</Text><Text style={type.body}>{job.description}</Text></> : null}
+            {job.perks ? <><Text style={styles.h}>{t("jobs.perks")}</Text><Text style={type.body}>{job.perks}</Text></> : null}
+            <Text style={styles.h}>{t("jobs.needTitle")}</Text>
+            <Text style={type.bodyMuted}>{t("jobs.needText")}</Text>
 
             {mine ? (
               <View style={styles.status}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                  <Text style={type.h3}>Your application</Text>
+                  <Text style={type.h3}>{t("jobs.yourApplication")}</Text>
                   <Badge label={STATUS_LABEL[mine.status]} tone={STATUS_TONE[mine.status]} />
                 </View>
                 <Text style={type.bodyMuted}>{STATUS_HELP[mine.status]}</Text>
@@ -58,11 +60,11 @@ export default function JobDetailScreen({ navigation, route }: any) {
           </ScrollView>
           <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
             {mine ? (
-              <PrimaryButton label="View my application" variant="outline" onPress={() => navigation.navigate("MyApplications")} />
+              <PrimaryButton label={t("jobs.viewMine")} variant="outline" onPress={() => navigation.navigate("MyApplications")} />
             ) : job.open === false ? (
-              <PrimaryButton label="This vacancy is closed" disabled />
+              <PrimaryButton label={t("jobs.closed")} disabled />
             ) : (
-              <PrimaryButton label="Apply now" onPress={() => navigation.navigate("ApplyJob", { job })} testID="apply-now" />
+              <PrimaryButton label={t("jobs.applyNow")} onPress={() => navigation.navigate("ApplyJob", { job })} testID="apply-now" />
             )}
           </View>
         </>

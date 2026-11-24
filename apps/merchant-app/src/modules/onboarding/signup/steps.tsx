@@ -7,6 +7,8 @@ import { Chips, Field, FieldError, Label, styles as f, ToggleRow, UploadTile } f
 import { canPickFiles } from "./pickFile";
 import { ALLERGENS, BUSINESS_TYPES, DAYS, emptyMenuItem, ShopApplication } from "./types";
 import { pinProblem, type Errors } from "./validate";
+import { allergenName } from "../../../shared/i18n/labels";
+import i18n from "../../../shared/i18n";
 
 export type StepProps = {
   a: ShopApplication;
@@ -19,11 +21,11 @@ export type StepProps = {
 export function AccountStep({ a, set, errors }: StepProps) {
   return (
     <>
-      <Field label="Owner's full name" value={a.ownerName} onChange={(v) => set({ ownerName: v })} error={errors.ownerName} placeholder="Name on your account" autoCapitalize="words" autoComplete="name" testID="reg-owner" />
-      <Field label="Email address" value={a.email} onChange={(v) => set({ email: v })} error={errors.email} placeholder="you@restaurant.com" autoCapitalize="none" keyboardType="email-address" autoComplete="email" testID="reg-email" />
-      <Field label="Phone number" value={a.phone} onChange={(v) => set({ phone: v })} error={errors.phone} placeholder="+60 12-345 6789" keyboardType="phone-pad" autoComplete="tel" hint="Customers may use this number to contact your shop." testID="reg-phone" />
-      <Field label="Password (6+ characters)" value={a.password} onChange={(v) => set({ password: v })} error={errors.password} placeholder="Create a password" secureTextEntry autoComplete="new-password" testID="reg-password" />
-      <Field label="Confirm password" value={a.passwordConfirm} onChange={(v) => set({ passwordConfirm: v })} error={errors.passwordConfirm} placeholder="Enter it again" secureTextEntry autoComplete="new-password" testID="reg-password-confirm" />
+      <Field label={i18n.t("signup.ownerName")} value={a.ownerName} onChange={(v) => set({ ownerName: v })} error={errors.ownerName} placeholder={i18n.t("signup.ownerNamePh")} autoCapitalize="words" autoComplete="name" testID="reg-owner" />
+      <Field label={i18n.t("signup.email")} value={a.email} onChange={(v) => set({ email: v })} error={errors.email} placeholder="you@restaurant.com" autoCapitalize="none" keyboardType="email-address" autoComplete="email" testID="reg-email" />
+      <Field label={i18n.t("signup.phone")} value={a.phone} onChange={(v) => set({ phone: v })} error={errors.phone} placeholder="+60 12-345 6789" keyboardType="phone-pad" autoComplete="tel" hint={i18n.t("signup.phoneHint")} testID="reg-phone" />
+      <Field label={i18n.t("signup.password")} value={a.password} onChange={(v) => set({ password: v })} error={errors.password} placeholder={i18n.t("signup.passwordPh")} secureTextEntry autoComplete="new-password" testID="reg-password" />
+      <Field label={i18n.t("signup.confirm")} value={a.passwordConfirm} onChange={(v) => set({ passwordConfirm: v })} error={errors.passwordConfirm} placeholder={i18n.t("signup.confirmPh")} secureTextEntry autoComplete="new-password" testID="reg-password-confirm" />
     </>
   );
 }
@@ -32,11 +34,11 @@ export function AccountStep({ a, set, errors }: StepProps) {
 export function BusinessStep({ a, set, errors }: StepProps) {
   return (
     <>
-      <Field label="Shop name" value={a.shopName} onChange={(v) => set({ shopName: v })} error={errors.shopName} placeholder="e.g. Kopitiam Lama" autoCapitalize="words" testID="reg-business" />
-      <Chips label="Business type" options={BUSINESS_TYPES} value={a.businessType} onPick={(k) => set({ businessType: k })} error={errors.businessType} testID="reg-type" />
-      <Field label="SSM registration number" value={a.ssmNumber} onChange={(v) => set({ ssmNumber: v })} error={errors.ssmNumber} placeholder="202301012345 or 1234567-A" autoCapitalize="characters" testID="reg-ssm" />
-      <Field label="Short description" value={a.description} onChange={(v) => set({ description: v })} error={errors.description} placeholder="e.g. Wok-fried noodles and kopitiam drinks since 2009." multiline maxLength={160} hint={`${a.description.trim().length}/160`} testID="reg-description" />
-      <UploadTile label="SSM certificate" kind="document" file={a.ssmCertificate} onChange={(x) => set({ ssmCertificate: x })} error={errors.ssmCertificate} privateNote testID="reg-ssm-file" />
+      <Field label={i18n.t("signup.shopName")} value={a.shopName} onChange={(v) => set({ shopName: v })} error={errors.shopName} placeholder={i18n.t("signup.shopNamePh")} autoCapitalize="words" testID="reg-business" />
+      <Chips label={i18n.t("signup.businessType")} options={BUSINESS_TYPES} value={a.businessType} onPick={(k) => set({ businessType: k })} error={errors.businessType} testID="reg-type" />
+      <Field label={i18n.t("signup.ssm")} value={a.ssmNumber} onChange={(v) => set({ ssmNumber: v })} error={errors.ssmNumber} placeholder={i18n.t("signup.ssmPh")} autoCapitalize="characters" testID="reg-ssm" />
+      <Field label={i18n.t("signup.description")} value={a.description} onChange={(v) => set({ description: v })} error={errors.description} placeholder={i18n.t("signup.descriptionPh")} multiline maxLength={160} hint={`${a.description.trim().length}/160`} testID="reg-description" />
+      <UploadTile label={i18n.t("signup.ssmFile")} kind="document" file={a.ssmCertificate} onChange={(x) => set({ ssmCertificate: x })} error={errors.ssmCertificate} privateNote testID="reg-ssm-file" />
     </>
   );
 }
@@ -49,11 +51,11 @@ export function LocationStep({ a, set, errors }: StepProps) {
 
   function useMyLocation() {
     setLocError("");
-    if (!geo) return setLocError("Location is not available here. Type the pin numbers below instead.");
+    if (!geo) return setLocError(i18n.t("signup.noGeo"));
     setLocating(true);
     geo.getCurrentPosition(
       (p: any) => { set({ lat: p.coords.latitude.toFixed(6), lng: p.coords.longitude.toFixed(6) }); setLocating(false); },
-      () => { setLocError("Could not get your location. Allow location access, or type the pin numbers below."); setLocating(false); },
+      () => { setLocError(i18n.t("signup.geoFailed")); setLocating(false); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
@@ -64,32 +66,32 @@ export function LocationStep({ a, set, errors }: StepProps) {
   const cleanNumber = (v: string) => { const t = v.replace(/,/g, ".").replace(/[^0-9.\-]/g, ""); const i = t.indexOf("."); return i < 0 ? t : t.slice(0, i + 1) + t.slice(i + 1).replace(/\./g, ""); };
   return (
     <>
-      <Field label="Address or stall number" value={a.address} onChange={(v) => set({ address: v })} error={errors.address} placeholder="Canteen B, Stall 6" autoCapitalize="words" testID="reg-location" />
+      <Field label={i18n.t("signup.address")} value={a.address} onChange={(v) => set({ address: v })} error={errors.address} placeholder={i18n.t("signup.addressPh")} autoCapitalize="words" testID="reg-location" />
       <View style={f.block}>
-        <Label>Map pin</Label>
+        <Label>{i18n.t("signup.pin")}</Label>
         <View style={[s.pinCard, !!errors.pin && f.inputError]}>
           <Ionicons name={pinBad ? "warning" : "location"} size={28} color={pinBad ? colors.chiliText : hasPin ? colors.turmericDeep : colors.stone} />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={type.h3}>{pinBad ? "Check the numbers" : hasPin ? "Pin set" : "No pin yet"}</Text>
-            <Text style={type.small}>{hasPin ? `${a.lat}, ${a.lng}` : "Stand at your shop and tap the button, or type the numbers."}</Text>
+            <Text style={type.h3}>{pinBad ? i18n.t("signup.pinBad") : hasPin ? i18n.t("signup.pinSet") : i18n.t("signup.noPin")}</Text>
+            <Text style={type.small}>{hasPin ? `${a.lat}, ${a.lng}` : i18n.t("signup.pinHelp")}</Text>
           </View>
         </View>
         <Pressable style={s.ghostBtn} onPress={useMyLocation} disabled={locating} accessibilityRole="button" testID="reg-use-location">
           <Ionicons name="navigate-outline" size={16} color={colors.ink} />
-          <Text style={s.ghostText}>{locating ? "Finding you…" : "Use my current location"}</Text>
+          <Text style={s.ghostText}>{locating ? i18n.t("signup.finding") : i18n.t("signup.useLocation")}</Text>
         </Pressable>
         <View style={s.row}>
           <View style={{ flex: 1 }}>
-            <Field label="Latitude" value={a.lat} onChange={(v) => set({ lat: cleanNumber(v) })} placeholder="1.5533" keyboardType="numbers-and-punctuation" testID="reg-lat" />
+            <Field label={i18n.t("signup.lat")} value={a.lat} onChange={(v) => set({ lat: cleanNumber(v) })} placeholder="1.5533" keyboardType="numbers-and-punctuation" testID="reg-lat" />
           </View>
           <View style={{ flex: 1 }}>
-            <Field label="Longitude" value={a.lng} onChange={(v) => set({ lng: cleanNumber(v) })} placeholder="110.3592" keyboardType="numbers-and-punctuation" testID="reg-lng" />
+            <Field label={i18n.t("signup.lng")} value={a.lng} onChange={(v) => set({ lng: cleanNumber(v) })} placeholder="110.3592" keyboardType="numbers-and-punctuation" testID="reg-lng" />
           </View>
         </View>
-        <Text style={type.small}>The pin shows your shop on the customer map.</Text>
+        <Text style={type.small}>{i18n.t("signup.pinShows")}</Text>
         <FieldError text={errors.pin || pinBad || locError} />
       </View>
-      <Field label="Nearby landmark (optional)" value={a.landmark} onChange={(v) => set({ landmark: v })} placeholder="e.g. Next to the campus bookshop" testID="reg-landmark" />
+      <Field label={i18n.t("signup.landmark")} value={a.landmark} onChange={(v) => set({ landmark: v })} placeholder={i18n.t("signup.landmarkPh")} testID="reg-landmark" />
     </>
   );
 }
@@ -98,11 +100,11 @@ export function LocationStep({ a, set, errors }: StepProps) {
 export function FoodStep({ a, set, errors }: StepProps) {
   return (
     <>
-      <Field label="Cuisine type" value={a.cuisine} onChange={(v) => set({ cuisine: v })} error={errors.cuisine} placeholder="Noodles, Malay, Drinks" autoCapitalize="words" hint="Separate several with commas." testID="reg-cuisine" />
-      <Chips label="Price range" options={[{ key: 1, label: "RM" }, { key: 2, label: "RM RM" }, { key: 3, label: "RM RM RM" }]} value={a.priceRange} onPick={(k) => set({ priceRange: k as 1 | 2 | 3 })} error={errors.priceRange} testID="reg-price" />
-      <ToggleRow label="Vegetarian or vegan options" sub="Shown as a tag on your shop page" value={a.vegetarianOptions} onChange={(v) => set({ vegetarianOptions: v })} testID="reg-veg" />
-      <Chips label="Is your food halal?" options={[{ key: "yes", label: "Yes, halal" }, { key: "no", label: "No" }]} value={a.halal === null ? null : a.halal ? "yes" : "no"} onPick={(k) => set({ halal: k === "yes" })} error={errors.halal} testID="reg-halal" />
-      {a.halal ? <UploadTile label="Halal certificate" kind="document" file={a.halalCertificate} onChange={(x) => set({ halalCertificate: x })} error={errors.halalCertificate} privateNote testID="reg-halal-file" /> : null}
+      <Field label={i18n.t("signup.cuisine")} value={a.cuisine} onChange={(v) => set({ cuisine: v })} error={errors.cuisine} placeholder={i18n.t("signup.cuisinePh")} autoCapitalize="words" hint={i18n.t("signup.cuisineHint")} testID="reg-cuisine" />
+      <Chips label={i18n.t("signup.priceRange")} options={[{ key: 1, label: "RM" }, { key: 2, label: "RM RM" }, { key: 3, label: "RM RM RM" }]} value={a.priceRange} onPick={(k) => set({ priceRange: k as 1 | 2 | 3 })} error={errors.priceRange} testID="reg-price" />
+      <ToggleRow label={i18n.t("signup.veg")} sub={i18n.t("signup.vegSub")} value={a.vegetarianOptions} onChange={(v) => set({ vegetarianOptions: v })} testID="reg-veg" />
+      <Chips label={i18n.t("signup.halal")} options={[{ key: "yes", label: i18n.t("signup.halalYes") }, { key: "no", label: i18n.t("applicant.no") }]} value={a.halal === null ? null : a.halal ? "yes" : "no"} onPick={(k) => set({ halal: k === "yes" })} error={errors.halal} testID="reg-halal" />
+      {a.halal ? <UploadTile label={i18n.t("signup.halalFile")} kind="document" file={a.halalCertificate} onChange={(x) => set({ halalCertificate: x })} error={errors.halalCertificate} privateNote testID="reg-halal-file" /> : null}
     </>
   );
 }
@@ -115,44 +117,44 @@ export function ServiceStep({ a, set, errors }: StepProps) {
     <>
       <View style={f.block}>
         <View style={s.rowBetween}>
-          <Label>Opening hours</Label>
+          <Label>{i18n.t("hours.title")}</Label>
           <Pressable onPress={copyMonday} hitSlop={8} accessibilityRole="button" testID="reg-copy-hours">
-            <Text style={s.link}>Copy Monday to all days</Text>
+            <Text style={s.link}>{i18n.t("hours.copyMonday")}</Text>
           </Pressable>
         </View>
         <View style={[s.hoursCard, !!errors.hours && f.inputError]}>
           {a.hours.map((h, i) => (
             <View key={h.day} style={s.dayRow}>
-              <Text style={[type.body, s.dayLabel]}>{DAYS[i].label.slice(0, 3)}</Text>
+              <Text style={[type.body, s.dayLabel]}>{DAYS[i].short}</Text>
               {h.closed ? (
-                <Text style={[type.bodyMuted, { flex: 1 }]}>Closed</Text>
+                <Text style={[type.bodyMuted, { flex: 1 }]}>{i18n.t("hours.closed")}</Text>
               ) : (
                 <View style={s.times}>
-                  <TextInput style={s.time} value={h.open} onChangeText={(v: string) => setDay(i, { open: v })} placeholder="09:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={`${DAYS[i].label} opens`} testID={`reg-open-${h.day}`} />
+                  <TextInput style={s.time} value={h.open} onChangeText={(v: string) => setDay(i, { open: v })} placeholder="09:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={i18n.t("hours.opens", { day: DAYS[i].label })} testID={`reg-open-${h.day}`} />
                   <Text style={type.bodyMuted}>–</Text>
-                  <TextInput style={s.time} value={h.close} onChangeText={(v: string) => setDay(i, { close: v })} placeholder="21:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={`${DAYS[i].label} closes`} testID={`reg-close-${h.day}`} />
+                  <TextInput style={s.time} value={h.close} onChangeText={(v: string) => setDay(i, { close: v })} placeholder="21:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={i18n.t("hours.closes", { day: DAYS[i].label })} testID={`reg-close-${h.day}`} />
                 </View>
               )}
-              <Switch value={!h.closed} onValueChange={(open: boolean) => setDay(i, { closed: !open })} trackColor={{ false: colors.stoneLine, true: colors.herb }} thumbColor={colors.white} accessibilityLabel={`Open on ${DAYS[i].label}`} />
+              <Switch value={!h.closed} onValueChange={(open: boolean) => setDay(i, { closed: !open })} trackColor={{ false: colors.stoneLine, true: colors.herb }} thumbColor={colors.white} accessibilityLabel={i18n.t("hours.openOn", { day: DAYS[i].label })} />
             </View>
           ))}
         </View>
         <FieldError text={errors.hours} />
       </View>
       <View style={f.block}>
-        <Label>How customers get their food</Label>
-        <ToggleRow label="Delivery" value={a.delivery} onChange={(v) => set({ delivery: v })} testID="reg-delivery" />
-        <ToggleRow label="Pickup" value={a.pickup} onChange={(v) => set({ pickup: v })} testID="reg-pickup" />
-        <ToggleRow label="Dine-in" value={a.dineIn} onChange={(v) => set({ dineIn: v })} testID="reg-dinein" />
+        <Label>{i18n.t("signup.howGet")}</Label>
+        <ToggleRow label={i18n.t("mode.delivery")} value={a.delivery} onChange={(v) => set({ delivery: v })} testID="reg-delivery" />
+        <ToggleRow label={i18n.t("signup.pickup")} value={a.pickup} onChange={(v) => set({ pickup: v })} testID="reg-pickup" />
+        <ToggleRow label={i18n.t("mode.dineIn")} value={a.dineIn} onChange={(v) => set({ dineIn: v })} testID="reg-dinein" />
         <FieldError text={errors.service} />
       </View>
-      {a.dineIn ? <Field label="Number of seats" value={a.seats} onChange={(v) => set({ seats: v })} error={errors.seats} placeholder="e.g. 12" keyboardType="number-pad" testID="reg-seats" /> : null}
+      {a.dineIn ? <Field label={i18n.t("signup.seats")} value={a.seats} onChange={(v) => set({ seats: v })} error={errors.seats} placeholder={i18n.t("menu.eg", { v: "12" })} keyboardType="number-pad" testID="reg-seats" /> : null}
       <View style={s.row}>
         <View style={{ flex: 1 }}>
-          <Field label="Avg. prep time (min)" value={a.prepMinutes} onChange={(v) => set({ prepMinutes: v })} error={errors.prepMinutes} placeholder="15" keyboardType="number-pad" testID="reg-prep" />
+          <Field label={i18n.t("signup.prep")} value={a.prepMinutes} onChange={(v) => set({ prepMinutes: v })} error={errors.prepMinutes} placeholder="15" keyboardType="number-pad" testID="reg-prep" />
         </View>
         <View style={{ flex: 1 }}>
-          <Field label="Minimum order (RM)" value={a.minOrder} onChange={(v) => set({ minOrder: v })} error={errors.minOrder} placeholder="Optional" keyboardType="decimal-pad" testID="reg-min-order" />
+          <Field label={i18n.t("signup.minOrder")} value={a.minOrder} onChange={(v) => set({ minOrder: v })} error={errors.minOrder} placeholder={i18n.t("signup.optional")} keyboardType="decimal-pad" testID="reg-min-order" />
         </View>
       </View>
     </>
@@ -169,20 +171,20 @@ export function HygieneStep({ a, set, errors }: StepProps) {
   return (
     <>
       <View style={f.block}>
-        <Label>Which of these are used in your kitchen?</Label>
-        <Text style={type.small}>Tick every one, even if only a little goes into a sauce.</Text>
+        <Label>{i18n.t("signup.whichAllergens")}</Label>
+        <Text style={type.small}>{i18n.t("signup.tickEvery")}</Text>
         <View style={[s.checkList, !!errors.allergens && f.inputError]}>
           {ALLERGENS.map((x, i) => (
-            <CheckRow key={x.name} label={x.name} sub={x.examples} checked={a.allergens.includes(x.name)} onPress={() => toggle(x.name)} first={i === 0} testID={`reg-allergen-${x.name}`} />
+            <CheckRow key={x.name} label={allergenName(x.name)} sub={x.examples} checked={a.allergens.includes(x.name)} onPress={() => toggle(x.name)} first={i === 0} testID={`reg-allergen-${x.name}`} />
           ))}
-          <CheckRow label="None of these" sub="None of the 9 allergens above are used in my kitchen" checked={a.noAllergens} onPress={toggleNone} none testID="reg-allergen-none" />
+          <CheckRow label={i18n.t("signup.none")} sub={i18n.t("signup.noneSub")} checked={a.noAllergens} onPress={toggleNone} none testID="reg-allergen-none" />
         </View>
         <Text style={type.small} accessibilityLiveRegion="polite">
-          {a.noAllergens ? "You said none of these are used." : a.allergens.length ? `${a.allergens.length} ticked: ${a.allergens.join(", ")}` : "Nothing ticked yet."}
+          {a.noAllergens ? i18n.t("signup.saidNone") : a.allergens.length ? i18n.t("signup.ticked", { n: a.allergens.length, list: a.allergens.map(allergenName).join(i18n.t("common.listSep")) }) : i18n.t("signup.nothingTicked")}
         </Text>
         <FieldError text={errors.allergens} />
       </View>
-      <Field label="Food hygiene or business licence number" value={a.licenceNo} onChange={(v) => set({ licenceNo: v })} error={errors.licenceNo} placeholder="e.g. MBJB-LK-2024-08812" autoCapitalize="characters" testID="reg-licence" />
+      <Field label={i18n.t("signup.licence")} value={a.licenceNo} onChange={(v) => set({ licenceNo: v })} error={errors.licenceNo} placeholder="e.g. MBJB-LK-2024-08812" autoCapitalize="characters" testID="reg-licence" />
     </>
   );
 }
@@ -192,68 +194,67 @@ export function PicturesStep({ a, set, errors }: StepProps) {
   const setItem = (i: number, patch: Partial<ShopApplication["menuItems"][number]>) => set({ menuItems: a.menuItems.map((m, j) => (j === i ? { ...m, ...patch } : m)) });
   return (
     <>
-      <UploadTile label="Logo" kind="image" file={a.logo} onChange={(x) => set({ logo: x })} error={errors.logo} testID="reg-logo" />
-      <UploadTile label="Cover photo" kind="image" file={a.cover} onChange={(x) => set({ cover: x })} error={errors.cover} testID="reg-cover" />
-      <Label>Menu items (at least 3, each with a real photo)</Label>
+      <UploadTile label={i18n.t("signup.logo")} kind="image" file={a.logo} onChange={(x) => set({ logo: x })} error={errors.logo} testID="reg-logo" />
+      <UploadTile label={i18n.t("signup.cover")} kind="image" file={a.cover} onChange={(x) => set({ cover: x })} error={errors.cover} testID="reg-cover" />
+      <Label>{i18n.t("signup.menuItems")}</Label>
       {a.menuItems.map((m, i) => (
         <View key={i} style={[s.dishCard, !!errors[`menu${i}`] && f.inputError]}>
           <View style={s.rowBetween}>
-            <Text style={type.h3}>Dish {i + 1}</Text>
+            <Text style={type.h3}>{i18n.t("signup.dishN", { n: i + 1 })}</Text>
             {a.menuItems.length > 3 ? (
-              <Pressable onPress={() => set({ menuItems: a.menuItems.filter((_, j) => j !== i) })} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Remove dish ${i + 1}`}>
-                <Text style={s.link}>Remove</Text>
+              <Pressable onPress={() => set({ menuItems: a.menuItems.filter((_, j) => j !== i) })} hitSlop={8} accessibilityRole="button" accessibilityLabel={i18n.t("signup.removeDish", { n: i + 1 })}>
+                <Text style={s.link}>{i18n.t("photo.remove")}</Text>
               </Pressable>
             ) : null}
           </View>
           <View style={s.row}>
             <View style={{ flex: 2 }}>
-              <Field label="Name" value={m.name} onChange={(v) => setItem(i, { name: v })} placeholder="e.g. Kuey Teow Goreng" autoCapitalize="words" testID={`reg-dish-${i}-name`} />
+              <Field label={i18n.t("signup.dishName")} value={m.name} onChange={(v) => setItem(i, { name: v })} placeholder={i18n.t("signup.dishNamePh")} autoCapitalize="words" testID={`reg-dish-${i}-name`} />
             </View>
             <View style={{ flex: 1 }}>
-              <Field label="Price (RM)" value={m.price} onChange={(v) => setItem(i, { price: v })} placeholder="8.50" keyboardType="decimal-pad" testID={`reg-dish-${i}-price`} />
+              <Field label={i18n.t("signup.price")} value={m.price} onChange={(v) => setItem(i, { price: v })} placeholder="8.50" keyboardType="decimal-pad" testID={`reg-dish-${i}-price`} />
             </View>
           </View>
-          <Field label="Description" value={m.description} onChange={(v) => setItem(i, { description: v })} placeholder="One short line" maxLength={120} testID={`reg-dish-${i}-desc`} />
+          <Field label={i18n.t("signup.dishDesc")} value={m.description} onChange={(v) => setItem(i, { description: v })} placeholder={i18n.t("signup.oneLine")} maxLength={120} testID={`reg-dish-${i}-desc`} />
           {/* Only the allergens ticked in step 6 are offered, so the list stays short. Shown to customers as "Contains: ...". */}
           {!a.noAllergens && a.allergens.length ? (
             <Chips
-              label="Allergens in this dish (tap all that apply)"
-              options={a.allergens.map((k) => ({ key: k, label: k }))}
+              label={i18n.t("signup.dishAllergens")}
+              options={a.allergens.map((k) => ({ key: k, label: allergenName(k) }))}
               selected={m.allergens.filter((x) => a.allergens.includes(x))}
               onPick={(k) => setItem(i, { allergens: m.allergens.includes(k) ? m.allergens.filter((x) => x !== k) : [...m.allergens, k] })}
               testID={`reg-dish-${i}-allergen`}
             />
           ) : null}
-          <UploadTile label="Dish photo" kind="image" file={m.photo} onChange={(x) => setItem(i, { photo: x })} testID={`reg-dish-${i}-photo`} />
+          <UploadTile label={i18n.t("menu.photo")} kind="image" file={m.photo} onChange={(x) => setItem(i, { photo: x })} testID={`reg-dish-${i}-photo`} />
           <FieldError text={errors[`menu${i}`]} />
         </View>
       ))}
       {a.menuItems.length < 10 ? (
         <Pressable style={s.ghostBtn} onPress={() => set({ menuItems: [...a.menuItems, emptyMenuItem()] })} accessibilityRole="button" testID="reg-add-dish">
           <Ionicons name="add" size={18} color={colors.ink} />
-          <Text style={s.ghostText}>Add another dish</Text>
+          <Text style={s.ghostText}>{i18n.t("signup.addDish")}</Text>
         </Pressable>
       ) : null}
       <FieldError text={errors.menu} />
-      <Text style={type.small}>Use your own photos, taken with the owner's permission. Do not copy pictures from Google or GrabFood.</Text>
+      <Text style={type.small}>{i18n.t("signup.ownPhotos")}</Text>
     </>
   );
 }
 
 // 8. Review and agree
-const TYPE_LABEL = Object.fromEntries(BUSINESS_TYPES.map((b) => [b.key, b.label]));
 export function ReviewStep({ a, set, errors, goTo }: StepProps) {
   const open = a.hours.filter((h) => !h.closed);
-  const service = [a.delivery && "Delivery", a.pickup && "Pickup", a.dineIn && `Dine-in (${a.seats || "?"} seats)`].filter(Boolean).join(", ");
-  const photos = [a.logo && "logo", a.cover && "cover", `${a.menuItems.filter((m) => m.photo).length} dish photos`].filter(Boolean).join(", ");
+  const service = [a.delivery && i18n.t("mode.delivery"), a.pickup && i18n.t("signup.pickup"), a.dineIn && i18n.t("signup.dineInSeats", { n: a.seats || "?" })].filter(Boolean).join(i18n.t("common.listSep"));
+  const photos = [a.logo && i18n.t("signup.rLogo"), a.cover && i18n.t("signup.rCover"), i18n.t("signup.rDishPhotos", { n: a.menuItems.filter((m) => m.photo).length })].filter(Boolean).join(i18n.t("common.listSep"));
   const rows: [string, string][] = [
-    ["Account", `${a.ownerName.trim()} · ${a.email.trim()} · ${a.phone.trim()}`],
-    ["Business", `${a.shopName.trim()} · ${a.businessType ? TYPE_LABEL[a.businessType] : ""} · SSM ${a.ssmNumber.trim()}${a.ssmCertificate ? " · certificate added" : ""}`],
-    ["Location", `${a.address.trim()}${a.landmark.trim() ? ` · ${a.landmark.trim()}` : ""} · pin ${a.lat}, ${a.lng}`],
-    ["Food", `${a.cuisine.trim()} · ${"RM ".repeat(a.priceRange ?? 0).trim()}${a.vegetarianOptions ? " · vegetarian options" : ""} · ${a.halal ? "Halal" : "Not halal"}`],
-    ["Hours and service", `Open ${open.length} days (${open[0]?.open ?? ""}–${open[0]?.close ?? ""} on ${DAYS.find((d) => d.key === open[0]?.day)?.label ?? ""}) · ${service} · prep ${a.prepMinutes} min${a.minOrder.trim() ? ` · min RM ${a.minOrder.trim()}` : ""}`],
-    ["Allergens and hygiene", `${a.noAllergens ? "None of the 9 used" : a.allergens.join(", ")} · licence ${a.licenceNo.trim()}`],
-    ["Pictures", `${photos} · ${a.menuItems.length} dishes`],
+    [i18n.t("signup.step_account"), `${a.ownerName.trim()} · ${a.email.trim()} · ${a.phone.trim()}`],
+    [i18n.t("signup.step_business"), `${a.shopName.trim()} · ${a.businessType ? BUSINESS_TYPES.find((b) => b.key === a.businessType)?.label ?? "" : ""} · SSM ${a.ssmNumber.trim()}${a.ssmCertificate ? ` · ${i18n.t("signup.rCert")}` : ""}`],
+    [i18n.t("signup.step_location"), `${a.address.trim()}${a.landmark.trim() ? ` · ${a.landmark.trim()}` : ""} · ${i18n.t("signup.rPin", { lat: a.lat, lng: a.lng })}`],
+    [i18n.t("signup.step_food"), `${a.cuisine.trim()} · ${"RM ".repeat(a.priceRange ?? 0).trim()}${a.vegetarianOptions ? ` · ${i18n.t("signup.rVeg")}` : ""} · ${a.halal ? i18n.t("signup.rHalal") : i18n.t("signup.rNotHalal")}`],
+    [i18n.t("signup.step_service"), `${i18n.t("signup.rOpen", { n: open.length, open: open[0]?.open ?? "", close: open[0]?.close ?? "", day: DAYS.find((d) => d.key === open[0]?.day)?.label ?? "" })} · ${service} · ${i18n.t("signup.rPrep", { n: a.prepMinutes })}${a.minOrder.trim() ? ` · ${i18n.t("signup.rMin", { amount: a.minOrder.trim() })}` : ""}`],
+    [i18n.t("signup.step_hygiene"), `${a.noAllergens ? i18n.t("signup.rNone") : a.allergens.map(allergenName).join(i18n.t("common.listSep"))} · ${i18n.t("signup.rLicence", { no: a.licenceNo.trim() })}`],
+    [i18n.t("signup.step_pictures"), `${photos} · ${i18n.t("signup.rDishes", { n: a.menuItems.length })}`],
   ];
   return (
     <>
@@ -263,23 +264,23 @@ export function ReviewStep({ a, set, errors, goTo }: StepProps) {
             <Text style={type.h3}>{title}</Text>
             <Text style={type.small}>{value}</Text>
           </View>
-          <Pressable onPress={() => goTo?.(i)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Edit ${title}`} testID={`reg-edit-${i}`}>
-            <Text style={s.link}>Edit</Text>
+          <Pressable onPress={() => goTo?.(i)} hitSlop={8} accessibilityRole="button" accessibilityLabel={i18n.t("ann.editA11y", { title })} testID={`reg-edit-${i}`}>
+            <Text style={s.link}>{i18n.t("common.edit")}</Text>
           </Pressable>
         </View>
       ))}
       {!canPickFiles ? (
         <View style={s.note}>
           <Ionicons name="information-circle-outline" size={18} color={colors.amberText} />
-          <Text style={[type.small, { flex: 1, color: colors.amberText }]}>Photos and certificates were not added on this device. The admin will ask you for them before approval.</Text>
+          <Text style={[type.small, { flex: 1, color: colors.amberText }]}>{i18n.t("signup.noFilesNote")}</Text>
         </View>
       ) : null}
       <Pressable style={s.agree} onPress={() => set({ agreedTerms: !a.agreedTerms })} accessibilityRole="checkbox" accessibilityState={{ checked: a.agreedTerms }} testID="reg-terms">
         <View style={[s.box, a.agreedTerms && s.boxOn]}>{a.agreedTerms ? <Ionicons name="checkmark" size={15} color={colors.white} /> : null}</View>
-        <Text style={[type.body, { flex: 1 }]}>I agree to the ScootMeal merchant terms and confirm these details are true.</Text>
+        <Text style={[type.body, { flex: 1 }]}>{i18n.t("signup.agree")}</Text>
       </Pressable>
       <FieldError text={errors.agreedTerms} />
-      <Text style={type.small}>We do not ask for IC numbers or bank details. Your shop goes live once a ScootMeal admin approves it.</Text>
+      <Text style={type.small}>{i18n.t("signup.noIc")}</Text>
     </>
   );
 }

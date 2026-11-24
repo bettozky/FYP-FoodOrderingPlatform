@@ -1,6 +1,12 @@
 // Shapes returned by the backend (see backend/src/store/types.ts).
+import i18n from "i18next";
 export type Mode = "delivery" | "dine_in" | "takeaway";
-export const MODE_LABEL: Record<Mode, string> = { delivery: "Delivery", dine_in: "Dine-in", takeaway: "Takeaway" };
+// Read in the app's current language each time (i18n getters).
+export const MODE_LABEL: Record<Mode, string> = {
+  get delivery() { return i18n.t("mode.delivery"); },
+  get dine_in() { return i18n.t("mode.dineIn"); },
+  get takeaway() { return i18n.t("mode.takeaway"); },
+};
 
 export type OrderItem = {
   id: string; dishId: string; name: string; price: number; qty: number; mode: Mode; options: string[];

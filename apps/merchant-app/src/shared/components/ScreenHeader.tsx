@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, layout, spacing, type, ui } from "../theme/theme";
+import i18n from "../../shared/i18n";
 
 type Props = {
   title: string;
@@ -24,7 +25,7 @@ export default function ScreenHeader({ title, subtitle, showBack = true, right }
             hitSlop={8}
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.6 }]}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={i18n.t("common.back")}
             testID="back"
           >
             <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />

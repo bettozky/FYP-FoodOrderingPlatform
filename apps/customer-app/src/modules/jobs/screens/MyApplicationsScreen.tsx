@@ -2,17 +2,20 @@ import React, { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import Badge from "../../../shared/components/Badge";
 import EmptyState from "../../../shared/components/EmptyState";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { api, errorText } from "../../../shared/api/client";
 import { JobApplication } from "../../../shared/api/types";
 import { confirmAsync } from "../../../shared/util/confirm";
+import { locale } from "../../../shared/i18n";
 import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { fmtDate, fmtWhen, STATUS_HELP, STATUS_LABEL, STATUS_TONE } from "../status";
 
 // "My job applications": what I applied for, where each one stands, interview details, and withdraw.
 export default function MyApplicationsScreen({ navigation, route }: any) {
+  const { t } = useTranslation();
   const [apps, setApps] = useState<JobApplication[] | null>(null);
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -29,14 +32,14 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const withdraw = async (a: JobApplication) => {
-    if (!(await confirmAsync("Withdraw this application?", `${a.merchantName} will be told you are no longer interested in ${a.jobTitle}.`, "Withdraw"))) return;
+    if (!(await confirmAsync(t("jobs.withdrawTitle"), t("jobs.withdrawText", { shop: a.merchantName, job: a.jobTitle }), t("jobs.withdraw")))) return;
     try { await api("POST", `/applications/${a.id}/withdraw`); await load(); } catch (e) { setError(errorText(e)); }
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="My applications" subtitle="Track the jobs you applied for" />
-      {route?.params?.justApplied ? <View style={styles.thanks}><Ionicons name="checkmark-circle" size={18} color={colors.herb} /><Text style={[type.body, { flex: 1 }]}>Application sent! The shop will see it in their app. We will notify you when they reply.</Text></View> : null}
+      <ScreenHeader title={t("jobs.myApplications")} subtitle={t("jobs.trackSubtitle")} />
+      {route?.params?.justApplied ? <View style={styles.thanks}><Ionicons name="checkmark-circle" size={18} color={colors.herb} /><Text style={[type.body, { flex: 1 }]}>{t("jobs.sent")}</Text></View> : null}
       {error ? <Text style={[type.body, { padding: spacing.lg, color: colors.chiliText }]}>{error}</Text> : null}
       {apps === null && !error ? <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} /> : (
         <FlatList
@@ -44,7 +47,7 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
           keyExtractor={(a) => a.id}
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
-          ListEmptyComponent={<EmptyState icon="document-text-outline" title="No applications yet" hint="Find a job you like and tap Apply." />}
+          ListEmptyComponent={<EmptyState icon="document-text-outline" title={t("jobs.noApplications")} hint={t("jobs.noApplicationsHint")} />}
           renderItem={({ item: a }) => {
             const expanded = open === a.id;
             return (
@@ -53,7 +56,7 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
                   <View style={styles.top}>
                     <View style={{ flex: 1 }}>
                       <Text style={type.h3}>{a.jobTitle}</Text>
-                      <Text style={type.bodyMuted}>{a.merchantName} · applied {fmtDate(a.createdAt)}</Text>
+                      <Text style={type.bodyMuted}>{t("jobs.appliedOn", { shop: a.merchantName, date: fmtDate(a.createdAt) })}</Text>
                     </View>
                     <Badge label={STATUS_LABEL[a.status]} tone={STATUS_TONE[a.status]} />
                   </View>
@@ -74,16 +77,16 @@ export default function MyApplicationsScreen({ navigation, route }: any) {
                 {expanded ? (
                   <View style={{ gap: 4, marginTop: spacing.sm }}>
                     {a.history.map((h, i) => (
-                      <Text key={i} style={type.small}>• {STATUS_LABEL[h.status]} · {new Date(h.at).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</Text>
+                      <Text key={i} style={type.small}>• {STATUS_LABEL[h.status]} · {new Date(h.at).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</Text>
                     ))}
-                    <Text style={type.small}>Documents: {[a.documents.resume?.name, a.documents.other?.name].filter(Boolean).join(", ") || "none attached"}</Text>
+                    <Text style={type.small}>{t("jobs.documents", { list: [a.documents.resume?.name, a.documents.other?.name].filter(Boolean).join(", ") || t("jobs.noneAttached") })}</Text>
                   </View>
                 ) : null}
 
                 <View style={styles.actions}>
-                  <Pressable onPress={() => navigation.navigate("JobDetail", { jobId: a.jobId })} style={styles.action} accessibilityRole="button"><Text style={styles.actionText}>View job</Text></Pressable>
+                  <Pressable onPress={() => navigation.navigate("JobDetail", { jobId: a.jobId })} style={styles.action} accessibilityRole="button"><Text style={styles.actionText}>{t("jobs.viewJob")}</Text></Pressable>
                   {!["hired", "withdrawn", "rejected"].includes(a.status) ? (
-                    <Pressable onPress={() => withdraw(a)} style={styles.action} accessibilityRole="button" testID={`withdraw-${a.id}`}><Text style={[styles.actionText, { color: colors.chiliText }]}>Withdraw</Text></Pressable>
+                    <Pressable onPress={() => withdraw(a)} style={styles.action} accessibilityRole="button" testID={`withdraw-${a.id}`}><Text style={[styles.actionText, { color: colors.chiliText }]}>{t("jobs.withdraw")}</Text></Pressable>
                   ) : null}
                 </View>
               </View>

@@ -20,16 +20,21 @@ import { PopOnChange } from "../../../shared/motion/PulseRing";
 import { DishRowSkeleton } from "../../../shared/motion/Skeleton";
 import { dietFit } from "../../diet/diet";
 import { useDiet } from "../../diet/useDiet";
+import { dietWords } from "../../diet/dietWords";
+import { useTranslation } from "react-i18next";
+import { allergenList, venueName } from "../../../shared/i18n/labels";
 
 // Stall menu (new screen, Badrul's mock-up Oct 2026). Route: navigation.navigate("Stall", { merchantId }).
 // Stall-colour band with a big dish picture → floating info card (name, Open pill, stall no. and tags,
 // rating / prep time / delivery chips) → Menu · Reviews · Info tabs → dark "View cart" bar.
 type Tab = "menu" | "reviews" | "info";
 type MenuFilter = "all" | "dry" | "wet" | "vegetarian";
-const FILTER_LABEL: Record<MenuFilter, string> = { all: "All", dry: "Dry", wet: "Wet / soup", vegetarian: "Vegetarian" };
+const FILTER_LABEL = { all: "home.all", dry: "home.dry", wet: "home.wet", vegetarian: "diet.vegetarian" } as const satisfies Record<MenuFilter, string>;
+const TAB_LABEL = { menu: "stall.menu", reviews: "stall.reviews", info: "stall.info" } as const satisfies Record<Tab, string>;
 
 export default function StallScreen({ navigation, route }: any) {
   const { merchantId } = route.params;
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { merchantById } = useCatalog();
   const { isFavShop, toggleShop } = useFavourites();
@@ -64,8 +69,8 @@ export default function StallScreen({ navigation, route }: any) {
     .filter((d) => filter === "all" || (filter === "vegetarian" ? d.dietary.includes("vegetarian") : d.style === filter))
     .sort((a, b) => Number(a.soldOut) - Number(b.soldOut));
   const hiding = !!diet?.hideUnsuitable && !showHidden;
-  const hiddenCount = diet?.hideUnsuitable ? matching.filter((d) => dietFit(d, merchant, diet).level === "avoid").length : 0;
-  const shown = hiding ? matching.filter((d) => dietFit(d, merchant, diet).level !== "avoid") : matching;
+  const hiddenCount = diet?.hideUnsuitable ? matching.filter((d) => dietFit(d, merchant, diet, dietWords()).level === "avoid").length : 0;
+  const shown = hiding ? matching.filter((d) => dietFit(d, merchant, diet, dietWords()).level !== "avoid") : matching;
 
   if (!merchant) {
     return (
@@ -91,10 +96,10 @@ export default function StallScreen({ navigation, route }: any) {
           ) : (
             <Ionicons name="restaurant" size={72} color={colors.ink} style={styles.heroIcon} />
           )}
-          <Pressable style={[ui.iconButton, { position: "absolute", left: layout.gutter, top: insets.top + spacing.sm }]} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back" testID="back">
+          <Pressable style={[ui.iconButton, { position: "absolute", left: layout.gutter, top: insets.top + spacing.sm }]} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("common.back")} testID="back">
             <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />
           </Pressable>
-          <Pressable style={[ui.iconButton, { position: "absolute", right: layout.gutter, top: insets.top + spacing.sm }]} onPress={() => toggleShop(merchant.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={isFavShop(merchant.id) ? "Remove from saved stalls" : "Save this stall"} testID="fav-stall">
+          <Pressable style={[ui.iconButton, { position: "absolute", right: layout.gutter, top: insets.top + spacing.sm }]} onPress={() => toggleShop(merchant.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={isFavShop(merchant.id) ? t("stall.unsave") : t("stall.save")} testID="fav-stall">
             <PopOnChange trigger={isFavShop(merchant.id)}>
               <Ionicons name={isFavShop(merchant.id) ? "heart" : "heart-outline"} size={19} color={isFavShop(merchant.id) ? colors.chili : colors.ink} />
             </PopOnChange>
@@ -105,31 +110,31 @@ export default function StallScreen({ navigation, route }: any) {
           <View style={styles.titleRow}>
             <Text style={[type.h2, { flex: 1 }]} accessibilityRole="header">{merchant.name}</Text>
             <View style={[styles.pill, { backgroundColor: merchant.openNow ? colors.herbLight : colors.chiliSoft }]}>
-              <Text style={[styles.pillText, { color: merchant.openNow ? colors.herb : colors.chiliText }]}>{merchant.openNow ? "Open" : "Closed"}</Text>
+              <Text style={[styles.pillText, { color: merchant.openNow ? colors.herb : colors.chiliText }]}>{merchant.openNow ? t("stall.open") : t("stall.closed")}</Text>
             </View>
           </View>
           <Text style={styles.sub}>{[merchant.stallNo, ...merchant.tags].join(" · ")}</Text>
           <View style={styles.chips}>
-            <View style={ui.infoChip} accessibilityLabel={`Rated ${merchant.rating.toFixed(1)}`}>
+            <View style={ui.infoChip} accessibilityLabel={t("common.ratedValue", { rating: merchant.rating.toFixed(1) })}>
               <Ionicons name="star" size={12} color={colors.turmericDeep} />
               <Text style={ui.infoChipText}>{merchant.rating.toFixed(1)}</Text>
             </View>
             <ReadyChip merchant={merchant} />
             <View style={ui.infoChip}>
               <Ionicons name={merchant.dineInOnly ? "restaurant-outline" : "bicycle-outline"} size={13} color={colors.ink} />
-              <Text style={ui.infoChipText}>{merchant.dineInOnly ? "Dine-in only" : "Delivery"}</Text>
+              <Text style={ui.infoChipText}>{merchant.dineInOnly ? t("stall.dineInOnly") : t("stall.delivery")}</Text>
             </View>
           </View>
-          {!merchant.openNow ? <Text style={styles.closed}>Closed now · opens {merchant.hours.open}</Text> : null}
+          {!merchant.openNow ? <Text style={styles.closed}>{t("stall.closedNow", { time: merchant.hours.open })}</Text> : null}
           <BusyNotice merchant={merchant} />
         </View>
 
         <View style={styles.tabs} accessibilityRole="tablist">
-          {(["menu", "reviews", "info"] as Tab[]).map((t) => {
-            const on = tab === t;
+          {(["menu", "reviews", "info"] as Tab[]).map((k) => {
+            const on = tab === k;
             return (
-              <Pressable key={t} style={[styles.tab, on && styles.tabOn]} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: on }} testID={`stall-tab-${t}`}>
-                <Text style={[styles.tabText, on && styles.tabTextOn]}>{t === "menu" ? "Menu" : t === "reviews" ? "Reviews" : "Info"}</Text>
+              <Pressable key={k} style={[styles.tab, on && styles.tabOn]} onPress={() => setTab(k)} accessibilityRole="tab" accessibilityState={{ selected: on }} testID={`stall-tab-${k}`}>
+                <Text style={[styles.tabText, on && styles.tabTextOn]}>{t(TAB_LABEL[k])}</Text>
               </Pressable>
             );
           })}
@@ -145,7 +150,7 @@ export default function StallScreen({ navigation, route }: any) {
                   const on = filter === f;
                   return (
                     <Pressable key={f} onPress={() => setFilter(f)} style={[ui.chip, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`stall-filter-${f}`}>
-                      <Text style={[ui.chipText, on && ui.chipTextOn]}>{FILTER_LABEL[f]}</Text>
+                      <Text style={[ui.chipText, on && ui.chipTextOn]}>{t(FILTER_LABEL[f])}</Text>
                     </Pressable>
                   );
                 })}
@@ -164,7 +169,7 @@ export default function StallScreen({ navigation, route }: any) {
               {dishes === null && !error ? (
                 <DishRowSkeleton />
               ) : shown.length === 0 ? (
-                <EmptyState icon="restaurant-outline" title={dishes?.length ? "No dishes match" : "No dishes yet"} hint={dishes?.length ? "Try another filter." : "This stall hasn't added its menu yet."} />
+                <EmptyState icon="restaurant-outline" title={dishes?.length ? t("stall.noMatch") : t("stall.noDishes")} hint={dishes?.length ? t("stall.tryFilter") : t("stall.noMenuYet")} />
               ) : (
                 shown.map((d, i) => (
                   <FadeInView key={d.id} index={i}>
@@ -184,26 +189,26 @@ export default function StallScreen({ navigation, route }: any) {
 
         {tab === "info" ? (
           <View style={styles.infoGroup}>
-            <InfoRow icon="location-outline" label="Where" value={merchant.stallNo} />
-            <InfoRow icon="time-outline" label="Opening hours" value={`${merchant.hours.open} – ${merchant.hours.close}`} />
-            {merchant.venueCategory ? <InfoRow icon="pricetag-outline" label="Type" value={merchant.venueCategory} /> : null}
-            <InfoRow icon="bicycle-outline" label="Ways to order" value={merchant.dineInOnly ? "Dine-in only" : "Dine-in, takeaway or delivery"} />
-            <InfoRow icon="navigate-outline" label="Distance" value={`${merchant.distanceKm} km from your address`} />
+            <InfoRow icon="location-outline" label={t("stall.where")} value={merchant.stallNo} />
+            <InfoRow icon="time-outline" label={t("stall.hours")} value={`${merchant.hours.open} – ${merchant.hours.close}`} />
+            {merchant.venueCategory ? <InfoRow icon="pricetag-outline" label={t("stall.type")} value={venueName(merchant.venueCategory)} /> : null}
+            <InfoRow icon="bicycle-outline" label={t("stall.waysToOrder")} value={merchant.dineInOnly ? t("stall.dineInOnly") : t("stall.allWays")} />
+            <InfoRow icon="navigate-outline" label={t("stall.distance")} value={t("stall.kmFromYou", { km: merchant.distanceKm })} />
             <InfoRow
               icon="alert-circle-outline"
-              label="Allergens used in this kitchen"
+              label={t("stall.allergensTitle")}
               value={
                 merchant.allergens?.length
-                  ? merchant.allergens.join(", ")
+                  ? allergenList(merchant.allergens)
                   : merchant.allergens
-                    ? "None of the 9 common allergens (the stall's own answer)"
-                    : "Not listed yet. Ask the stall if you have an allergy."
+                    ? t("stall.allergensNone")
+                    : t("stall.allergensUnknown")
               }
               last={!merchant.phone}
             />
             {merchant.phone ? (
-              <Pressable onPress={() => Linking.openURL(`tel:${merchant.phone.replace(/\s/g, "")}`)} style={({ pressed }) => (pressed ? { backgroundColor: colors.paperDim } : null)} accessibilityRole="button" accessibilityLabel={`Call ${merchant.name}`}>
-                <InfoRow icon="call-outline" label="Phone" value={merchant.phone} last />
+              <Pressable onPress={() => Linking.openURL(`tel:${merchant.phone.replace(/\s/g, "")}`)} style={({ pressed }) => (pressed ? { backgroundColor: colors.paperDim } : null)} accessibilityRole="button" accessibilityLabel={t("stall.call", { name: merchant.name })}>
+                <InfoRow icon="call-outline" label={t("stall.phone")} value={merchant.phone} last />
               </Pressable>
             ) : null}
           </View>
@@ -213,14 +218,14 @@ export default function StallScreen({ navigation, route }: any) {
       {cartHere ? (
         // Slides up the first time something is added; the count pops each time it goes up.
         <FadeInView distance={40} style={[styles.barWrap, { paddingBottom: insets.bottom + spacing.md }]}>
-          <PressableScale style={ui.bottomBar} onPress={() => navigation.navigate("Cart")} accessibilityRole="button" accessibilityLabel={`View cart, ${itemCount} items, RM ${subtotal.toFixed(2)}`} testID="stall-view-cart">
+          <PressableScale style={ui.bottomBar} onPress={() => navigation.navigate("Cart")} accessibilityRole="button" accessibilityLabel={`${t("stall.viewCart")}, ${t("cart.items", { count: itemCount })}, RM ${subtotal.toFixed(2)}`} testID="stall-view-cart">
             <PopOnChange trigger={itemCount}>
               <Text style={ui.bottomBarText}>
-                {itemCount} {itemCount === 1 ? "item" : "items"} · RM {subtotal.toFixed(2)}
+                {t("cart.items", { count: itemCount })} · RM {subtotal.toFixed(2)}
               </Text>
             </PopOnChange>
             <View style={styles.barButton}>
-              <Text style={styles.barButtonText}>View cart</Text>
+              <Text style={styles.barButtonText}>{t("stall.viewCart")}</Text>
             </View>
           </PressableScale>
         </FadeInView>

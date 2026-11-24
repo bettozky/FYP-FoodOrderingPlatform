@@ -20,18 +20,21 @@ import { colors, type } from "../../../shared/theme/theme";
 import { merchantReservationStyles as s } from "../styles";
 import ChatButtons from "../../chat/ChatButton";
 import { useLive } from "../../orders/LiveDataContext";
+import i18n from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 function Remaining({ deadline }: { deadline: number }) {
   const secs = useCountdown(deadline);
   return (
     <View style={s.timerBadge}>
-      <Text style={s.timerText}><Ionicons name="timer-outline" size={13} /> {mmss(secs)} to accept</Text>
+      <Text style={s.timerText}><Ionicons name="timer-outline" size={13} /> {i18n.t("resv.toAccept", { time: mmss(secs) })}</Text>
     </View>
   );
 }
 
 export default function MerchantReservationsScreen() {
   const { reservations, refresh } = useLive();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"pending" | "confirmed" | "all">("pending");
   const [error, setError] = useState("");
 
@@ -79,7 +82,7 @@ export default function MerchantReservationsScreen() {
 
   const handleDecline = async (r: Reservation) => {
     if (r.status === "awaiting_restaurant") return call(() => api("POST", `/merchant/reservations/${r.id}/respond`, { accept: false }));
-    const ok = await confirmAsync("Cancel this booking?", `${r.customerName} will be notified${r.paid ? " and refunded" : ""}.`, "Cancel booking");
+    const ok = await confirmAsync(t("resv.cancelTitle"), r.paid ? t("resv.cancelBodyRefund", { name: r.customerName }) : t("resv.cancelBody", { name: r.customerName }), t("resv.cancelOk"));
     if (ok) call(() => api("POST", `/merchant/reservations/${r.id}/cancel`));
   };
 
@@ -91,7 +94,7 @@ export default function MerchantReservationsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Table reservations" subtitle={`${pendingCount} pending requests · ${confirmedCount} confirmed`} />
+      <ScreenHeader title={t("drawer.reservations")} subtitle={t("resv.subtitle", { pending: pendingCount, confirmed: confirmedCount })} />
 
       <FlatList
         data={filteredReservations}
@@ -102,9 +105,9 @@ export default function MerchantReservationsScreen() {
             {/* 1. SEATING OVERVIEW (tables given to confirmed bookings) */}
             <View style={s.floorOverviewCard}>
               <View style={s.rowBetween}>
-                <Text style={type.h3}>Seating plan</Text>
+                <Text style={type.h3}>{t("resv.seatingPlan")}</Text>
                 <Text style={type.small}>
-                  {RESTAURANT_TABLES.length - new Set(reservations.filter((r) => holdsTable(r.status) && r.allocatedTable).map((r) => r.allocatedTable)).size} tables not yet booked
+                  {t("resv.freeTables", { n: RESTAURANT_TABLES.length - new Set(reservations.filter((r) => holdsTable(r.status) && r.allocatedTable).map((r) => r.allocatedTable)).size })}
                 </Text>
               </View>
               <View style={s.floorGrid}>
@@ -114,7 +117,7 @@ export default function MerchantReservationsScreen() {
                   return (
                     <View key={t.id} style={[s.tablePill, isOccupied ? s.tableOccupied : s.tableAvailable]}>
                       <Text style={[s.tablePillTitle, { color: isOccupied ? colors.amberText : colors.herb }]}>{t.id}</Text>
-                      <Text style={s.tablePillSub}>{isOccupied ? `Booked ${booked[0].time}` : `${t.capacity} Pax`}</Text>
+                      <Text style={s.tablePillSub}>{isOccupied ? i18n.t("resv.booked", { time: booked[0].time }) : i18n.t("resv.pax", { n: t.capacity })}</Text>
                     </View>
                   );
                 })}
@@ -128,7 +131,7 @@ export default function MerchantReservationsScreen() {
                 return (
                   <Pressable key={tab} style={[s.tabBtn, isActive && s.tabBtnActive]} onPress={() => setActiveTab(tab)} testID={`rtab-${tab}`}>
                     <Text style={[s.tabText, isActive && s.tabTextActive]}>
-                      {tab === "pending" ? "Pending" : tab === "confirmed" ? "Confirmed" : "All"}
+                      {tab === "pending" ? t("resv.tabPending") : tab === "confirmed" ? t("resv.tabConfirmed") : t("resv.tabAll")}
                     </Text>
                   </Pressable>
                 );
@@ -137,7 +140,7 @@ export default function MerchantReservationsScreen() {
             {error ? <Text style={{ color: colors.chiliText, marginBottom: 8 }}>{error}</Text> : null}
           </>
         }
-        ListEmptyComponent={<EmptyState icon="calendar-outline" title="No bookings here" hint="New table requests pop up automatically." />}
+        ListEmptyComponent={<EmptyState icon="calendar-outline" title={t("resv.empty")} hint={t("resv.emptyHint")} />}
         renderItem={({ item }) => {
           const isPending = item.status === "awaiting_restaurant";
           const isConfirmed = item.status === "confirmed";
@@ -148,25 +151,25 @@ export default function MerchantReservationsScreen() {
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <Text style={[type.h3, { color: colors.text }]}>{item.id}</Text>
                   <View style={s.paxBadge}>
-                    <Text style={s.paxText}>{item.partySize} Guests (Pax)</Text>
+                    <Text style={s.paxText}>{t("resv.guests", { n: item.partySize })}</Text>
                   </View>
                 </View>
                 {isPending ? (
                   <Remaining deadline={item.respondBy} />
                 ) : (
                   <Badge
-                    label={isUnpaid ? "WAITING FOR PAYMENT" : item.status.toUpperCase()}
+                    label={t(`resv.st_${item.status}`)}
                     tone={isConfirmed ? "success" : item.status === "completed" ? "neutral" : "warning"}
                   />
                 )}
               </View>
 
               <View style={s.rowBetween}>
-                <Text style={[type.body, { fontWeight: "700" }]}><Ionicons name="calendar-outline" size={14} /> {prettyDate(item.date)} at {item.time}</Text>
+                <Text style={[type.body, { fontWeight: "700" }]}><Ionicons name="calendar-outline" size={14} /> {t("resv.dateAt", { date: prettyDate(item.date), time: item.time })}</Text>
                 {item.allocatedTable ? (
-                  <Text style={{ fontSize: 13, color: colors.herb, fontWeight: "700" }}><Ionicons name="location-outline" size={14} /> Allocated: {item.allocatedTable}</Text>
+                  <Text style={{ fontSize: 13, color: colors.herb, fontWeight: "700" }}><Ionicons name="location-outline" size={14} /> {t("resv.allocated", { table: item.allocatedTable })}</Text>
                 ) : isPending ? (
-                  <Text style={{ fontSize: 12, color: colors.amberText, fontWeight: "600" }}><Ionicons name="alert-circle-outline" size={13} /> Table not yet assigned</Text>
+                  <Text style={{ fontSize: 12, color: colors.amberText, fontWeight: "600" }}><Ionicons name="alert-circle-outline" size={13} /> {t("resv.notAssigned")}</Text>
                 ) : null}
               </View>
 
@@ -180,30 +183,30 @@ export default function MerchantReservationsScreen() {
               {(item.status === "awaiting_restaurant" || item.status === "awaiting_payment" || item.status === "confirmed") && <ChatButtons kind="reservation" id={item.id} allowCall />}
 
               {item.specialRequest ? (
-                <Text style={[type.small, { fontStyle: "italic", color: colors.stoneText }]}>Note: "{item.specialRequest}"</Text>
+                <Text style={[type.small, { fontStyle: "italic", color: colors.stoneText }]}>{t("resv.note", { text: item.specialRequest })}</Text>
               ) : null}
-              <Text style={type.small}>{!item.payNow ? "Pay later at the restaurant" : item.paid ? `Paid RM ${item.paid.toFixed(2)}${item.refunded ? ` (refunded RM ${item.refunded.toFixed(2)})` : ""}` : isUnpaid ? `Waiting for the customer to pay RM ${(item.amountDue ?? 0).toFixed(2)}. The table is held until the payment window ends.` : `Customer pays online (RM ${(item.amountDue ?? 0).toFixed(2)}) after you confirm`}</Text>
+              <Text style={type.small}>{!item.payNow ? t("resv.payLater") : item.paid ? `${t("popup.paid", { amount: item.paid.toFixed(2) })}${item.refunded ? ` ${t("resv.refunded", { amount: item.refunded.toFixed(2) })}` : ""}` : isUnpaid ? t("resv.waitPay", { amount: (item.amountDue ?? 0).toFixed(2) }) : t("resv.payOnline", { amount: (item.amountDue ?? 0).toFixed(2) })}</Text>
 
               {/* Pre-order: approve / decline each dish separately (FR-5.10) */}
               {item.preorder.length > 0 && (
                 <View style={s.preOrderBox}>
-                  <Text style={{ fontSize: 12, fontWeight: "700", color: colors.text }}>Pre-ordered food (approve or decline each dish separately):</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: colors.text }}>{t("resv.preordered")}</Text>
                   {item.preorder.map((dish) => (
                     <View key={dish.id} style={s.preOrderItemRow}>
                       <Text style={[type.body, { flex: 1 }]}>{dish.qty}x {dish.name}</Text>
                       {dish.status === "pending" && (item.status === "awaiting_restaurant" || item.status === "awaiting_payment" || item.status === "confirmed") ? (
                         <View style={{ flexDirection: "row", gap: 6 }}>
                           <Pressable style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: colors.herbLight }} onPress={() => handlePreOrderItem(item, dish.id, true)} testID={`pre-ok-${dish.id}`}>
-                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.herb }}>Accept</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.herb }}>{t("resv.accept")}</Text>
                           </Pressable>
                           <Pressable style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: colors.chiliSoft }} onPress={() => handlePreOrderItem(item, dish.id, false)} testID={`pre-no-${dish.id}`}>
-                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.chiliText }}>Decline</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.chiliText }}>{t("resv.decline")}</Text>
                           </Pressable>
                         </View>
                       ) : (
                         <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, backgroundColor: dish.status === "approved" ? colors.herbLight : dish.status === "declined" ? colors.chiliSoft : colors.paperDim }}>
                           <Text style={{ fontSize: 11, fontWeight: "700", color: dish.status === "approved" ? colors.herb : dish.status === "declined" ? colors.chiliText : colors.stone }}>
-                            {dish.status === "approved" ? "Food accepted" : dish.status === "declined" ? "Kitchen declined" : "Pending"}
+                            {dish.status === "approved" ? t("resv.foodAccepted") : dish.status === "declined" ? t("resv.kitchenDeclined") : t("resv.pending")}
                           </Text>
                         </View>
                       )}
@@ -216,19 +219,19 @@ export default function MerchantReservationsScreen() {
                 {isPending ? (
                   <>
                     <Pressable style={s.confirmBtn} onPress={() => handleOpenAssignTable(item)} testID={`assign-${item.id}`}>
-                      <Text style={s.confirmBtnText}>Assign table & accept</Text>
+                      <Text style={s.confirmBtnText}>{t("resv.assignAccept")}</Text>
                     </Pressable>
                     <Pressable style={s.declineBtn} onPress={() => handleDecline(item)} testID={`decline-${item.id}`}>
-                      <Text style={s.declineBtnText}>Decline</Text>
+                      <Text style={s.declineBtnText}>{t("resv.decline")}</Text>
                     </Pressable>
                   </>
                 ) : isConfirmed ? (
                   <>
                     <Pressable style={[s.rescheduleBtn, { flex: 1 }]} onPress={() => handleOpenAssignTable(item)}>
-                      <Text style={s.rescheduleBtnText}>Reassign table</Text>
+                      <Text style={s.rescheduleBtnText}>{t("resv.reassign")}</Text>
                     </Pressable>
                     <Pressable style={[s.declineBtn, { flex: 1 }]} onPress={() => handleDecline(item)}>
-                      <Text style={s.declineBtnText}>Cancel</Text>
+                      <Text style={s.declineBtnText}>{t("common.cancel")}</Text>
                     </Pressable>
                   </>
                 ) : null}
@@ -242,8 +245,8 @@ export default function MerchantReservationsScreen() {
       <Modal visible={isTableModalOpen} animationType="slide" transparent>
         <View style={s.modalOverlay}>
           <View style={s.modalCard}>
-            <Text style={type.h2}>Assign dine-in table</Text>
-            <Text style={type.bodyMuted}>Select a table for {selectedRsv?.customerName} ({selectedRsv?.partySize} Pax):</Text>
+            <Text style={type.h2}>{t("resv.assignTitle")}</Text>
+            <Text style={type.bodyMuted}>{t("resv.selectFor", { name: selectedRsv?.customerName ?? "", n: selectedRsv?.partySize ?? 0 })}</Text>
             <ScrollView style={{ maxHeight: 240 }}>
               <View style={{ gap: 8 }}>
                 {RESTAURANT_TABLES.map((table) => {
@@ -261,7 +264,7 @@ export default function MerchantReservationsScreen() {
                     >
                       <Text style={[type.body, { fontWeight: "700" }]}>{table.name}</Text>
                       <Text style={{ fontSize: 12, color: unavailable ? colors.chiliText : colors.herb }}>
-                        {busyTables.has(table.id) ? "Taken" : unavailable ? "Too small" : "Select & Confirm"}
+                        {busyTables.has(table.id) ? t("resv.taken") : unavailable ? t("resv.tooSmall") : t("resv.select")}
                       </Text>
                     </Pressable>
                   );
@@ -269,7 +272,7 @@ export default function MerchantReservationsScreen() {
               </View>
             </ScrollView>
             <Pressable style={[s.rescheduleBtn, { marginTop: 8 }]} onPress={() => setIsTableModalOpen(false)}>
-              <Text style={s.rescheduleBtnText}>Close</Text>
+              <Text style={s.rescheduleBtnText}>{t("common.close")}</Text>
             </Pressable>
           </View>
         </View>

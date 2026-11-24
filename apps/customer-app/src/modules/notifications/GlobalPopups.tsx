@@ -8,6 +8,7 @@ import { navRef } from "../../navigation/navRef";
 import { useLive } from "../ordering/LiveDataContext";
 import OrderFeedbackFlow from "../feedback/OrderFeedbackFlow";
 import PickupBuzzer, { BuzzerMiniBar } from "../pickup/PickupBuzzer";
+import { useTranslation } from "react-i18next";
 
 // App-wide pop-ups, shown on top of whatever screen the customer is on:
 //  1. "Your food is ready - please collect" (FR-2.7): the full-screen pickup buzzer (Sprint 3, ../pickup/PickupBuzzer).
@@ -19,6 +20,7 @@ import PickupBuzzer, { BuzzerMiniBar } from "../pickup/PickupBuzzer";
 const SILENT_TYPES = ["out_of_stock", "order_accepted", "order_completed"];
 
 export default function GlobalPopups() {
+  const { t } = useTranslation();
   const { notifications, orders, ack, refresh, setBookingsView } = useLive();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -99,13 +101,13 @@ export default function GlobalPopups() {
             <View style={[styles.icon, { backgroundColor: colors.amberSoft }]}>
               <Ionicons name="alert-circle" size={30} color={colors.turmericDeep} />
             </View>
-            <Text style={styles.title}>Item out of stock</Text>
+            <Text style={styles.title}>{t("popups.oosTitle")}</Text>
             <Text style={styles.body}>
-              {decisionOrder?.merchantName} ran out of {oosItems.map((i) => `${i.qty}x ${i.name}`).join(", ")}.
+              {t("popups.ranOut", { name: decisionOrder?.merchantName ?? "", items: oosItems.map((i) => `${i.qty}x ${i.name}`).join(", ") })}
             </Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            <PrimaryButton label={`Continue without it (refund RM ${refundIfPartial.toFixed(2)})`} onPress={() => decide("continue")} loading={busy} style={{ alignSelf: "stretch" }} />
-            <PrimaryButton label="Cancel order for a full refund" variant="outline" onPress={() => decide("cancel")} disabled={busy} style={{ alignSelf: "stretch" }} />
+            <PrimaryButton label={t("popups.continueRefund", { amount: refundIfPartial.toFixed(2) })} onPress={() => decide("continue")} loading={busy} style={{ alignSelf: "stretch" }} />
+            <PrimaryButton label={t("popups.cancelFull")} variant="outline" onPress={() => decide("cancel")} disabled={busy} style={{ alignSelf: "stretch" }} />
           </View>
         </View>
       </Modal>
@@ -120,11 +122,11 @@ export default function GlobalPopups() {
             <Text style={styles.body}>{shownGeneric?.body}</Text>
             {shownGeneric?.type === "reservation_accepted" ? (
               <>
-                <PrimaryButton label="Pay now" testID="notice-pay-res" onPress={() => { if (generic) ack(generic.id); setBookingsView("mine"); if (navRef.isReady()) navRef.navigate("MainTabs", { tab: "book", nonce: Date.now() }); }} style={{ alignSelf: "stretch" }} />
-                <PrimaryButton label="Later" variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
+                <PrimaryButton label={t("popups.payNow")} testID="notice-pay-res" onPress={() => { if (generic) ack(generic.id); setBookingsView("mine"); if (navRef.isReady()) navRef.navigate("MainTabs", { tab: "book", nonce: Date.now() }); }} style={{ alignSelf: "stretch" }} />
+                <PrimaryButton label={t("popups.later")} variant="outline" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
               </>
             ) : (
-              <PrimaryButton label="OK" onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
+              <PrimaryButton label={t("common.ok")} onPress={() => generic && ack(generic.id)} style={{ alignSelf: "stretch" }} />
             )}
           </View>
         </View>

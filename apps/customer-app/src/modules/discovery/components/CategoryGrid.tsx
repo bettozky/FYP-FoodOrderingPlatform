@@ -5,6 +5,7 @@ import { colors, font, layout, radius, spacing } from "../../../shared/theme/the
 import { useReducedMotion } from "../../../shared/motion/useReducedMotion";
 import CuteIcon, { type IconKind } from "./CuteIcons";
 import Flame from "./Flame";
+import i18n from "../../../shared/i18n";
 
 // Category row on Home: the cute multicolour food icons in one swipeable row of white tiles (venue types, Halal,
 // live map, food types, shortcuts). Venues come from the stalls, food types from the dishes, plus shortcuts.
@@ -43,7 +44,7 @@ export default function CategoryGrid({ items }: { items: GridItem[] }) {
       decelerationRate="fast"
       snapToInterval={CELL + spacing.md}
       snapToAlignment="start"
-      accessibilityLabel="Categories. Swipe sideways for more."
+      accessibilityLabel={i18n.t("home.categoriesLabel")}
       testID="category-scroll"
     >
       {items.map((it, i) => (

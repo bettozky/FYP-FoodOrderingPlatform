@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { colors, font, layout, radius, spacing } from "../../../shared/theme/theme";
 import DishImage from "../../../shared/components/DishImage";
 import PressableScale from "../../../shared/motion/PressableScale";
@@ -8,14 +9,15 @@ import PressableScale from "../../../shared/motion/PressableScale";
 // "How it works" card on Home: explains the order-first, pay-after-the-stall-confirms flow.
 // "Browse stalls" scrolls to the stall list. Ink card so the turmeric stays free for the screen's real actions.
 export default function PromoBanner({ onBrowse }: { onBrowse?: () => void }) {
+  const { t } = useTranslation();
   return (
-    <View style={styles.card} accessible={!onBrowse} accessibilityLabel="Order first. Pay only after the stall says yes.">
+    <View style={styles.card} accessible={!onBrowse} accessibilityLabel={t("auth.tagline")}>
       <View style={styles.text}>
-        <Text style={styles.title}>Order first.{"\n"}Pay only when the stall says yes.</Text>
-        <Text style={styles.sub}>Nothing is charged for a request the stall turns down.</Text>
+        <Text style={styles.title}>{t("auth.tagline")}</Text>
+        <Text style={styles.sub}>{t("home.howSub")}</Text>
         {onBrowse ? (
           <PressableScale style={styles.button} onPress={onBrowse} accessibilityRole="button" testID="browse-stalls">
-            <Text style={styles.buttonText}>Browse stalls</Text>
+            <Text style={styles.buttonText}>{t("home.browseStalls")}</Text>
             <Ionicons name="arrow-forward" size={15} color={colors.ink} />
           </PressableScale>
         ) : null}

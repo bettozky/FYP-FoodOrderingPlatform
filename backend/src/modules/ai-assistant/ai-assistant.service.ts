@@ -13,7 +13,7 @@ export type ChatMessage = { from: "user" | "bot"; text: string };
 // Created on first use so the rest of the backend still starts without an OPENAI_API_KEY.
 let client: OpenAI | undefined;
 
-function getClient(): OpenAI {
+export function getClient(): OpenAI {
   if (!env.openaiApiKey) {
     throw new Error("OPENAI_API_KEY is not set in backend/.env");
   }

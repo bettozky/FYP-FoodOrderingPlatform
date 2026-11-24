@@ -1,4 +1,8 @@
 import { normalisePhone, PickedFile, ShopApplication } from "./types";
+import i18n from "../../../shared/i18n";
+import { passwordOk } from "../../../shared/util/password";
+
+const v = (k: string, opts?: Record<string, unknown>) => i18n.t(`val.${k}` as "val.ownerName", opts as any) as string;
 
 // One function per step. Each returns a map of field -> message; an empty map means the step is complete.
 export type Errors = Partial<Record<string, string>>;
@@ -23,8 +27,8 @@ export function isSsmNumber(raw: string): boolean {
 export function fileProblem(f: PickedFile | null, kind: "image" | "document"): string {
   if (!f) return "";
   const allowed = kind === "image" ? IMAGE_TYPES : DOC_TYPES;
-  if (!allowed.includes(f.mimeType.toLowerCase())) return kind === "image" ? "Use a JPG or PNG photo." : "Use a PDF, JPG or PNG file.";
-  if (f.size > MAX_FILE_BYTES) return "This file is bigger than 2 MB. Choose a smaller one.";
+  if (!allowed.includes(f.mimeType.toLowerCase())) return kind === "image" ? v("jpgPng") : v("pdfJpgPng");
+  if (f.size > MAX_FILE_BYTES) return v("tooBig");
   return "";
 }
 
@@ -35,73 +39,73 @@ export function validateStep(step: number, a: ShopApplication, filesRequired = t
   const e: Errors = {};
   switch (step) {
     case 0:
-      if (!a.ownerName.trim()) e.ownerName = "Enter the shop owner's name.";
-      else if (a.ownerName.trim().length > 80) e.ownerName = "Keep the name under 80 characters.";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email.trim())) e.email = "Enter a valid email address.";
-      if (!isMalaysianPhone(a.phone)) e.phone = "Enter a valid Malaysian number, e.g. +60 12-345 6789.";
-      if (a.password.length < 6) e.password = "Use at least 6 characters.";
-      else if (a.password !== a.passwordConfirm) e.passwordConfirm = "Your passwords do not match.";
+      if (!a.ownerName.trim()) e.ownerName = v("ownerName");
+      else if (a.ownerName.trim().length > 80) e.ownerName = v("nameLong");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email.trim())) e.email = v("email");
+      if (!isMalaysianPhone(a.phone)) e.phone = v("phone");
+      if (!passwordOk(a.password)) e.password = v("password");
+      else if (a.password !== a.passwordConfirm) e.passwordConfirm = v("passwordMatch");
       break;
     case 1:
-      if (!a.shopName.trim()) e.shopName = "Enter your shop name.";
-      else if (a.shopName.trim().length > 80) e.shopName = "Keep the shop name under 80 characters.";
-      if (!a.businessType) e.businessType = "Choose your business type.";
-      if (!isSsmNumber(a.ssmNumber)) e.ssmNumber = "Enter your SSM number, e.g. 202301012345 or 1234567-A.";
-      if (!a.description.trim()) e.description = "Add a short description.";
-      else if (a.description.trim().length > 160) e.description = "Keep it under 160 characters.";
-      if (!a.ssmCertificate) { if (filesRequired) e.ssmCertificate = "Upload your SSM certificate."; }
+      if (!a.shopName.trim()) e.shopName = v("shopName");
+      else if (a.shopName.trim().length > 80) e.shopName = v("shopLong");
+      if (!a.businessType) e.businessType = v("businessType");
+      if (!isSsmNumber(a.ssmNumber)) e.ssmNumber = v("ssm");
+      if (!a.description.trim()) e.description = v("description");
+      else if (a.description.trim().length > 160) e.description = v("descLong");
+      if (!a.ssmCertificate) { if (filesRequired) e.ssmCertificate = v("ssmFile"); }
       else if (fileProblem(a.ssmCertificate, "document")) e.ssmCertificate = fileProblem(a.ssmCertificate, "document");
       break;
     case 2:
-      if (!a.address.trim()) e.address = "Enter your address or stall number.";
-      else if (a.address.trim().length > 80) e.address = "Keep the address under 80 characters.";
-      if (!a.lat.trim() || !a.lng.trim()) e.pin = "Set the map pin so customers can find you.";
+      if (!a.address.trim()) e.address = v("address");
+      else if (a.address.trim().length > 80) e.address = v("addressLong");
+      if (!a.lat.trim() || !a.lng.trim()) e.pin = v("pin");
       else { const bad = pinProblem(a.lat, a.lng); if (bad) e.pin = bad; }
       break;
     case 3:
-      if (!a.cuisine.trim()) e.cuisine = "Enter at least one cuisine type.";
+      if (!a.cuisine.trim()) e.cuisine = v("cuisine");
       // The current server stores this in a 40-character field.
-      else if (a.cuisine.trim().length > 40) e.cuisine = "Keep it under 40 characters, e.g. Noodles, Drinks.";
-      if (!a.priceRange) e.priceRange = "Choose a price range.";
-      if (a.halal === null) e.halal = "Tell customers whether your food is halal.";
+      else if (a.cuisine.trim().length > 40) e.cuisine = v("cuisineLong");
+      if (!a.priceRange) e.priceRange = v("priceRange");
+      if (a.halal === null) e.halal = v("halal");
       if (a.halal === true) {
-        if (!a.halalCertificate) { if (filesRequired) e.halalCertificate = "Upload your halal certificate."; }
+        if (!a.halalCertificate) { if (filesRequired) e.halalCertificate = v("halalFile"); }
         else if (fileProblem(a.halalCertificate, "document")) e.halalCertificate = fileProblem(a.halalCertificate, "document");
       }
       break;
     case 4:
-      if (a.hours.every((h) => h.closed)) e.hours = "Open on at least one day.";
+      if (a.hours.every((h) => h.closed)) e.hours = v("oneDay");
       for (const h of a.hours) {
         if (h.closed) continue;
-        if (!TIME.test(h.open) || !TIME.test(h.close)) { e.hours = "Use 24-hour times such as 09:00 and 21:00."; break; }
-        if (h.open >= h.close) { e.hours = "Closing time must be after opening time."; break; }
+        if (!TIME.test(h.open) || !TIME.test(h.close)) { e.hours = v("time24"); break; }
+        if (h.open >= h.close) { e.hours = v("closeAfter"); break; }
       }
-      if (!a.delivery && !a.pickup && !a.dineIn) e.service = "Turn on at least one way to get food.";
-      if (a.dineIn && !/^\d{1,4}$/.test(a.seats.trim())) e.seats = "Enter the number of seats.";
-      if (!/^\d{1,3}$/.test(a.prepMinutes.trim()) || Number(a.prepMinutes) < 1) e.prepMinutes = "Enter minutes, e.g. 15.";
-      if (a.minOrder.trim() && !money(a.minOrder)) e.minOrder = "Enter an amount like 5.00, or leave it empty.";
+      if (!a.delivery && !a.pickup && !a.dineIn) e.service = v("service");
+      if (a.dineIn && !/^\d{1,4}$/.test(a.seats.trim())) e.seats = v("seats");
+      if (!/^\d{1,3}$/.test(a.prepMinutes.trim()) || Number(a.prepMinutes) < 1) e.prepMinutes = v("prep");
+      if (a.minOrder.trim() && !money(a.minOrder)) e.minOrder = v("minOrder");
       break;
     case 5:
-      if (!a.noAllergens && a.allergens.length === 0) e.allergens = "Tick the allergens used in your kitchen, or tick \"None of these\".";
-      if (!a.licenceNo.trim()) e.licenceNo = "Enter your food hygiene or business licence number.";
+      if (!a.noAllergens && a.allergens.length === 0) e.allergens = v("allergens");
+      if (!a.licenceNo.trim()) e.licenceNo = v("licence");
       break;
     case 6:
-      if (!a.logo) { if (filesRequired) e.logo = "Add your logo."; }
+      if (!a.logo) { if (filesRequired) e.logo = v("logo"); }
       else if (fileProblem(a.logo, "image")) e.logo = fileProblem(a.logo, "image");
-      if (!a.cover) { if (filesRequired) e.cover = "Add a cover photo."; }
+      if (!a.cover) { if (filesRequired) e.cover = v("cover"); }
       else if (fileProblem(a.cover, "image")) e.cover = fileProblem(a.cover, "image");
       a.menuItems.forEach((m, i) => {
         const n = i + 1;
-        if (!m.name.trim()) e[`menu${i}`] = `Dish ${n}: enter a name.`;
-        else if (!money(m.price)) e[`menu${i}`] = `Dish ${n}: enter a price like 8.50.`;
-        else if (!m.description.trim()) e[`menu${i}`] = `Dish ${n}: add a short description.`;
-        else if (!m.photo) { if (filesRequired) e[`menu${i}`] = `Dish ${n}: add a real photo.`; }
-        else if (fileProblem(m.photo, "image")) e[`menu${i}`] = `Dish ${n}: ${fileProblem(m.photo, "image")}`;
+        if (!m.name.trim()) e[`menu${i}`] = v("dishName", { n });
+        else if (!money(m.price)) e[`menu${i}`] = v("dishPrice", { n });
+        else if (!m.description.trim()) e[`menu${i}`] = v("dishDesc", { n });
+        else if (!m.photo) { if (filesRequired) e[`menu${i}`] = v("dishPhoto", { n }); }
+        else if (fileProblem(m.photo, "image")) e[`menu${i}`] = v("dishFile", { n, problem: fileProblem(m.photo, "image") });
       });
-      if (a.menuItems.length < 3) e.menu = "Add at least 3 dishes.";
+      if (a.menuItems.length < 3) e.menu = v("menu3");
       break;
     case 7:
-      if (!a.agreedTerms) e.agreedTerms = "Tick the box to agree to the merchant terms.";
+      if (!a.agreedTerms) e.agreedTerms = v("terms");
       break;
   }
   return e;
@@ -116,9 +120,9 @@ export function firstIncompleteStep(a: ShopApplication, filesRequired = true): n
 /** Why a latitude / longitude pair cannot be used, or "" when it is fine. Shared by the form and the pin card. */
 export function pinProblem(lat: string, lng: string): string {
   const la = Number(lat.trim()), lo = Number(lng.trim());
-  if (!Number.isFinite(la) || lat.trim() === "") return "Latitude must be a number such as 1.5533.";
-  if (!Number.isFinite(lo) || lng.trim() === "") return "Longitude must be a number such as 110.3592.";
-  if (Math.abs(la) > 90) return "Latitude must be between -90 and 90 (Kuching is about 1.55).";
-  if (Math.abs(lo) > 180) return "Longitude must be between -180 and 180 (Kuching is about 110.36). Check for a missing decimal point.";
+  if (!Number.isFinite(la) || lat.trim() === "") return v("latNumber");
+  if (!Number.isFinite(lo) || lng.trim() === "") return v("lngNumber");
+  if (Math.abs(la) > 90) return v("latRange");
+  if (Math.abs(lo) > 180) return v("lngRange");
   return "";
 }

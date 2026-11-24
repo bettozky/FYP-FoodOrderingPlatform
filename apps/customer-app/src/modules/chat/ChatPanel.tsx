@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import i18n, { locale } from "../../shared/i18n";
 import { ScrollView, type ScrollViewInstance, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
@@ -58,29 +59,29 @@ export default function ChatPanel({ kind, id, onClose, height, avoidKeyboard = t
     <KeyboardAvoidingView behavior={avoidKeyboard && Platform.OS === "ios" && !height ? "padding" : undefined} style={[styles.wrap, height ? { height } : { flex: 1 }]} testID="chat-panel">
       <View style={styles.head}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title} numberOfLines={1}>{peer || "Chat"}</Text>
-          <Text style={styles.sub}>{open ? "Live chat" : "This conversation is closed"}</Text>
+          <Text style={styles.title} numberOfLines={1}>{peer || i18n.t("chat.chat")}</Text>
+          <Text style={styles.sub}>{open ? i18n.t("chat.live") : i18n.t("chat.closed")}</Text>
         </View>
         {canCall && (
-          <Pressable style={[styles.iconBtn, inCall && { opacity: 0.4 }]} disabled={inCall} onPress={() => startCall(kind, id)} testID="chat-call" accessibilityLabel="Call">
+          <Pressable style={[styles.iconBtn, inCall && { opacity: 0.4 }]} disabled={inCall} onPress={() => startCall(kind, id)} testID="chat-call" accessibilityLabel={i18n.t("chat.call")}>
             <Ionicons name="call" size={18} color={colors.white} />
           </Pressable>
         )}
         {onClose && (
-          <Pressable style={[styles.iconBtn, { backgroundColor: colors.paperDim }]} onPress={onClose} testID="chat-close" accessibilityLabel="Close chat">
+          <Pressable style={[styles.iconBtn, { backgroundColor: colors.paperDim }]} onPress={onClose} testID="chat-close" accessibilityLabel={i18n.t("chat.closeChat")}>
             <Ionicons name="close" size={18} color={colors.ink} />
           </Pressable>
         )}
       </View>
       <ScrollView ref={list} contentContainerStyle={{ padding: spacing.md, gap: 8, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        {messages.length === 0 && <Text style={styles.empty}>No messages yet. Say hello, or ask about the order.</Text>}
+        {messages.length === 0 && <Text style={styles.empty}>{i18n.t("chat.empty")}</Text>}
         {messages.map((item) =>
           item.from === "system" ? (
             <Text key={item.seq} style={styles.system}>{item.text}</Text>
           ) : (
             <View key={item.seq} style={[styles.bubble, item.from === you ? styles.mine : styles.theirs]} testID={item.from === you ? "msg-mine" : "msg-theirs"}>
               <Text style={[styles.msgText, item.from === you && { color: colors.white }]}>{item.text}</Text>
-              <Text style={[styles.time, item.from === you && { color: colors.textFaint }]}>{new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+              <Text style={[styles.time, item.from === you && { color: colors.textFaint }]}>{new Date(item.at).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}</Text>
             </View>
           )
         )}
@@ -92,14 +93,14 @@ export default function ChatPanel({ kind, id, onClose, height, avoidKeyboard = t
             style={styles.input}
             value={text}
             onChangeText={setText}
-            placeholder="Type a message"
+            placeholder={i18n.t("chat.type")}
             placeholderTextColor={colors.textFaint}
             onSubmitEditing={send}
             returnKeyType="send"
             maxLength={500}
             testID="chat-input"
           />
-          <Pressable style={[styles.send, (!text.trim() || sending) && { opacity: 0.4 }]} onPress={send} disabled={!text.trim() || sending} testID="chat-send" accessibilityLabel="Send">
+          <Pressable style={[styles.send, (!text.trim() || sending) && { opacity: 0.4 }]} onPress={send} disabled={!text.trim() || sending} testID="chat-send" accessibilityLabel={i18n.t("chat.send")}>
             <Ionicons name="send" size={18} color={colors.white} />
           </Pressable>
         </View>

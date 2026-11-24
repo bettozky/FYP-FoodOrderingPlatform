@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import i18n from "../../shared/i18n";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
@@ -55,16 +56,16 @@ export default function RateAppPopup({ visible, orderId, onDone }: { visible: bo
               <View style={[styles.icon, { backgroundColor: colors.amberTint }]}>
                 <Ionicons name="heart" size={32} color={colors.chili} />
               </View>
-              <Text style={styles.title}>Terima kasih!</Text>
-              <Text style={styles.body}>{happy ? "We're glad you're enjoying ScootMeal." : "Thanks for telling us. We'll use it to make ScootMeal better."}</Text>
+              <Text style={styles.title}>{i18n.t("feedback.thanks")}</Text>
+              <Text style={styles.body}>{happy ? i18n.t("feedback.glad") : i18n.t("feedback.thanksTelling")}</Text>
             </>
           ) : (
             <>
               <View style={[styles.icon, { backgroundColor: colors.turmeric }]}>
                 <Ionicons name="bicycle" size={32} color={colors.ink} />
               </View>
-              <Text style={styles.title}>Rate the app</Text>
-              <Text style={styles.body}>How do you like ordering with ScootMeal so far?</Text>
+              <Text style={styles.title}>{i18n.t("feedback.rateApp")}</Text>
+              <Text style={styles.body}>{i18n.t("feedback.howLike")}</Text>
               <View style={{ alignItems: "center", gap: 4 }}>
                 <StarPicker value={stars} onChange={setStars} />
                 {stars ? <RatingWord value={stars} /> : null}
@@ -74,22 +75,22 @@ export default function RateAppPopup({ visible, orderId, onDone }: { visible: bo
                   style={styles.input}
                   value={comment}
                   onChangeText={setComment}
-                  placeholder={happy ? "What do you like most? (optional)" : "What should we fix? (optional)"}
+                  placeholder={happy ? i18n.t("feedback.likeMost") : i18n.t("feedback.whatFix")}
                   placeholderTextColor={colors.textFaint}
                   maxLength={500}
                   multiline
-                  accessibilityLabel="Comment about the app"
+                  accessibilityLabel={i18n.t("feedback.commentApp")}
                 />
               ) : null}
               {error ? <Text style={styles.error}>{error}</Text> : null}
-              <PrimaryButton label={stars ? "Send rating" : "Tap a star to rate"} onPress={send} loading={busy} disabled={!stars} style={{ alignSelf: "stretch" }} testID="send-app-rating" />
+              <PrimaryButton label={stars ? i18n.t("feedback.sendRating") : i18n.t("feedback.tapStar")} onPress={send} loading={busy} disabled={!stars} style={{ alignSelf: "stretch" }} testID="send-app-rating" />
               <View style={styles.links}>
                 <Pressable onPress={() => later(false)} hitSlop={8} accessibilityRole="button" testID="rate-later">
-                  <Text style={styles.later}>Not now</Text>
+                  <Text style={styles.later}>{i18n.t("track.notNow")}</Text>
                 </Pressable>
                 <Text style={styles.dot}>·</Text>
                 <Pressable onPress={() => later(true)} hitSlop={8} accessibilityRole="button" testID="rate-never">
-                  <Text style={[styles.later, { color: colors.stoneText }]}>Don't ask again</Text>
+                  <Text style={[styles.later, { color: colors.stoneText }]}>{i18n.t("feedback.dontAsk")}</Text>
                 </Pressable>
               </View>
             </>

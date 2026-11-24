@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthContext";
 import { Merchant } from "../../shared/api/types";
 import { Address, addressesFromShops } from "./places";
 import { keepIfSame } from "../../shared/util/same";
+import i18n from "../../shared/i18n";
 
 export type { Address } from "./places";
 
@@ -103,7 +104,7 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     setLocating(true);
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
-      if (perm.status !== "granted") throw new Error("Allow location access in your browser or phone settings, then try again.");
+      if (perm.status !== "granted") throw new Error(i18n.t("picker.allowLocation"));
       const first = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       applyPosition(first.coords.latitude, first.coords.longitude, true);
       watchRef.current?.remove();
@@ -112,7 +113,7 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
         (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude)
       );
     } catch (e: any) {
-      setLocationError(e?.message || "Could not get your location. Check that location is on.");
+      setLocationError(e?.message || i18n.t("picker.noLocation"));
     } finally {
       setLocating(false);
     }

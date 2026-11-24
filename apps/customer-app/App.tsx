@@ -1,3 +1,4 @@
+import "./src/shared/i18n"; // English / Bahasa Melayu / 中文: must load before any screen
 import React, { useCallback } from "react";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";

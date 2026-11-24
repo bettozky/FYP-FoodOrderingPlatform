@@ -9,17 +9,21 @@ import Avatar from "../../../shared/components/Avatar";
 import { api, errorText } from "../../../shared/api/client";
 import { colors, radius, spacing, type } from "../../../shared/theme/theme";
 import { ApplicationStatus, DAY_LABEL, fmtDate, STATUS_LABEL, STATUS_TONE } from "../applicationStatus";
+import i18n from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 type Row = { id: string; jobId: string; jobTitle: string; fullName: string; institution?: string; course?: string; availableDays: string[]; hoursPerWeek?: number; status: ApplicationStatus; createdAt: number; hasResume: boolean; avatar?: string };
 type Data = { counts: Record<string, number>; applications: Row[] };
 
 const FILTERS: { key: string; label: string }[] = [
-  { key: "", label: "All" }, { key: "submitted", label: "New" }, { key: "shortlisted", label: "Shortlisted" }, { key: "interview", label: "Interview" }, { key: "hired", label: "Hired" }, { key: "rejected", label: "Rejected" },
+  { key: "", get label() { return i18n.t("menu.all"); } },
+  ...(["submitted", "shortlisted", "interview", "hired", "rejected"] as const).map((key) => ({ key, get label() { return STATUS_LABEL[key]; } })),
 ];
 
 // People who applied for the shop's jobs (all jobs, or one job when opened from the job board).
 export default function MerchantApplicantsScreen({ navigation, route }: any) {
   const jobId: string | undefined = route.params?.jobId;
+  const { t } = useTranslation();
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
   const [data, setData] = useState<Data | null>(null);
@@ -39,10 +43,10 @@ export default function MerchantApplicantsScreen({ navigation, route }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Applicants" subtitle={jobId ? route.params?.jobTitle ?? "For this job" : "Everyone who applied for your jobs"} />
+      <ScreenHeader title={t("drawer.applicants")} subtitle={jobId ? route.params?.jobTitle ?? t("applicants.forJob") : t("applicants.everyone")} />
       <View style={styles.search}>
         <Ionicons name="search" size={16} color={colors.stone} />
-        <TextInput style={styles.searchInput} value={q} onChangeText={setQ} placeholder="Search by name or university" placeholderTextColor={colors.textFaint} testID="applicant-search" />
+        <TextInput style={styles.searchInput} value={q} onChangeText={setQ} placeholder={t("applicants.search")} placeholderTextColor={colors.textFaint} testID="applicant-search" />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.chips}>
         {FILTERS.map((f) => {
@@ -61,15 +65,15 @@ export default function MerchantApplicantsScreen({ navigation, route }: any) {
           keyExtractor={(a) => a.id}
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl * 2 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
-          ListEmptyComponent={<EmptyState icon="people-outline" title="No applicants here" hint="When students apply for your jobs in the customer app, they show up here." />}
+          ListEmptyComponent={<EmptyState icon="people-outline" title={t("applicants.empty")} hint={t("applicants.emptyHint")} />}
           renderItem={({ item: a }) => (
             <Pressable style={[styles.card, a.status === "submitted" && styles.fresh]} onPress={() => navigation.navigate("MerchantApplicantDetail", { applicationId: a.id })} accessibilityRole="button" testID={`applicant-${a.id}`}>
               <Avatar uri={a.avatar} name={a.fullName} size={44} />
               <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
                 <Text style={type.h3} numberOfLines={1}>{a.fullName}</Text>
                 <Text style={type.small} numberOfLines={1}>{a.jobTitle} · {fmtDate(a.createdAt)}</Text>
-                <Text style={type.small} numberOfLines={1}>{[a.institution, a.course].filter(Boolean).join(" · ") || "No university given"}</Text>
-                <Text style={type.small} numberOfLines={1}>{a.availableDays.map((d) => DAY_LABEL[d] ?? d).join(", ")}{a.hoursPerWeek ? ` · ${a.hoursPerWeek} h/wk` : ""}</Text>
+                <Text style={type.small} numberOfLines={1}>{[a.institution, a.course].filter(Boolean).join(" · ") || t("applicants.noUni")}</Text>
+                <Text style={type.small} numberOfLines={1}>{a.availableDays.map((d) => DAY_LABEL[d] ?? d).join(t("common.listSep"))}{a.hoursPerWeek ? ` · ${t("applicants.hWk", { n: a.hoursPerWeek })}` : ""}</Text>
               </View>
               <View style={{ alignItems: "flex-end", gap: 6 }}>
                 <Badge label={STATUS_LABEL[a.status]} tone={STATUS_TONE[a.status]} />

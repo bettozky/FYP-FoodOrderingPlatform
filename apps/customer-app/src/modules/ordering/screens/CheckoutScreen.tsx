@@ -15,6 +15,7 @@ import BusyNotice from "../components/BusyNotice";
 import { MODE_LABEL, Mode, Order, Voucher } from "../../../shared/api/types";
 import { colors, layout, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 import BudgetWarning from "../../spending/BudgetWarning";
+import { useTranslation } from "react-i18next";
 
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real total
 
@@ -35,6 +36,7 @@ export default function CheckoutScreen({ navigation }: any) {
   const { lines, merchant, subtotal, hasDelivery, clearCart } = useCart();
   const { addresses, address, setAddress, merchantById, refreshMerchants } = useCatalog();
   const { refresh } = useLive();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [voucherId, setVoucherId] = useState<string>("");
@@ -55,8 +57,8 @@ export default function CheckoutScreen({ navigation }: any) {
   const busyBlocked = !!(live && live.openNow && (live.ordersPaused || (live.longWaitWarning && !acceptWait)));
   useEffect(() => {
     refreshMerchants();
-    const t = setInterval(refreshMerchants, 10000);
-    return () => clearInterval(t);
+    const timer = setInterval(refreshMerchants, 10000);
+    return () => clearInterval(timer);
   }, [refreshMerchants]);
 
   // A saved address can carry a standing note ("Room 2-14, call on arrival"); start from it.
@@ -75,11 +77,11 @@ export default function CheckoutScreen({ navigation }: any) {
       .filter((v) => !v.merchantId || v.merchantId === merchant?.id)
       .map((v) => {
         const missingCat = v.requireCategory && !lines.some((l) => l.dish.category === v.requireCategory) ? v.requireCategory : "";
-        const reason = v.used ? "Used" : subtotal < v.minSpend ? `Spend RM ${(v.minSpend - subtotal).toFixed(2)} more to use this offer` : missingCat ? `Add a ${missingCat} dish to use this offer` : "";
+        const reason = v.used ? t("checkout.used") : subtotal < v.minSpend ? t("checkout.spendMore", { amount: (v.minSpend - subtotal).toFixed(2) }) : missingCat ? t("checkout.addCategory", { category: missingCat }) : "";
         return { v, reason };
       });
     return [...list.filter((o) => !o.reason), ...list.filter((o) => o.reason && o.v.used !== true), ...list.filter((o) => o.v.used)];
-  }, [vouchers, subtotal, lines, merchant]);
+  }, [vouchers, subtotal, lines, merchant, t]);
   const eligible = useMemo(() => offers.filter((o) => !o.reason).map((o) => o.v), [offers]);
   useEffect(() => {
     if (voucherId && !eligible.some((v) => v.id === voucherId)) setVoucherId("");
@@ -93,15 +95,15 @@ export default function CheckoutScreen({ navigation }: any) {
   if (!merchant || lines.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <ScreenHeader title="Checkout" />
-        <View style={styles.wrap}><Text style={type.bodyMuted}>Your cart is empty.</Text></View>
+        <ScreenHeader title={t("checkout.title")} />
+        <View style={styles.wrap}><Text style={type.bodyMuted}>{t("cart.empty")}</Text></View>
       </View>
     );
   }
 
   async function placeOrder() {
     if (!merchant) return;
-    if (needsPinOk) { setError("Please confirm the delivery pin on the map first."); return; }
+    if (needsPinOk) { setError(t("checkout.confirmPinFirst")); return; }
     setPlacing(true);
     setError("");
     try {
@@ -131,10 +133,10 @@ export default function CheckoutScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <AddressPicker visible={pickerOpen} initial={address} onClose={() => setPickerOpen(false)} onConfirm={(a) => { setAddress(a); setPickerOpen(false); }} />
-      <ScreenHeader title="Checkout" subtitle={merchant.name} />
+      <ScreenHeader title={t("checkout.title")} subtitle={merchant.name} />
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         <OrderSteps current={0} />
-        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Order summary</Text>
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>{t("checkout.summary")}</Text>
         <View style={styles.card}>
           {(["dine_in", "takeaway", "delivery"] as Mode[]).map((m) => {
             const part = lines.filter((l) => l.qty[m] > 0);
@@ -152,22 +154,22 @@ export default function CheckoutScreen({ navigation }: any) {
             );
           })}
           <View style={styles.divider} />
-          <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Subtotal</Text><Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text></View>
-          {hasDelivery && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Delivery fee</Text><Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text></View>}
-          {discount > 0 && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>Voucher</Text><Text style={[type.body, styles.summaryValue, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
+          <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>{t("cart.subtotal")}</Text><Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text></View>
+          {hasDelivery && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>{t("checkout.deliveryFee")}</Text><Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text></View>}
+          {discount > 0 && <View style={styles.summaryLine}><Text style={[type.bodyMuted, styles.summaryLabel]}>{t("checkout.voucher")}</Text><Text style={[type.body, styles.summaryValue, { color: colors.herb }]}>– RM {discount.toFixed(2)}</Text></View>}
           <View style={[styles.divider, { marginTop: 2 }]} />
-          <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel, { fontSize: 17 }]}>Total</Text><Text style={[type.h3, styles.summaryValue, styles.totalValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
+          <View style={styles.summaryLine}><Text style={[type.h3, styles.summaryLabel, { fontSize: 17 }]}>{t("cart.total")}</Text><Text style={[type.h3, styles.summaryValue, styles.totalValue]} testID="checkout-total">RM {total.toFixed(2)}</Text></View>
         </View>
         {/* Sprint 3 weekly budget: warns before this order takes the customer over their limit */}
         <BudgetWarning adding={total} />
 
         {hasDelivery && (
           <>
-            <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Delivery address</Text>
+            <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>{t("checkout.address")}</Text>
             <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
               <Pressable style={styles.mapBtn} onPress={() => setPickerOpen(true)} accessibilityRole="button" testID="choose-on-map">
                 <Ionicons name="add" size={18} color={colors.ink} />
-                <Text style={styles.mapBtnText}>Add address</Text>
+                <Text style={styles.mapBtnText}>{t("home.addAddress")}</Text>
               </Pressable>
               {(address.pinned && !addresses.some((a) => a.line === address.line) ? [address, ...addresses] : addresses).map((a) => {
                 const on = a.line === address.line;
@@ -185,24 +187,24 @@ export default function CheckoutScreen({ navigation }: any) {
                   <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
                     <Ionicons name="location" size={18} color={colors.ink} />
                     <Text style={[type.body, { flex: 1 }]} numberOfLines={3} testID="checkout-address-line">{address.line}</Text>
-                    <Pressable onPress={() => setPickerOpen(true)} hitSlop={12} accessibilityRole="button" testID="change-address"><Text style={styles.changeText}>Change</Text></Pressable>
+                    <Pressable onPress={() => setPickerOpen(true)} hitSlop={12} accessibilityRole="button" testID="change-address"><Text style={styles.changeText}>{t("checkout.change")}</Text></Pressable>
                   </View>
-                  {usingPin ? <Text style={type.small}>The rider will bring your order to this pin. Check it is the right spot, then confirm.</Text> : null}
+                  {usingPin ? <Text style={type.small}>{t("checkout.pinHint")}</Text> : null}
                   {usingPin ? <Pressable style={styles.confirmRow} onPress={() => setPinOk((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: pinOk }} testID="confirm-pin">
                     <View style={[styles.checkbox, pinOk && styles.checkboxOn]}>{pinOk ? <Ionicons name="checkmark" size={14} color={colors.ink} /> : null}</View>
-                    <Text style={[type.body, { flex: 1 }]}>Yes, deliver to this pin</Text>
+                    <Text style={[type.body, { flex: 1 }]}>{t("checkout.pinYes")}</Text>
                   </Pressable> : null}
                 </View>
               ) : null}
-              <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Room / notes for the rider (optional)" placeholderTextColor={colors.textFaint} />
+              <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder={t("checkout.riderNote")} placeholderTextColor={colors.textFaint} />
             </View>
           </>
         )}
 
-        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>Voucher</Text>
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>{t("checkout.voucher")}</Text>
         <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
           <Pressable onPress={() => setVoucherId("")} style={[styles.option, !voucherId && styles.optionOn]}>
-            <Text style={[type.body, { flex: 1 }]}>No voucher</Text>
+            <Text style={[type.body, { flex: 1 }]}>{t("checkout.noVoucher")}</Text>
             <Radio on={!voucherId} />
           </Pressable>
           {offers.map(({ v, reason }) => (
@@ -213,17 +215,17 @@ export default function CheckoutScreen({ navigation }: any) {
                 <Text style={type.body}>{v.title}</Text>
                 <Text style={type.small}>{reason && !v.used ? reason : v.description}</Text>
               </View>
-              {v.used ? <View style={styles.usedPill} testID={`voucher-used-${v.id}`}><Text style={styles.usedText}>Used</Text></View> : reason ? <Ionicons name="alert-circle-outline" size={18} color={colors.stone} /> : <Radio on={voucherId === v.id} />}
+              {v.used ? <View style={styles.usedPill} testID={`voucher-used-${v.id}`}><Text style={styles.usedText}>{t("checkout.used")}</Text></View> : reason ? <Ionicons name="alert-circle-outline" size={18} color={colors.stone} /> : <Radio on={voucherId === v.id} />}
             </Pressable>
           ))}
-          {eligible.length === 0 && <Text style={type.small}>{offers.length ? "No voucher can be used on this order yet." : "No voucher applies to this order yet."}</Text>}
+          {eligible.length === 0 && <Text style={type.small}>{offers.length ? t("checkout.noVoucherYet") : t("checkout.noVoucherApplies")}</Text>}
         </View>
 
-        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>How it works</Text>
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>{t("home.howItWorks")}</Text>
         <View style={[styles.card, styles.howCard]}>
-          <Text style={type.body}>1. {merchant.name} gets your order request straight away and has 10 minutes to confirm it.</Text>
-          <Text style={type.body}>2. Once they confirm, you pay by card. You are not charged before that.</Text>
-          <Text style={type.small}>You can chat or call the restaurant from the order screen while you wait. If they decline or don't reply, nothing is charged.</Text>
+          <Text style={type.body}>1. {t("checkout.how1", { name: merchant.name })}</Text>
+          <Text style={type.body}>2. {t("checkout.how2")}</Text>
+          <Text style={type.small}>{t("checkout.how3")}</Text>
         </View>
 
         {live ? <BusyNotice merchant={live} accepted={acceptWait} onAccept={setAcceptWait} /> : null}
@@ -237,8 +239,8 @@ export default function CheckoutScreen({ navigation }: any) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Pressable style={[ui.buttonAccent, (placing || needsPinOk || busyBlocked) && styles.ctaOff]} onPress={placeOrder} disabled={placing || needsPinOk || busyBlocked} testID="place-order" accessibilityRole="button" accessibilityLabel="Send order to restaurant" accessibilityState={{ busy: placing, disabled: placing || needsPinOk || busyBlocked }}>
-          <Text style={[ui.buttonAccentText, { textAlign: "center" }]} numberOfLines={2}>{placing ? "Sending…" : needsPinOk ? "Confirm your delivery pin to continue" : live?.ordersPaused ? "Orders paused · try again in a few minutes" : busyBlocked ? "Tick \"I'm OK waiting\" to continue" : `Send order to restaurant · RM\u00A0${total.toFixed(2)}`}</Text>
+        <Pressable style={[ui.buttonAccent, (placing || needsPinOk || busyBlocked) && styles.ctaOff]} onPress={placeOrder} disabled={placing || needsPinOk || busyBlocked} testID="place-order" accessibilityRole="button" accessibilityLabel={t("checkout.send")} accessibilityState={{ busy: placing, disabled: placing || needsPinOk || busyBlocked }}>
+          <Text style={[ui.buttonAccentText, { textAlign: "center" }]} numberOfLines={2}>{placing ? t("checkout.sending") : needsPinOk ? t("checkout.confirmPin") : live?.ordersPaused ? t("checkout.paused") : busyBlocked ? t("checkout.tickOk") : `${t("checkout.send")} · RM\u00A0${total.toFixed(2)}`}</Text>
         </Pressable>
       </View>
     </View>

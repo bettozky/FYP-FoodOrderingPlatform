@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { View, Text, FlatList, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useLoyalty } from "../useLoyalty";
 import { api } from "../../../shared/api/client";
 import { Voucher } from "../../../shared/api/types";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
+import { tierName } from "../../../shared/i18n/labels";
 import { Ionicons } from "@expo/vector-icons";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, font, layout, radius, spacing, type } from "../../../shared/theme/theme";
 
 export default function LoyaltyScreen() {
+  const { t } = useTranslation();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   useEffect(() => {
     // Vouchers this customer has already used go to the bottom, faded and marked "Used".
@@ -21,7 +24,7 @@ export default function LoyaltyScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Loyalty & vouchers" />
+      <ScreenHeader title={t("menu.loyalty")} />
 
       <FlatList
         data={vouchers}
@@ -29,21 +32,21 @@ export default function LoyaltyScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View>
-          <View style={styles.pointsCard} accessible accessibilityLabel={`${loyalty.tier} member, ${loyalty.points} points`}>
-            <Text style={styles.pointsLabel}>{loyalty.tier} member</Text>
-            <Text style={styles.points}>{loyalty.points.toLocaleString()} <Text style={styles.pointsUnit}>pts</Text></Text>
+          <View style={styles.pointsCard} accessible accessibilityLabel={`${t("loyalty.member", { tier: tierName(loyalty.tier) })}, ${t("loyalty.pts", { points: loyalty.points })}`}>
+            <Text style={styles.pointsLabel}>{t("loyalty.member", { tier: tierName(loyalty.tier) })}</Text>
+            <Text style={styles.points}>{loyalty.points.toLocaleString()} <Text style={styles.pointsUnit}>{t("loyalty.ptsUnit")}</Text></Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
             </View>
             <Text style={styles.progressHint}>
-              {loyalty.nextTier ? `${loyalty.toNext} pts to ${loyalty.nextTier}` : "Top tier reached"}
+              {loyalty.nextTier ? t("loyalty.toNext", { points: loyalty.toNext, tier: tierName(loyalty.nextTier) }) : t("loyalty.top")}
             </Text>
-            <Text style={styles.progressNote}>1 point for every RM 1 on completed orders</Text>
+            <Text style={styles.progressNote}>{t("loyalty.rule")}</Text>
           </View>
-          <Text style={styles.section} accessibilityRole="header">Vouchers</Text>
+          <Text style={styles.section} accessibilityRole="header">{t("loyalty.vouchers")}</Text>
           </View>
         }
-        ListEmptyComponent={<EmptyState icon="pricetags-outline" title="No vouchers right now" hint="Stalls add offers from time to time. They show up here and at checkout." />}
+        ListEmptyComponent={<EmptyState icon="pricetags-outline" title={t("loyalty.noVouchers")} hint={t("loyalty.noVouchersHint")} />}
         renderItem={({ item }) => (
           <View style={[styles.voucherCard, item.used && { opacity: 0.5 }]} testID={`loyalty-voucher-${item.id}`}>
             <View style={styles.voucherIcon}>
@@ -52,10 +55,10 @@ export default function LoyaltyScreen() {
             <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
               <Text style={type.h3}>{item.title}</Text>
               <Text style={type.bodyMuted}>{item.description}</Text>
-              <Text style={type.small}>{item.minSpend ? `Min spend RM ${item.minSpend}` : "No minimum spend"}</Text>
+              <Text style={type.small}>{item.minSpend ? t("loyalty.minSpend", { amount: item.minSpend }) : t("loyalty.noMin")}</Text>
             </View>
             {/* A label, not a button: vouchers are applied on the checkout screen. */}
-            <Text style={[styles.redeemText, item.used && { color: colors.stoneText }]}>{item.used ? "Used" : "Use at\ncheckout"}</Text>
+            <Text style={[styles.redeemText, item.used && { color: colors.stoneText }]}>{item.used ? t("checkout.used") : t("loyalty.useAtCheckout")}</Text>
           </View>
         )}
       />

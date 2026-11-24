@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { api, errorText } from "../api/client";
 import { colors, radius, spacing, type, font } from "../theme/theme";
+import { useTranslation } from "react-i18next";
+import { passwordOk } from "../util/password";
 
 // Forgot password, in two steps: (1) type your email and we send a 6-digit code, (2) type the code and a new password.
 export default function ForgotPasswordModal({ visible, onClose, defaultEmail = "", onDone }: { visible: boolean; onClose: () => void; defaultEmail?: string; onDone?: (email: string) => void }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState(defaultEmail);
   const [code, setCode] = useState("");
@@ -31,6 +34,7 @@ export default function ForgotPasswordModal({ visible, onClose, defaultEmail = "
   });
 
   const reset = () => run(async () => {
+    if (!passwordOk(password)) throw new Error(t("val.password"));
     await api("POST", "/auth/reset", { email: email.trim(), code: code.trim(), newPassword: password });
     onDone?.(email.trim());
     onClose();
@@ -40,25 +44,25 @@ export default function ForgotPasswordModal({ visible, onClose, defaultEmail = "
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.backdrop}>
         <View style={styles.card}>
-          <Text style={type.h2}>{step === 1 ? "Forgot your password?" : "Choose a new password"}</Text>
+          <Text style={type.h2}>{step === 1 ? t("forgot.title") : t("forgot.newTitle")}</Text>
           {step === 1 ? (
             <>
-              <Text style={type.bodyMuted}>Enter the email you signed up with. We will send you a 6-digit code.</Text>
+              <Text style={type.bodyMuted}>{t("forgot.intro")}</Text>
               <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor={colors.textFaint} autoCapitalize="none" keyboardType="email-address" testID="forgot-email" />
             </>
           ) : (
             <>
               <Text style={type.bodyMuted}>{info}</Text>
-              <TextInput style={styles.input} value={code} onChangeText={(t) => setCode(t.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit code" placeholderTextColor={colors.textFaint} keyboardType="number-pad" maxLength={6} testID="forgot-code" />
-              <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="New password (at least 6 characters)" placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="forgot-password" />
+              <TextInput style={styles.input} value={code} onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))} placeholder={t("forgot.code")} placeholderTextColor={colors.textFaint} keyboardType="number-pad" maxLength={6} testID="forgot-code" />
+              <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder={t("forgot.newPassword")} placeholderTextColor={colors.textFaint} secureTextEntry autoCapitalize="none" testID="forgot-password" />
             </>
           )}
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Pressable style={[styles.cta, busy && { opacity: 0.6 }]} onPress={step === 1 ? send : reset} disabled={busy} accessibilityRole="button" testID="forgot-submit">
-            {busy ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.ctaText}>{step === 1 ? "Send code" : "Change password"}</Text>}
+            {busy ? <ActivityIndicator color={colors.ink} /> : <Text style={styles.ctaText}>{step === 1 ? t("forgot.send") : t("forgot.change")}</Text>}
           </Pressable>
-          {step === 2 ? <Pressable onPress={send} disabled={busy} hitSlop={8}><Text style={styles.link}>Send a new code</Text></Pressable> : null}
-          <Pressable onPress={onClose} hitSlop={8}><Text style={styles.link}>Cancel</Text></Pressable>
+          {step === 2 ? <Pressable onPress={send} disabled={busy} hitSlop={8}><Text style={styles.link}>{t("forgot.resend")}</Text></Pressable> : null}
+          <Pressable onPress={onClose} hitSlop={8}><Text style={styles.link}>{t("common.cancel")}</Text></Pressable>
         </View>
       </KeyboardAvoidingView>
     </Modal>

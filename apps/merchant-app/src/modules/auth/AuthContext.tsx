@@ -1,8 +1,9 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api, setOnUnauthorized, setToken } from "../../shared/api/client";
+import i18n, { currentLanguage, isLang, Lang, setLanguage } from "../../shared/i18n";
 
 type Merchant = { id: string; name: string; approval: "pending" | "approved" | "rejected" | "suspended" };
-type User = { id: string; name: string; email: string; merchant?: Merchant };
+type User = { id: string; name: string; email: string; merchant?: Merchant; language?: Lang };
 
 export type MerchantSignup = {
   businessName: string; ownerName: string; email: string; phone: string; password: string;
@@ -21,17 +22,36 @@ type AuthContextValue = {
   register: (input: MerchantSignup, afterCreate?: (token: string) => Promise<void>) => Promise<void>;
   checkApproval: () => Promise<void>;
   logout: () => void;
+  /** Switch the app language now; when signed in, also save it on the account (PATCH /auth/me). */
+  changeLanguage: (lang: Lang) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  // True once the owner taps a language on the login screen: that choice beats the one saved on the account.
+  const pickedOnLogin = useRef(false);
 
   const start = (res: { token: string; user: User & { role: string } }) => {
-    if (res.user.role !== "merchant") throw new Error("This is not a merchant account. Use the customer app.");
+    if (res.user.role !== "merchant") throw new Error(i18n.t("auth.notMerchant"));
     setToken(res.token);
-    setUser(res.user);
+    const saved = isLang(res.user.language) ? res.user.language : undefined;
+    // Language after login: the one just picked on the login screen, else the account's, else the phone's.
+    if (saved && !pickedOnLogin.current) setLanguage(saved);
+    const lang = currentLanguage();
+    if (lang !== saved) api("PATCH", "/auth/me", { language: lang }).catch(() => {});
+    pickedOnLogin.current = false;
+    setUser({ ...res.user, language: lang });
+  };
+
+  const changeLanguage = (lang: Lang) => {
+    setLanguage(lang);
+    if (!user) pickedOnLogin.current = true;
+    else {
+      setUser((cur) => (cur ? { ...cur, language: lang } : cur));
+      api("PATCH", "/auth/me", { language: lang }).catch(() => {}); // the app has already switched; saving is best effort
+    }
   };
 
   const logout = useCallback(() => {
@@ -63,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn: !!user, name: user?.merchant?.name ?? user?.name ?? "", user, approval: user?.merchant?.approval ?? null, login, register, checkApproval, logout }}
+      value={{ isLoggedIn: !!user, name: user?.merchant?.name ?? user?.name ?? "", user, approval: user?.merchant?.approval ?? null, login, register, checkApproval, logout, changeLanguage }}
     >
       {children}
     </AuthContext.Provider>

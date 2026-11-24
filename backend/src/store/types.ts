@@ -10,6 +10,8 @@ export interface User {
   name: string;
   phone?: string;
   dob?: string; // YYYY-MM-DD
+  // Under GUARDIAN_AGE at sign-up: the parent or guardian who approved the account, and when.
+  guardian?: { name: string; phone: string; consentAt: number };
   passwordHash: string;
   merchantId?: string;
   avatar?: string; // emoji or image link
@@ -22,6 +24,7 @@ export interface User {
   appRatingAskedAt?: number;
   appRatingNever?: boolean;
   weeklyBudget?: number; // Sprint 3 spending tracker: the customer's weekly limit in RM (none when unset)
+  language?: "en" | "ms" | "zh"; // app language the user picked (English, Bahasa Melayu, Chinese)
 }
 
 /** Sprint 3 diet and allergy profile. prefs: vegetarian | plant_based | no_spicy. */

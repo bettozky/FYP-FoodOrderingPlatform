@@ -7,11 +7,13 @@ import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import { useLive } from "../ordering/LiveDataContext";
 import { budgetState, spendingSummary } from "./spending";
 import { useBudget } from "./useBudget";
+import { useTranslation } from "react-i18next";
 
 // Sprint 3 weekly budget, shown at checkout: amber when this order uses 80% or more of the week's budget,
 // red when it goes over. Nothing when there is no budget or plenty is left. It only warns; the order can still go ahead.
 export default function BudgetWarning({ adding }: { adding: number }) {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const { orders } = useLive();
   const { budget } = useBudget();
   const week = useMemo(() => spendingSummary(orders).thisWeek, [orders]);
@@ -23,14 +25,14 @@ export default function BudgetWarning({ adding }: { adding: number }) {
       <Ionicons name={over ? "alert-circle" : "wallet-outline"} size={18} color={over ? colors.chiliText : colors.amberText} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={[styles.title, { color: over ? colors.chiliText : colors.amberText }]}>
-          {over ? `This order puts you ${rm(-st.left)} over your weekly budget` : `This order uses ${st.percent}% of your weekly budget`}
+          {over ? t("budget.over", { amount: rm(-st.left) }) : t("budget.near", { percent: st.percent })}
         </Text>
         <Text style={styles.text}>
-          {rm(week)} spent this week + {rm(adding)} now, budget {rm(budget!)}. You can still place the order.
+          {t("budget.detail", { week: rm(week), adding: rm(adding), budget: rm(budget!) })}
         </Text>
       </View>
-      <Pressable onPress={() => navigation.navigate("Spending")} hitSlop={8} accessibilityRole="button" accessibilityLabel="Open spending and budget">
-        <Text style={styles.link}>View</Text>
+      <Pressable onPress={() => navigation.navigate("Spending")} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("budget.open")}>
+        <Text style={styles.link}>{t("budget.view")}</Text>
       </Pressable>
     </View>
   );

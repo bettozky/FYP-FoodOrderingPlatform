@@ -1,5 +1,6 @@
 // Browser file chooser for the shop sign-up (Expo web build). No extra packages needed.
 import type { PickKind, PickResult } from "./pickFile";
+import i18n from "../../../shared/i18n";
 
 export type { PickKind, PickResult } from "./pickFile";
 
@@ -12,7 +13,7 @@ const ACCEPT: Record<PickKind, string> = {
 
 export function pickFile(kind: PickKind): Promise<PickResult> {
   return new Promise((resolve) => {
-    if (typeof document === "undefined") return resolve({ unavailable: "Choosing files is not supported here." });
+    if (typeof document === "undefined") return resolve({ unavailable: i18n.t("signup.noFilesHere") });
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ACCEPT[kind];

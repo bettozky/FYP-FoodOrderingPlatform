@@ -15,6 +15,9 @@ import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import { colors, spacing, type } from "../../../shared/theme/theme";
 import { merchantJobStyles as s } from "../styles";
+import i18n from "../../../shared/i18n";
+import { jobTypeName, roleName } from "../applicationStatus";
+import { useTranslation } from "react-i18next";
 
 export type JobRole = "Waitstaff" | "Line Cook" | "Cashier" | "Barista" | "Kitchen Helper" | "Dishwasher";
 export type JobType = "Full-Time" | "Part-Time" | "Contract";
@@ -31,7 +34,7 @@ export interface JobPosting {
   description: string;
   perks: string;
   status: "active" | "closed";
-  postedDate: string;
+  postedAt: number;
 }
 
 const COMMON_ROLES: JobRole[] = [
@@ -46,15 +49,16 @@ const JOB_TYPES: JobType[] = ["Full-Time", "Part-Time", "Contract"];
 
 const ago = (t: number) => {
   const d = Math.floor((Date.now() - t) / 86400000);
-  return d <= 0 ? "today" : d === 1 ? "1 day ago" : `${d} days ago`;
+  return d <= 0 ? i18n.t("jobBoard.today") : i18n.t("jobBoard.daysAgo", { count: d });
 };
 const fromApi = (j: any): JobPosting => ({
   id: j.id, title: j.title, role: j.role ?? "Staff", type: (j.type as JobType) ?? "Part-Time", salaryRange: j.pay,
   openings: j.openings ?? 1, applicantsCount: j.applicants ?? 0, newApplicants: j.newApplicants ?? 0, description: j.description ?? "", perks: j.perks ?? "",
-  status: j.open ? "active" : "closed", postedDate: ago(j.postedAt),
+  status: j.open ? "active" : "closed", postedAt: j.postedAt,
 });
 
 export default function MerchantJobBoardScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [message, setMessage] = useState("");
   const load = () =>
@@ -113,7 +117,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
   // Save (Create or Update)
   const handleSaveJob = () => {
     if (!jobTitle.trim() || !salaryRange.trim()) {
-      alert("Please enter a job title and salary range.");
+      alert(t("jobBoard.needTitle"));
       return;
     }
 
@@ -145,14 +149,14 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Job board"
-        subtitle={`${jobs.filter((j) => j.status === "active").length} active vacancies · ${jobs.reduce((acc, j) => acc + j.applicantsCount, 0)} total candidates`}
+        title={t("dash.jobs")}
+        subtitle={t("jobBoard.subtitle", { active: jobs.filter((j) => j.status === "active").length, total: jobs.reduce((acc, j) => acc + j.applicantsCount, 0) })}
       />
 
       {message ? <Text style={{ color: colors.chiliText, paddingHorizontal: spacing.lg }}>{message}</Text> : null}
       <FlatList
         data={filteredJobs}
-        ListEmptyComponent={<EmptyState icon="briefcase-outline" title="No job postings" hint="Post an opening and students on ScootMeal will see it." />}
+        ListEmptyComponent={<EmptyState icon="briefcase-outline" title={t("jobBoard.empty")} hint={t("jobBoard.emptyHint")} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={s.list}
         ListHeaderComponent={
@@ -162,7 +166,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               style={({ hovered }: any) => [s.postBtn, hovered && s.btnHover]}
               onPress={handleOpenAddModal}
             >
-              <Text style={s.postBtnText}>Post a job</Text>
+              <Text style={s.postBtnText}>{t("jobBoard.postNew")}</Text>
             </Pressable>
 
             {/* Status Filter Tabs */}
@@ -177,10 +181,10 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   >
                     <Text style={[s.tabText, isActive && s.tabTextActive]}>
                       {tab === "active"
-                        ? "Active"
+                        ? t("jobBoard.tabActive")
                         : tab === "closed"
-                        ? "Closed"
-                        : "All"}
+                        ? t("jobBoard.tabClosed")
+                        : t("jobBoard.tabAll")}
                     </Text>
                   </Pressable>
                 );
@@ -199,11 +203,11 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   <Text style={[type.h3, { color: isClosed ? colors.stone : colors.text }]}>
                     {item.title}
                   </Text>
-                  <Badge label={item.role} tone="neutral" />
+                  <Badge label={roleName(item.role)} tone="neutral" />
                 </View>
 
                 <Badge
-                  label={isClosed ? "Closed" : "Hiring"}
+                  label={isClosed ? t("jobBoard.closed") : t("jobBoard.hiring")}
                   tone={isClosed ? "neutral" : "success"}
                 />
               </View>
@@ -215,16 +219,16 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                 </View>
 
                 <View style={s.typeBadge}>
-                  <Text style={s.typeText}><Ionicons name="time-outline" size={13} /> {item.type}</Text>
+                  <Text style={s.typeText}><Ionicons name="time-outline" size={13} /> {jobTypeName(item.type)}</Text>
                 </View>
 
                 <View style={s.applicantBadge}>
                   <Text style={s.applicantText}>
-                    <Ionicons name="people-outline" size={13} /> {item.applicantsCount} {item.applicantsCount === 1 ? "applicant" : "applicants"} · {item.openings} {item.openings === 1 ? "opening" : "openings"}
+                    <Ionicons name="people-outline" size={13} /> {t("jobBoard.counts", { applicants: item.applicantsCount, openings: item.openings })}
                   </Text>
                 </View>
 
-                <Text style={type.small}>Posted {item.postedDate}</Text>
+                <Text style={type.small}>{t("jobBoard.posted", { when: ago(item.postedAt) })}</Text>
               </View>
 
               {/* Job Scope / Responsibilities */}
@@ -235,7 +239,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               {/* Perks & Benefits Box */}
               {item.perks ? (
                 <View style={s.perksBox}>
-                  <Text style={s.perksTitle}>Staff benefits & welfare</Text>
+                  <Text style={s.perksTitle}>{t("jobBoard.benefits")}</Text>
                   <Text style={s.perksContent}>{item.perks}</Text>
                 </View>
               ) : null}
@@ -245,12 +249,12 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                 style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: spacing.md, borderRadius: 999, borderWidth: 1, borderColor: item.newApplicants ? colors.turmeric : colors.border, backgroundColor: item.newApplicants ? colors.amberTint : colors.surface, marginBottom: spacing.sm }}
                 onPress={() => navigation.navigate("MerchantApplicants", { jobId: item.id, jobTitle: item.title })}
                 accessibilityRole="button"
-                accessibilityLabel={`Applicants for ${item.title}`}
+                accessibilityLabel={t("jobBoard.applicantsFor", { title: item.title })}
                 testID={`applicants-${item.id}`}
               >
                 <Ionicons name="people-outline" size={18} color={colors.ink} />
                 <Text style={{ flex: 1, fontWeight: "700", color: colors.ink }}>
-                  Applicants ({item.applicantsCount}){item.newApplicants ? ` · ${item.newApplicants} new` : ""}
+                  {t("drawer.applicants")} ({item.applicantsCount}){item.newApplicants ? ` · ${t("jobBoard.new", { n: item.newApplicants })}` : ""}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.stone} />
               </Pressable>
@@ -261,7 +265,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   style={[s.actionBtn, s.editBtn]}
                   onPress={() => handleOpenEditModal(item)}
                 >
-                  <Text style={s.editBtnText}>Edit details</Text>
+                  <Text style={s.editBtnText}>{t("jobBoard.editDetails")}</Text>
                 </Pressable>
 
                 <Pressable
@@ -273,7 +277,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   onPress={() => handleToggleStatus(item.id)}
                 >
                   <Text style={isClosed ? s.reopenBtnText : s.closeBtnText}>
-                    {isClosed ? "Reopen vacancy" : "Close vacancy"}
+                    {isClosed ? t("jobBoard.reopen") : t("jobBoard.close")}
                   </Text>
                 </Pressable>
 
@@ -281,7 +285,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   style={[s.actionBtn, s.deleteBtn]}
                   onPress={() => handleDeleteJob(item.id)}
                 >
-                  <Text style={s.deleteBtnText}>Remove</Text>
+                  <Text style={s.deleteBtnText}>{t("photo.remove")}</Text>
                 </Pressable>
               </View>
             </View>
@@ -295,23 +299,23 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
           <View style={s.modalCard}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={type.h2}>
-                {editingJobId ? "Edit job vacancy" : "Post a job"}
+                {editingJobId ? t("jobBoard.editTitle") : t("jobBoard.postNew")}
               </Text>
               <Text style={[type.bodyMuted, { marginBottom: spacing.md }]}>
-                Recruit kitchen, service, and floor staff for your restaurant.
+                {t("jobBoard.formIntro")}
               </Text>
 
               {/* Job Title */}
-              <Text style={s.inputLabel}>Job title</Text>
+              <Text style={s.inputLabel}>{t("jobBoard.title")}</Text>
               <TextInput
                 style={s.input}
-                placeholder="e.g. Full-Time Sarawak Laksa Line Cook"
+                placeholder={t("jobBoard.titlePh")}
                 value={jobTitle}
                 onChangeText={setJobTitle}
               />
 
               {/* F&B Primary Role Picker */}
-              <Text style={s.inputLabel}>Role category</Text>
+              <Text style={s.inputLabel}>{t("jobBoard.role")}</Text>
               <View style={s.quickChipRow}>
                 {COMMON_ROLES.map((role) => {
                   const isSelected = jobRole === role;
@@ -322,7 +326,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                       onPress={() => setJobRole(role)}
                     >
                       <Text style={[s.quickChipText, isSelected && s.quickChipTextActive]}>
-                        {role}
+                        {roleName(role)}
                       </Text>
                     </Pressable>
                   );
@@ -330,7 +334,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               </View>
 
               {/* Employment Type */}
-              <Text style={s.inputLabel}>Employment type</Text>
+              <Text style={s.inputLabel}>{t("jobBoard.type")}</Text>
               <View style={s.quickChipRow}>
                 {JOB_TYPES.map((jt) => {
                   const isSelected = jobType === jt;
@@ -341,7 +345,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                       onPress={() => setJobType(jt)}
                     >
                       <Text style={[s.quickChipText, isSelected && s.quickChipTextActive]}>
-                        {jt}
+                        {jobTypeName(jt)}
                       </Text>
                     </Pressable>
                   );
@@ -351,20 +355,20 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               {/* Salary Range & Number of Openings */}
               <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs }}>
                 <View style={{ flex: 2 }}>
-                  <Text style={s.inputLabel}>Salary / wages</Text>
+                  <Text style={s.inputLabel}>{t("jobBoard.salary")}</Text>
                   <TextInput
                     style={s.input}
-                    placeholder="e.g. RM 2,200 - RM 2,600 / month"
+                    placeholder={t("jobBoard.salaryPh")}
                     value={salaryRange}
                     onChangeText={setSalaryRange}
                   />
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={s.inputLabel}>Openings</Text>
+                  <Text style={s.inputLabel}>{t("jobBoard.openings")}</Text>
                   <TextInput
                     style={s.input}
-                    placeholder="e.g. 2"
+                    placeholder={t("menu.eg", { v: "2" })}
                     keyboardType="numeric"
                     value={openings}
                     onChangeText={setOpenings}
@@ -373,10 +377,10 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               </View>
 
               {/* Responsibilities & Description */}
-              <Text style={s.inputLabel}>Responsibilities & duties</Text>
+              <Text style={s.inputLabel}>{t("jobBoard.duties")}</Text>
               <TextInput
                 style={[s.input, s.textArea]}
-                placeholder="Key expectations (e.g. food prep, table service, cash handling)"
+                placeholder={t("jobBoard.dutiesPh")}
                 multiline
                 numberOfLines={3}
                 value={description}
@@ -384,10 +388,10 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
               />
 
               {/* Staff Perks & Welfare */}
-              <Text style={s.inputLabel}>Staff perks & benefits</Text>
+              <Text style={s.inputLabel}>{t("jobBoard.perks")}</Text>
               <TextInput
                 style={s.input}
-                placeholder="e.g. Staff meals, EPF/SOCSO, OT allowance, medical"
+                placeholder={t("jobBoard.perksPh")}
                 value={perks}
                 onChangeText={setPerks}
               />
@@ -398,7 +402,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   style={[s.modalBtn, s.cancelBtn]}
                   onPress={() => setIsModalOpen(false)}
                 >
-                  <Text style={s.cancelBtnText}>Cancel</Text>
+                  <Text style={s.cancelBtnText}>{t("common.cancel")}</Text>
                 </Pressable>
 
                 <Pressable
@@ -406,7 +410,7 @@ export default function MerchantJobBoardScreen({ navigation }: any) {
                   onPress={handleSaveJob}
                 >
                   <Text style={s.saveBtnText}>
-                    {editingJobId ? "Save changes" : "Publish vacancy"}
+                    {editingJobId ? t("ann.saveChanges") : t("jobBoard.publish")}
                   </Text>
                 </Pressable>
               </View>

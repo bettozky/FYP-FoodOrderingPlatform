@@ -4,11 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import type { Merchant } from "../../../shared/api/types";
 import PulseRing from "../../../shared/motion/PulseRing";
 import { colors, radius, spacing, font } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
 
 // Sprint 3 busy mode, customer side. Shown on the stall menu and at checkout when the stall is over its wait limit:
 //   paused -> red "Orders paused" (checkout cannot send);
 //   warn   -> amber "Very busy, about 32 min" with an "I'm OK waiting" tick at checkout.
 export default function BusyNotice({ merchant, accepted, onAccept }: { merchant: Merchant; accepted?: boolean; onAccept?: (v: boolean) => void }) {
+  const { t } = useTranslation();
   if (!merchant.openNow || (!merchant.ordersPaused && !merchant.longWaitWarning)) return null;
   const paused = !!merchant.ordersPaused;
   const tint = paused ? colors.chiliText : colors.amberText;
@@ -20,19 +22,19 @@ export default function BusyNotice({ merchant, accepted, onAccept }: { merchant:
         </PulseRing>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={[styles.title, { color: tint }]}>
-            {paused ? "Orders paused for a few minutes" : `Very busy · about ${merchant.waitMinutes ?? "?"} min wait`}
+            {paused ? t("busyNotice.paused") : t("busyNotice.veryBusy", { min: merchant.waitMinutes ?? "?" })}
           </Text>
           <Text style={styles.text}>
             {paused
-              ? `${merchant.name} is catching up on ${merchant.queue ?? "lots of"} orders. New orders open again by themselves once the wait is under ${merchant.waitLimit} min.`
-              : `Usually under ${merchant.waitLimit} min. You can still order if you don't mind waiting.`}
+              ? t("busyNotice.pausedText", { name: merchant.name, queue: merchant.queue ?? t("busyNotice.lotsOf"), limit: merchant.waitLimit })
+              : t("busyNotice.warnText", { limit: merchant.waitLimit })}
           </Text>
         </View>
       </View>
       {!paused && onAccept ? (
         <Pressable style={styles.tick} onPress={() => onAccept(!accepted)} accessibilityRole="checkbox" accessibilityState={{ checked: !!accepted }} testID="accept-long-wait">
           <View style={[styles.checkbox, accepted && styles.checkboxOn]}>{accepted ? <Ionicons name="checkmark" size={14} color={colors.white} /> : null}</View>
-          <Text style={styles.tickText}>I'm OK waiting about {merchant.waitMinutes} min</Text>
+          <Text style={styles.tickText}>{t("busyNotice.okWaiting", { min: merchant.waitMinutes })}</Text>
         </Pressable>
       ) : null}
     </View>

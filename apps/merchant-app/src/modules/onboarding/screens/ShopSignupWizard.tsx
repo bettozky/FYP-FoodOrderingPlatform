@@ -11,11 +11,13 @@ import { emptyApplication, ShopApplication, STEPS, toSignupRequest } from "../si
 import { Errors, firstIncompleteStep, validateStep } from "../signup/validate";
 import { canPickFiles } from "../signup/pickFile";
 import { uploadSignupFiles } from "../signup/upload";
+import { useTranslation } from "react-i18next";
 
 const LAST = STEPS.length - 1;
 
 export default function ShopSignupWizard({ onCancel, scrollToTop }: { onCancel: () => void; scrollToTop?: () => void }) {
   const { register } = useAuth();
+  const { t } = useTranslation();
   const [a, setA] = useState<ShopApplication>(emptyApplication);
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Errors>({});
@@ -63,7 +65,7 @@ export default function ShopSignupWizard({ onCancel, scrollToTop }: { onCancel: 
     <View style={styles.wrap} testID="shop-signup">
       <View style={styles.heading}>
         <View style={styles.topline}>
-          <Text style={styles.count}>Step {step + 1} of {STEPS.length}</Text>
+          <Text style={styles.count}>{t("signup.stepOf", { n: step + 1, total: STEPS.length })}</Text>
         </View>
         <View style={styles.track} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: STEPS.length, now: step + 1 }}>
           <View style={[styles.fill, { width: `${((step + 1) / STEPS.length) * 100}%` }]} />
@@ -76,12 +78,12 @@ export default function ShopSignupWizard({ onCancel, scrollToTop }: { onCancel: 
         <Step a={a} set={set} errors={errors} goTo={go} />
       </View>
 
-      {errorCount > 1 ? <Text style={styles.summary}>Please fix the {errorCount} highlighted fields.</Text> : null}
+      {errorCount > 1 ? <Text style={styles.summary}>{t("signup.fixFields", { n: errorCount })}</Text> : null}
       {submitError ? <Text style={styles.summary} testID="reg-error">{submitError}</Text> : null}
 
       <View style={styles.actions}>
         <Pressable style={styles.back} onPress={() => (step === 0 ? onCancel() : go(step - 1))} disabled={busy} accessibilityRole="button" testID="reg-back">
-          <Text style={styles.backText}>{step === 0 ? "Cancel" : "Back"}</Text>
+          <Text style={styles.backText}>{step === 0 ? t("common.cancel") : t("popup.back")}</Text>
         </Pressable>
         <Pressable
           style={[styles.cta, busy && { opacity: 0.6 }]}
@@ -91,7 +93,7 @@ export default function ShopSignupWizard({ onCancel, scrollToTop }: { onCancel: 
           accessibilityState={{ busy }}
           testID={step === LAST ? "reg-button" : "reg-next"}
         >
-          <Text style={styles.ctaText}>{busy ? "Submitting…" : step === LAST ? "Submit for approval" : "Next"}</Text>
+          <Text style={styles.ctaText}>{busy ? t("signup.submitting") : step === LAST ? t("signup.submit") : t("signup.next")}</Text>
         </Pressable>
       </View>
     </View>

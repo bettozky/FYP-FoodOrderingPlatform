@@ -10,6 +10,7 @@ import { MODE_ICON, MODE_LABEL, Mode } from "../../../shared/api/types";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
 import EmptyState from "../../../shared/components/EmptyState";
 import { colors, layout, radius, shadow, spacing, type, ui, font } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
 
 const ALL_MODES: Mode[] = ["dine_in", "takeaway", "delivery"];
 const DELIVERY_FEE = 3.5; // display only; the server calculates the real fee
@@ -17,6 +18,7 @@ const DELIVERY_FEE = 3.5; // display only; the server calculates the real fee
 // Each dish has its own quantity per fulfilment mode, so one order can mix dine-in, takeaway and delivery.
 export default function CartScreen({ navigation }: any) {
   const { lines, merchant, setLineQty, removeLine, subtotal, hasDelivery } = useCart();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const modes = merchant?.dineInOnly ? (["dine_in"] as Mode[]) : ALL_MODES;
   const deliveryFee = hasDelivery ? DELIVERY_FEE : 0;
@@ -25,10 +27,10 @@ export default function CartScreen({ navigation }: any) {
   if (lines.length === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <ScreenHeader title="Your cart" />
+        <ScreenHeader title={t("cart.title")} />
         <View style={styles.emptyWrap}>
-          <EmptyState icon="bag-handle-outline" title="Your cart is empty" hint="Find a dish you're craving and tap + to add it." />
-          <PrimaryButton label="Browse dishes" style={{ alignSelf: "stretch", marginTop: -spacing.xl }} onPress={() => navigation.popTo("MainTabs")} />
+          <EmptyState icon="bag-handle-outline" title={t("cart.empty")} hint={t("cart.emptyHint")} />
+          <PrimaryButton label={t("cart.browse")} style={{ alignSelf: "stretch", marginTop: -spacing.xl }} onPress={() => navigation.popTo("MainTabs")} />
         </View>
       </View>
     );
@@ -36,7 +38,7 @@ export default function CartScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Your cart" subtitle={merchant ? `from ${merchant.name}` : undefined} />
+      <ScreenHeader title={t("cart.title")} subtitle={merchant ? t("dish.from", { shop: merchant.name }) : undefined} />
 
       <FlatList
         data={lines}
@@ -45,7 +47,7 @@ export default function CartScreen({ navigation }: any) {
         ListHeaderComponent={
           <View style={{ gap: spacing.md, marginBottom: spacing.md }}>
             <OrderSteps current={0} />
-            <Text style={type.bodyMuted}>Choose dine-in, takeaway or delivery for each item. You pay once for everything.</Text>
+            <Text style={type.bodyMuted}>{t("cart.chooseModes")}</Text>
           </View>
         }
         ListFooterComponent={<NotChargedNote />}
@@ -55,9 +57,9 @@ export default function CartScreen({ navigation }: any) {
               <DishImage image={item.dish.image} size={60} tint={softTint(merchant?.color)} label={item.dish.name} />
               <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
                 <Text style={type.h3} numberOfLines={2}>{item.dish.name}</Text>
-                <Text style={type.bodyMuted} numberOfLines={2}>RM {item.dish.price.toFixed(2)} each{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
+                <Text style={type.bodyMuted} numberOfLines={2}>{t("cart.each", { price: item.dish.price.toFixed(2) })}{item.options.length ? ` · ${item.options.join(", ")}` : ""}</Text>
               </View>
-              <Pressable onPress={() => removeLine(item.key)} hitSlop={12} style={styles.trashBtn} testID={`remove-${item.dish.id}`} accessibilityRole="button" accessibilityLabel={`Remove ${item.dish.name} from cart`}>
+              <Pressable onPress={() => removeLine(item.key)} hitSlop={12} style={styles.trashBtn} testID={`remove-${item.dish.id}`} accessibilityRole="button" accessibilityLabel={t("cart.remove", { name: item.dish.name })}>
                 <Ionicons name="trash-outline" size={18} color={colors.chiliText} />
               </Pressable>
             </View>
@@ -67,11 +69,11 @@ export default function CartScreen({ navigation }: any) {
                 <Ionicons name={MODE_ICON[m] as any} size={18} color={item.qty[m] ? colors.ink : colors.stoneText} />
                 <Text style={[styles.modeLabel, !item.qty[m] && { color: colors.stoneText }]}>{MODE_LABEL[m]}</Text>
                 <View style={styles.stepper}>
-                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] - 1)} hitSlop={8} style={styles.stepBtn} testID={`dec-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Decrease ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
+                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] - 1)} hitSlop={8} style={styles.stepBtn} testID={`dec-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={t("cart.decrease", { mode: MODE_LABEL[m], name: item.dish.name })}>
                     <Ionicons name="remove" size={16} color={item.qty[m] > 0 ? colors.ink : colors.stoneSoft} />
                   </Pressable>
                   <Text style={styles.qty} testID={`qty-${item.dish.id}-${m}`}>{item.qty[m]}</Text>
-                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] + 1)} hitSlop={8} style={styles.stepBtn} testID={`inc-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={`Increase ${MODE_LABEL[m]} quantity of ${item.dish.name}`}>
+                  <Pressable onPress={() => setLineQty(item.key, m, item.qty[m] + 1)} hitSlop={8} style={styles.stepBtn} testID={`inc-${item.dish.id}-${m}`} accessibilityRole="button" accessibilityLabel={t("cart.increase", { mode: MODE_LABEL[m], name: item.dish.name })}>
                     <Ionicons name="add" size={16} color={colors.ink} />
                   </Pressable>
                 </View>
@@ -88,22 +90,22 @@ export default function CartScreen({ navigation }: any) {
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <View style={styles.summaryRow}>
-          <Text style={[type.bodyMuted, styles.summaryLabel]}>Subtotal</Text>
+          <Text style={[type.bodyMuted, styles.summaryLabel]}>{t("cart.subtotal")}</Text>
           <Text style={[type.body, styles.summaryValue]}>RM {subtotal.toFixed(2)}</Text>
         </View>
         {hasDelivery && (
           <View style={styles.summaryRow}>
-            <Text style={[type.bodyMuted, styles.summaryLabel]}>Delivery fee (once, for delivery items)</Text>
+            <Text style={[type.bodyMuted, styles.summaryLabel]}>{t("cart.deliveryFee")}</Text>
             <Text style={[type.body, styles.summaryValue]}>RM {deliveryFee.toFixed(2)}</Text>
           </View>
         )}
         <View style={styles.totalBar}>
           <View style={{ flexShrink: 0 }}>
-            <Text style={type.small}>Total</Text>
+            <Text style={type.small}>{t("cart.total")}</Text>
             <Text style={styles.totalValue} testID="cart-total">RM {total.toFixed(2)}</Text>
           </View>
-          <Pressable style={[ui.buttonAccent, { flex: 1 }]} onPress={() => navigation.navigate("Checkout")} testID="to-checkout" accessibilityRole="button" accessibilityLabel="Proceed to checkout">
-            <Text style={ui.buttonAccentText}>Proceed to checkout</Text>
+          <Pressable style={[ui.buttonAccent, { flex: 1 }]} onPress={() => navigation.navigate("Checkout")} testID="to-checkout" accessibilityRole="button" accessibilityLabel={t("cart.checkout")}>
+            <Text style={ui.buttonAccentText}>{t("cart.checkout")}</Text>
           </Pressable>
         </View>
       </View>

@@ -10,6 +10,7 @@ import { colors, radius, spacing, type, font, layout } from "../../../shared/the
 import DishImage from "../../../shared/components/DishImage";
 import { useCatalog } from "../../discovery/CatalogContext";
 import { useLive } from "../../ordering/LiveDataContext";
+import { useTranslation } from "react-i18next";
 
 const DEPOSIT = 5; // display only; the server charges the real amount (assumption: RM5 booking deposit)
 
@@ -31,6 +32,7 @@ function slotsFor(open: string, close: string) {
 export default function BookTableScreen({ route, navigation }: any) {
   const existing: Reservation | undefined = route.params?.reservation;
   const merchantId: string = existing?.merchantId ?? route.params?.merchantId;
+  const { t } = useTranslation();
   const { merchantById } = useCatalog();
   const { refresh, setBookingsView } = useLive();
   const merchant = merchantById[merchantId];
@@ -51,7 +53,7 @@ export default function BookTableScreen({ route, navigation }: any) {
   }, [merchantId]);
 
   if (!merchant) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg }}><ScreenHeader title="Book a table" /></View>;
+    return <View style={{ flex: 1, backgroundColor: colors.bg }}><ScreenHeader title={t("book.title")} /></View>;
   }
 
   const slots = slotsFor(merchant.hours.open, merchant.hours.close).filter((t) => {
@@ -66,7 +68,7 @@ export default function BookTableScreen({ route, navigation }: any) {
     setBusy(true);
     setError("");
     try {
-      if (!time) throw new Error("Choose a time slot");
+      if (!time) throw new Error(t("book.chooseSlot"));
       if (existing) {
         await api("PATCH", `/reservations/${existing.id}`, { date, time, partySize: party, specialRequest: request });
       } else {
@@ -88,9 +90,9 @@ export default function BookTableScreen({ route, navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title={existing ? "Change booking" : "Book a table"} subtitle={merchant.name} />
+      <ScreenHeader title={existing ? t("book.change") : t("book.title")} subtitle={merchant.name} />
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
-        <Text style={type.h3}>Date</Text>
+        <Text style={type.h3}>{t("book.date")}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
           {days.map((d) => (
             <Pressable key={d} style={[styles.chip, date === d && styles.chipOn]} onPress={() => { setDate(d); setTime(""); }} testID={`date-${d}`}>
@@ -99,19 +101,19 @@ export default function BookTableScreen({ route, navigation }: any) {
           ))}
         </ScrollView>
 
-        <Text style={[type.h3, { marginTop: spacing.lg }]}>Time slot</Text>
-        <Text style={type.small}>{merchant.name} is open {merchant.hours.open}-{merchant.hours.close}</Text>
+        <Text style={[type.h3, { marginTop: spacing.lg }]}>{t("book.timeSlot")}</Text>
+        <Text style={type.small}>{t("book.openHours", { name: merchant.name, open: merchant.hours.open, close: merchant.hours.close })}</Text>
         <View style={[styles.row, { flexWrap: "wrap", marginTop: spacing.sm }]}>
-          {slots.map((t) => (
-            <Pressable key={t} style={[styles.chip, time === t && styles.chipOn]} onPress={() => setTime(t)} testID={`slot-${t}`}>
-              <Text style={[styles.chipText, time === t && { color: colors.white }]}>{t}</Text>
+          {slots.map((s) => (
+            <Pressable key={s} style={[styles.chip, time === s && styles.chipOn]} onPress={() => setTime(s)} testID={`slot-${s}`}>
+              <Text style={[styles.chipText, time === s && { color: colors.white }]}>{s}</Text>
             </Pressable>
           ))}
-          {slots.length === 0 && <Text style={type.bodyMuted}>No slots left on this day. Try another date.</Text>}
+          {slots.length === 0 && <Text style={type.bodyMuted}>{t("book.noSlots")}</Text>}
         </View>
 
         <View style={styles.partyRow}>
-          <Text style={type.h3}>Party size</Text>
+          <Text style={type.h3}>{t("book.party")}</Text>
           <View style={styles.stepper}>
             <Pressable style={styles.stepBtn} onPress={() => setParty((p) => Math.max(1, p - 1))}><Ionicons name="remove" size={16} color={colors.ink} /></Pressable>
             <Text style={styles.stepVal} testID="party">{party}</Text>
@@ -119,12 +121,12 @@ export default function BookTableScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        <TextInput style={styles.input} value={request} onChangeText={setRequest} placeholder="Special request (optional)" placeholderTextColor={colors.textFaint} />
+        <TextInput style={styles.input} value={request} onChangeText={setRequest} placeholder={t("book.request")} placeholderTextColor={colors.textFaint} />
 
         {!existing && (
           <>
-            <Text style={[type.h3, { marginTop: spacing.xl }]}>Pre-order (optional)</Text>
-            <Text style={type.small}>The restaurant approves or declines the pre-order separately from the table.</Text>
+            <Text style={[type.h3, { marginTop: spacing.xl }]}>{t("book.preorder")}</Text>
+            <Text style={type.small}>{t("book.preorderNote")}</Text>
             {dishes.filter((d) => !d.soldOut).map((d) => (
               <View key={d.id} style={styles.dishRow}>
                 <DishImage image={d.image} size={44} label={d.name} />
@@ -140,25 +142,29 @@ export default function BookTableScreen({ route, navigation }: any) {
               </View>
             ))}
 
-            <Text style={[type.h3, { marginTop: spacing.xl }]}>Payment</Text>
+            <Text style={[type.h3, { marginTop: spacing.xl }]}>{t("track.payment")}</Text>
             {([false, true] as const).map((v) => (
               <Pressable key={String(v)} style={[styles.option, payNow === v && styles.optionOn]} onPress={() => setPayNow(v)} testID={v ? "pay-now" : "pay-later"}>
                 <View style={{ flex: 1 }}>
-                  <Text style={type.body}>{v ? `Pay online · RM ${payAmount.toFixed(2)}` : "Pay later"}</Text>
-                  <Text style={type.small}>{v ? `RM ${DEPOSIT.toFixed(2)} booking deposit${preTotal ? ` + RM ${preTotal.toFixed(2)} pre-order` : ""}. Nothing is charged now. You pay after the restaurant confirms your table.` : "Pay at the restaurant. Nothing is charged today."}</Text>
+                  <Text style={type.body}>{v ? t("book.payOnline", { amount: payAmount.toFixed(2) }) : t("book.payLater")}</Text>
+                  <Text style={type.small}>
+                    {v
+                      ? `${t("book.deposit", { amount: DEPOSIT.toFixed(2) })}${preTotal ? ` + ${t("book.preorderAmount", { amount: preTotal.toFixed(2) })}` : ""}. ${t("book.payOnlineNote")}`
+                      : t("book.payLaterNote")}
+                  </Text>
                 </View>
                 <View style={[styles.radio, payNow === v && styles.radioOn]} />
               </Pressable>
             ))}
           </>
         )}
-        {existing && <Text style={[type.small, { marginTop: spacing.md }]}>Changing the date, time or party size sends the booking back to the restaurant for approval.</Text>}
+        {existing && <Text style={[type.small, { marginTop: spacing.md }]}>{t("book.changeNote")}</Text>}
 
         {error ? <Text style={styles.error} testID="book-error">{error}</Text> : null}
-        <Text style={[type.small, { marginTop: spacing.md }]}>The restaurant has 30 minutes to reply. You'll be told if it's accepted, declined or expires.</Text>
+        <Text style={[type.small, { marginTop: spacing.md }]}>{t("book.replyNote")}</Text>
       </ScrollView>
       <View style={styles.footer}>
-        <PrimaryButton label={existing ? "Save changes" : "Request table"} onPress={submit} loading={busy} disabled={!time} />
+        <PrimaryButton label={existing ? t("myReviews.saveChanges") : t("book.request2")} onPress={submit} loading={busy} disabled={!time} />
       </View>
     </View>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { serverTime } from "../api/client";
+import { locale } from "../i18n";
 
 export const rm = (n: number) => `RM ${n.toFixed(2)}`;
 
@@ -18,4 +19,4 @@ export function useCountdown(deadline?: number): number {
 export const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 export const prettyDate = (d: string) =>
-  new Date(`${d}T12:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  new Date(`${d}T12:00:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });

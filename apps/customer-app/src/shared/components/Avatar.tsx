@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from "i18next";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, font } from "../theme/theme";
 import { isPhoto, mediaUrl } from "../media";
@@ -8,7 +9,7 @@ export default function Avatar({ uri, name, size = 52 }: { uri?: string | null; 
   const src = mediaUrl(uri ?? undefined);
   const radius = size / 2;
   return (
-    <View style={[styles.box, { width: size, height: size, borderRadius: radius }]} accessibilityLabel={name ? `${name}'s profile picture` : "Profile picture"}>
+    <View style={[styles.box, { width: size, height: size, borderRadius: radius }]} accessibilityLabel={name ? i18n.t("avatar.of", { name }) : i18n.t("avatar.plain")}>
       {isPhoto(src) ? (
         <Image source={{ uri: src }} style={{ width: size, height: size, borderRadius: radius }} accessibilityIgnoresInvertColors />
       ) : (

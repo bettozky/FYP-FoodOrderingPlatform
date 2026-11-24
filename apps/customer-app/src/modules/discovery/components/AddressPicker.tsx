@@ -8,13 +8,18 @@ import { api, errorText } from "../../../shared/api/client";
 import { colors, radius, spacing, type, ui, font, layout } from "../../../shared/theme/theme";
 import { useCatalog } from "../CatalogContext";
 import type { Address } from "../places";
+import { useTranslation } from "react-i18next";
+import i18n from "../../../shared/i18n";
 
 type Point = { lat: number; lng: number };
 type Result = { id: string; title: string; line: string; lat: number; lng: number; distance?: number };
 
 // Where the map opens when the customer has no address yet (the campus area in Kuching).
 const KUCHING: Point = { lat: 1.5535, lng: 110.3593 };
+// Saved with the address in English (the stall and rider see it); shown in the app's language.
 const LABELS = ["Home", "Hostel", "Work", "Other"];
+const LABEL_KEY = { Home: "picker.lblHome", Hostel: "picker.lblHostel", Work: "picker.lblWork", Other: "picker.lblOther" } as const;
+const labelText = (l: string) => (l in LABEL_KEY ? i18n.t(LABEL_KEY[l as keyof typeof LABEL_KEY]) : l);
 
 const metres = (a: Point, b: Point) => Math.hypot((a.lat - b.lat) * 111000, (a.lng - b.lng) * 111000 * Math.cos((a.lat * Math.PI) / 180));
 
@@ -31,6 +36,7 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
   onConfirm: (a: Address) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { saved, places, saveAddress, updateAddress, deleteAddress } = useCatalog();
 
   const [center, setCenter] = useState<Point>(KUCHING);
@@ -158,7 +164,7 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
     setLocating(true);
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
-      if (perm.status !== "granted") throw new Error("Allow location access in your browser or phone settings, then try again.");
+      if (perm.status !== "granted") throw new Error(t("picker.allowLocation"));
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       setSelectedId(null);
       setResults([]);
@@ -233,7 +239,7 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
 
   async function confirm() {
     const text = line.trim();
-    if (!text) { setError("Enter the address, or move the pin so we can suggest one."); return; }
+    if (!text) { setError(t("picker.enterAddress")); return; }
     const spot = { lat: Number(center.lat.toFixed(6)), lng: Number(center.lng.toFixed(6)) };
     const cleanNote = note.trim() || undefined;
     setBusy(true);
@@ -267,10 +273,10 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={[styles.screen, { paddingTop: insets.top }]} testID="address-picker">
         <View style={styles.header}>
-          <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" testID="picker-close" style={styles.closeBtn}>
+          <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("common.close")} testID="picker-close" style={styles.closeBtn}>
             <Ionicons name="chevron-back" size={22} color={colors.ink} />
           </Pressable>
-          <Text style={styles.title}>Delivery location</Text>
+          <Text style={styles.title}>{t("picker.title")}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
@@ -280,13 +286,13 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
               style={styles.searchInput}
               value={query}
               onChangeText={setQuery}
-              placeholder="Search a place or street"
+              placeholder={t("picker.search")}
               placeholderTextColor={colors.textFaint}
               returnKeyType="search"
               testID="picker-search"
             />
             {searching ? <ActivityIndicator size="small" color={colors.stone} /> : query ? (
-              <Pressable onPress={() => setQuery("")} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear search"><Ionicons name="close-circle" size={18} color={colors.stone} /></Pressable>
+              <Pressable onPress={() => setQuery("")} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("home.clearSearch")}><Ionicons name="close-circle" size={18} color={colors.stone} /></Pressable>
             ) : null}
           </View>
           {results.length > 0 ? (
@@ -303,59 +309,59 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
             </View>
           ) : null}
           {searchError ? <Text style={[type.small, { color: colors.chiliText }]}>{searchError}</Text> : null}
-          {!searching && !searchError && query.trim().length >= 2 && results.length === 0 ? <Text style={type.small}>No places found. Try another name, or move the pin.</Text> : null}
+          {!searching && !searchError && query.trim().length >= 2 && results.length === 0 ? <Text style={type.small}>{t("picker.noPlaces")}</Text> : null}
 
           <View>
             <PinMap lat={focus.lat} lng={focus.lng} focusKey={focus.key} onMove={onMapMove} />
-            <Pressable style={styles.locateFab} onPress={locateMe} disabled={locating} accessibilityRole="button" accessibilityLabel="Use my current location" testID="picker-locate">
+            <Pressable style={styles.locateFab} onPress={locateMe} disabled={locating} accessibilityRole="button" accessibilityLabel={t("picker.useMine")} testID="picker-locate">
               {locating ? <ActivityIndicator size="small" color={colors.ink} /> : <Ionicons name="navigate" size={18} color={colors.ink} />}
-              <Text style={styles.locateText}>{locating ? "Finding you…" : "My location"}</Text>
+              <Text style={styles.locateText}>{locating ? t("picker.finding") : t("picker.myLocation")}</Text>
             </Pressable>
           </View>
-          <Text style={type.small}>Move the map so the pin sits on your door or drop-off spot.</Text>
+          <Text style={type.small}>{t("picker.moveMap")}</Text>
 
-          <Text style={styles.sectionTitle}>Address</Text>
+          <Text style={styles.sectionTitle}>{t("picker.address")}</Text>
           <View style={styles.field}>
             <Ionicons name="location" size={18} color={colors.turmericDeep} style={{ marginTop: 2 }} />
             <TextInput
               style={styles.fieldInput}
               value={line}
               onChangeText={(t) => { setLine(t); setApprox(false); }}
-              placeholder={resolving ? "Finding the address…" : "Street, building or area"}
+              placeholder={resolving ? t("picker.findingAddress") : t("picker.street")}
               placeholderTextColor={colors.textFaint}
               multiline
               testID="picker-address"
             />
             {resolving ? <ActivityIndicator size="small" color={colors.stone} /> : null}
-            <Pressable onPress={toggleMenu} hitSlop={8} accessibilityRole="button" accessibilityLabel="Saved and nearby addresses" accessibilityState={{ expanded: menuOpen }} testID="picker-dropdown" style={styles.caret}>
+            <Pressable onPress={toggleMenu} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("picker.savedNearby")} accessibilityState={{ expanded: menuOpen }} testID="picker-dropdown" style={styles.caret}>
               <Ionicons name={menuOpen ? "chevron-up" : "chevron-down"} size={20} color={colors.ink} />
             </Pressable>
           </View>
           {menuOpen ? (
             <View style={styles.menu} testID="picker-menu">
-              {saved.length > 0 ? <Text style={styles.menuTitle}>Saved addresses</Text> : null}
+              {saved.length > 0 ? <Text style={styles.menuTitle}>{t("picker.saved")}</Text> : null}
               {saved.map((a) => (
                 <View key={a.id} style={[styles.menuRow, selectedId === a.id && styles.menuRowOn]}>
                   <Pressable style={styles.menuMain} onPress={() => pickSaved(a)} testID={`saved-${a.id}`}>
                     <Ionicons name={a.label === "Home" ? "home" : a.label === "Work" ? "briefcase" : "bookmark"} size={16} color={colors.turmericDeep} />
                     <View style={{ flex: 1 }}>
-                      <Text style={type.body} numberOfLines={1}>{a.label}</Text>
+                      <Text style={type.body} numberOfLines={1}>{labelText(a.label)}</Text>
                       <Text style={type.small} numberOfLines={1}>{a.line}</Text>
                     </View>
                   </Pressable>
-                  <Pressable onPress={() => removeSaved(a.id!)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Delete saved address ${a.label}`} testID={`delete-${a.id}`}>
-                    {deleteArm === a.id ? <Text style={[styles.linkText, { color: colors.chiliText }]}>Tap again</Text> : <Ionicons name="trash-outline" size={18} color={colors.stone} />}
+                  <Pressable onPress={() => removeSaved(a.id!)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("picker.deleteSaved", { name: labelText(a.label) })} testID={`delete-${a.id}`}>
+                    {deleteArm === a.id ? <Text style={[styles.linkText, { color: colors.chiliText }]}>{t("picker.tapAgain")}</Text> : <Ionicons name="trash-outline" size={18} color={colors.stone} />}
                   </Pressable>
                 </View>
               ))}
 
-              <Text style={styles.menuTitle}>Near your pin</Text>
+              <Text style={styles.menuTitle}>{t("picker.nearPin")}</Text>
               {nearbyBusy ? (
-                <View style={styles.menuNote}><ActivityIndicator size="small" color={colors.stone} /><Text style={type.small}>Finding addresses near your pin…</Text></View>
+                <View style={styles.menuNote}><ActivityIndicator size="small" color={colors.stone} /><Text style={type.small}>{t("picker.findingNear")}</Text></View>
               ) : nearbyError ? (
                 <Text style={[type.small, styles.menuNote, { color: colors.chiliText }]}>{nearbyError}</Text>
               ) : nearby.filter((r) => r.line !== line.trim()).length === 0 ? (
-                <Text style={[type.small, styles.menuNote]}>No other addresses found here. Move the pin and try again.</Text>
+                <Text style={[type.small, styles.menuNote]}>{t("picker.noneNear")}</Text>
               ) : nearby.filter((r) => r.line !== line.trim()).map((r) => (
                 <Pressable key={r.id} style={styles.menuRow} onPress={() => pickNearby(r)} testID={`nearby-${r.id}`}>
                   <View style={styles.menuMain}>
@@ -364,12 +370,12 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
                       <Text style={type.body} numberOfLines={1}>{r.title}</Text>
                       <Text style={type.small} numberOfLines={1}>{r.line}</Text>
                     </View>
-                    {r.distance !== undefined ? <Text style={type.small}>{r.distance < 10 ? "here" : `${r.distance} m`}</Text> : null}
+                    {r.distance !== undefined ? <Text style={type.small}>{r.distance < 10 ? t("picker.here") : `${r.distance} m`}</Text> : null}
                   </View>
                 </Pressable>
               ))}
 
-              {places.length > 0 ? <Text style={styles.menuTitle}>Campus places</Text> : null}
+              {places.length > 0 ? <Text style={styles.menuTitle}>{t("picker.campus")}</Text> : null}
               {places.map((p) => (
                 <Pressable key={p.line} style={styles.menuRow} onPress={() => pickPlace(p)} testID={`place-${p.label}`}>
                   <View style={styles.menuMain}>
@@ -380,18 +386,18 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
               ))}
             </View>
           ) : null}
-          <Text style={type.small}>{approx ? "We could not find a street name for this spot. Type the address so the rider can find you." : "Suggested from your pin. You can edit it, or tap the arrow for saved and nearby addresses."}</Text>
-          <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Room, floor or note for the rider (optional)" placeholderTextColor={colors.textFaint} testID="picker-note" />
+          <Text style={type.small}>{approx ? t("picker.noStreet") : t("picker.suggested")}</Text>
+          <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder={t("picker.note")} placeholderTextColor={colors.textFaint} testID="picker-note" />
 
           <Pressable style={styles.saveRow} onPress={() => setSaveIt((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: saveIt }} testID="picker-save">
             <View style={[styles.checkbox, saveIt && styles.checkboxOn]}>{saveIt ? <Ionicons name="checkmark" size={14} color={colors.ink} /> : null}</View>
-            <Text style={[type.body, { flex: 1 }]}>{existing ? "Update this saved address" : "Save this address for next time"}</Text>
+            <Text style={[type.body, { flex: 1 }]}>{existing ? t("picker.update") : t("picker.saveNext")}</Text>
           </Pressable>
           {saveIt ? (
             <View style={styles.chipRow}>
               {LABELS.map((l) => (
                 <Pressable key={l} style={[styles.chip, label === l && styles.chipOn]} onPress={() => setLabel(l)} testID={`label-${l}`}>
-                  <Text style={styles.chipText}>{l}</Text>
+                  <Text style={styles.chipText}>{labelText(l)}</Text>
                 </Pressable>
               ))}
             </View>
@@ -401,7 +407,7 @@ export default function AddressPicker({ visible, initial, onClose, onConfirm }: 
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <Pressable style={[ui.buttonAccent, !line.trim() ? { backgroundColor: colors.paperDim } : (busy || resolving) && { opacity: 0.7 }]} onPress={confirm} disabled={busy || resolving || !line.trim()} accessibilityRole="button" testID="picker-confirm">
-            <Text style={ui.buttonAccentText}>{busy ? "Saving…" : resolving ? "Finding the address…" : "Confirm location"}</Text>
+            <Text style={ui.buttonAccentText}>{busy ? t("picker.saving") : resolving ? t("picker.findingAddress") : t("picker.confirm")}</Text>
           </Pressable>
         </View>
       </View>

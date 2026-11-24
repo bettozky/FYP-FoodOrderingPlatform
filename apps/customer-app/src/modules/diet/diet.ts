@@ -22,21 +22,37 @@ type ShopLike = { allergens?: string[] } | undefined;
  */
 export type DietFit = { level: "ok" | "check" | "avoid"; reasons: string[] };
 
-export function dietFit(dish: DishLike, shop: ShopLike, p: DietProfile | null | undefined): DietFit {
+/** How the reasons are worded. English by default; the app passes the chosen language (see dietWords.ts). */
+export type DietWords = {
+  contains: (allergens: string[]) => string;
+  notPlantBased: string;
+  notVegetarian: string;
+  spicy: string;
+  kitchenUses: (allergens: string[]) => string;
+};
+export const DIET_WORDS_EN: DietWords = {
+  contains: (a) => `Contains ${a.join(", ")}`,
+  notPlantBased: "Not plant-based",
+  notVegetarian: "Not vegetarian",
+  spicy: "Spicy",
+  kitchenUses: (a) => `Kitchen uses ${a.join(", ")}`,
+};
+
+export function dietFit(dish: DishLike, shop: ShopLike, p: DietProfile | null | undefined, words: DietWords = DIET_WORDS_EN): DietFit {
   if (!p || (!p.allergens.length && !p.prefs.length)) return { level: "ok", reasons: [] };
   const reasons: string[] = [];
   const dietary = dish.dietary ?? [];
   const contains = (dish.allergens ?? []).filter((a) => p.allergens.includes(a));
-  if (contains.length) reasons.push(`Contains ${contains.join(", ")}`);
-  if (p.prefs.includes("plant_based") && !dietary.includes("plant_based")) reasons.push("Not plant-based");
-  else if (p.prefs.includes("vegetarian") && !dietary.includes("vegetarian") && !dietary.includes("plant_based")) reasons.push("Not vegetarian");
-  if (p.prefs.includes("no_spicy") && (dish.spicy || dietary.includes("spicy"))) reasons.push("Spicy");
+  if (contains.length) reasons.push(words.contains(contains));
+  if (p.prefs.includes("plant_based") && !dietary.includes("plant_based")) reasons.push(words.notPlantBased);
+  else if (p.prefs.includes("vegetarian") && !dietary.includes("vegetarian") && !dietary.includes("plant_based")) reasons.push(words.notVegetarian);
+  if (p.prefs.includes("no_spicy") && (dish.spicy || dietary.includes("spicy"))) reasons.push(words.spicy);
   if (reasons.length) return { level: "avoid", reasons };
 
   // The dish lists none of your allergens, but the kitchen uses some: worth asking the stall.
   if (!dish.allergens?.length) {
     const kitchen = (shop?.allergens ?? []).filter((a) => p.allergens.includes(a));
-    if (kitchen.length) return { level: "check", reasons: [`Kitchen uses ${kitchen.join(", ")}`] };
+    if (kitchen.length) return { level: "check", reasons: [words.kitchenUses(kitchen)] };
   }
   return { level: "ok", reasons: [] };
 }

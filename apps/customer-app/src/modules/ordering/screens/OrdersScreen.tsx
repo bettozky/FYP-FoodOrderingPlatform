@@ -10,10 +10,12 @@ import { colors, font, layout, radius, spacing, type } from "../../../shared/the
 import { useLive } from "../LiveDataContext";
 import { isActive, orderBadge } from "../orderStatus";
 import { useReorder } from "../useReorder";
+import { useTranslation } from "react-i18next";
+import i18n, { locale } from "../../../shared/i18n";
 
 function Countdown({ deadline }: { deadline: number }) {
   const s = useCountdown(deadline);
-  return <Text style={type.small}>Restaurant replies in {mmss(s)}</Text>;
+  return <Text style={type.small}>{i18n.t("orders.repliesIn", { time: mmss(s) })}</Text>;
 }
 
 export default function OrdersScreen({ navigation }: any) {
@@ -24,13 +26,14 @@ export default function OrdersScreen({ navigation }: any) {
     await refresh().catch(() => {});
     setRefreshing(false);
   };
+  const { t } = useTranslation();
   const { reorder, busyId } = useReorder(navigation);
   const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
-        <Text style={type.h1} accessibilityRole="header">Orders</Text>
+        <Text style={type.h1} accessibilityRole="header">{t("tabs.orders")}</Text>
       </View>
 
       <FlatList
@@ -39,7 +42,7 @@ export default function OrdersScreen({ navigation }: any) {
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} progressBackgroundColor={colors.paper} />}
         ListEmptyComponent={
-          <EmptyState icon="receipt-outline" title="No orders yet" hint="Your orders and their live status show up here." action="Find something to eat" onAction={() => navigation.navigate("MainTabs", { tab: "home", nonce: Date.now() })} />
+          <EmptyState icon="receipt-outline" title={t("orders.none")} hint={t("orders.noneHint")} action={t("orders.findFood")} onAction={() => navigation.navigate("MainTabs", { tab: "home", nonce: Date.now() })} />
         }
         renderItem={({ item }) => {
           const b = orderBadge(item);
@@ -49,16 +52,16 @@ export default function OrdersScreen({ navigation }: any) {
               <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
                 <Text style={type.h3} numberOfLines={1}>{item.merchantName}</Text>
                 <Text style={type.bodyMuted} numberOfLines={2}>{item.items.map((i) => `${i.qty}x ${i.name}`).join(", ")}</Text>
-                <Text style={type.small}>#{item.id} · {modes} · {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+                <Text style={type.small}>#{item.id} · {modes} · {new Date(item.createdAt).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}</Text>
                 {item.status === "awaiting_merchant" && <Countdown deadline={item.respondBy} />}
               </View>
               <View style={{ alignItems: "flex-end", gap: 6 }}>
                 <Text style={styles.total}>RM {item.total.toFixed(2)}</Text>
                 <Badge label={b.label} tone={b.tone} />
                 {!isActive(item) && (
-                  <Pressable onPress={() => reorder(item)} disabled={busyId === item.id} hitSlop={6} style={styles.again} accessibilityRole="button" accessibilityLabel={`Order again from ${item.merchantName}`} testID={`reorder-${item.id}`}>
+                  <Pressable onPress={() => reorder(item)} disabled={busyId === item.id} hitSlop={6} style={styles.again} accessibilityRole="button" accessibilityLabel={t("orders.againFrom", { name: item.merchantName })} testID={`reorder-${item.id}`}>
                     <Ionicons name="refresh" size={14} color={colors.ink} />
-                    <Text style={styles.againText}>{busyId === item.id ? "Adding…" : "Order again"}</Text>
+                    <Text style={styles.againText}>{busyId === item.id ? t("orders.adding") : t("orders.again")}</Text>
                   </Pressable>
                 )}
               </View>

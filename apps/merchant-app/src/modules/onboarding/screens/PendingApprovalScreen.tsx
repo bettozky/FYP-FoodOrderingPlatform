@@ -4,10 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../auth/AuthContext";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { colors, spacing, type } from "../../../shared/theme/theme";
+import LanguagePicker from "../../../shared/i18n/LanguagePicker";
+import { useTranslation } from "react-i18next";
 
 // FR-5.1: shown until a web admin approves the business. Checks again every few seconds.
 export default function PendingApprovalScreen() {
   const { approval, name, checkApproval, logout } = useAuth();
+  const { t } = useTranslation();
   useEffect(() => {
     const t = setInterval(() => checkApproval().catch(() => {}), 4000);
     return () => clearInterval(t);
@@ -15,14 +18,15 @@ export default function PendingApprovalScreen() {
   const rejected = approval === "rejected" || approval === "suspended";
   return (
     <View style={styles.wrap} testID="pending-approval">
+      <LanguagePicker style={{ alignSelf: "center" }} />
       <Ionicons name={rejected ? "close-circle" : "time"} size={64} color={rejected ? colors.chili : colors.turmericDeep} />
-      <Text style={[type.h1, { textAlign: "center" }]}>{rejected ? `Business ${approval}` : "Waiting for approval"}</Text>
+      <Text style={[type.h1, { textAlign: "center" }]}>{rejected ? (approval === "suspended" ? t("pending.suspended") : t("pending.rejected")) : t("pending.waiting")}</Text>
       <Text style={[type.bodyMuted, { textAlign: "center" }]}>
         {rejected
-          ? `${name} was ${approval} by the ScootMeal admin. Please contact support.`
-          : `Thanks for registering ${name}. A ScootMeal admin reviews every new business. This screen updates by itself as soon as you're approved.`}
+          ? (approval === "suspended" ? t("pending.suspendedBody", { name }) : t("pending.rejectedBody", { name }))
+          : t("pending.waitingBody", { name })}
       </Text>
-      <PrimaryButton label="Log out" variant="outline" onPress={logout} style={{ alignSelf: "stretch", marginTop: spacing.lg }} />
+      <PrimaryButton label={t("drawer.logout")} variant="outline" onPress={logout} style={{ alignSelf: "stretch", marginTop: spacing.lg }} />
     </View>
   );
 }

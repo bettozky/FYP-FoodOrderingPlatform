@@ -1,11 +1,12 @@
 import { Alert, Platform } from "react-native";
+import i18n from "i18next";
 import { openDialog } from "../components/ConfirmDialog";
 
 // Phones use the native alert (what iOS and Android users expect). The browser build opens the app's own
 // styled dialog (<ConfirmHost />), falling back to the browser's box if the host is not mounted.
 
 /** Yes/no question that also works in the browser build (Alert.alert does nothing on web). */
-export function confirmAsync(title: string, message: string, okLabel = "Yes"): Promise<boolean> {
+export function confirmAsync(title: string, message: string, okLabel = i18n.t("common.yes")): Promise<boolean> {
   if (Platform.OS === "web") {
     return new Promise((resolve) => {
       const destructive = /delete|remove|cancel|withdraw/i.test(okLabel);
@@ -16,7 +17,7 @@ export function confirmAsync(title: string, message: string, okLabel = "Yes"): P
   }
   return new Promise((resolve) =>
     Alert.alert(title, message, [
-      { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+      { text: i18n.t("common.cancel"), style: "cancel", onPress: () => resolve(false) },
       { text: okLabel, onPress: () => resolve(true) },
     ])
   );
@@ -32,5 +33,5 @@ export function alertAsync(title: string, message: string): Promise<void> {
       }
     });
   }
-  return new Promise((resolve) => Alert.alert(title, message, [{ text: "OK", onPress: () => resolve() }], { onDismiss: () => resolve() }));
+  return new Promise((resolve) => Alert.alert(title, message, [{ text: i18n.t("common.ok"), onPress: () => resolve() }], { onDismiss: () => resolve() }));
 }

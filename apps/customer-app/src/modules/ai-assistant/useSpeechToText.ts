@@ -6,6 +6,7 @@
 //
 // The customer may speak English, Malay, Mandarin or a mix; the server detects the language.
 import { useCallback, useEffect, useRef, useState } from "react";
+import i18n from "i18next";
 import { Platform } from "react-native";
 import {
   RecordingPresets,
@@ -72,15 +73,15 @@ export function useSpeechToText(onText: (text: string) => void) {
     try {
       // Browsers only allow the microphone on https or localhost (same rule as the voice calls).
       if (Platform.OS === "web" && !(globalThis as any).navigator?.mediaDevices?.getUserMedia) {
-        throw new Error("Voice input needs the app to be opened over https or on localhost.");
+        throw new Error(i18n.t("ai.needHttps"));
       }
 
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
         throw new Error(
           Platform.OS === "web"
-            ? "Microphone access was blocked. Allow the microphone in your browser to use voice input."
-            : "Allow microphone access in your phone settings to use voice input."
+            ? i18n.t("ai.micBlockedWeb")
+            : i18n.t("ai.micBlockedPhone")
         );
       }
 
@@ -93,7 +94,7 @@ export function useSpeechToText(onText: (text: string) => void) {
     } catch (e) {
       await releaseMicrophone();
       setPhaseBoth("idle");
-      if (mounted.current) setError(e instanceof Error && e.message ? e.message : "Could not start the microphone.");
+      if (mounted.current) setError(e instanceof Error && e.message ? e.message : i18n.t("ai.micFailed"));
     } finally {
       busy.current = false;
     }
@@ -124,7 +125,7 @@ export function useSpeechToText(onText: (text: string) => void) {
 
       if (!uri || durationMs < MIN_RECORDING_MS) {
         setPhaseBoth("idle");
-        if (mounted.current) setError("That was too short. Tap the mic, speak, then tap stop.");
+        if (mounted.current) setError(i18n.t("ai.tooShort"));
         busy.current = false;
         return;
       }
@@ -147,7 +148,7 @@ export function useSpeechToText(onText: (text: string) => void) {
         const data = await api<{ text: string }>("POST", "/ai/transcribe", body);
         const text = typeof data.text === "string" ? data.text.trim() : "";
 
-        if (!text) throw new Error("I couldn't hear anything. Please try again.");
+        if (!text) throw new Error(i18n.t("ai.heardNothing"));
         if (mounted.current) onTextRef.current(text);
       } catch (e) {
         if (mounted.current) setError(errorText(e));

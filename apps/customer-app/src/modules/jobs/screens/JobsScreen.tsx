@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import EmptyState from "../../../shared/components/EmptyState";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
@@ -11,7 +12,9 @@ import SearchField from "../../../shared/components/SearchField";
 import { colors, layout, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 
 // FR-4.1: F&B job listings posted by merchants. Tap one to read it and apply.
+// Job titles, types ("Part-time") and pay are written by the shops, so they stay as written.
 export default function JobsScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
@@ -34,16 +37,16 @@ export default function JobsScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Jobs"
-        subtitle="Part-time F&B work near campus"
-        right={<Pressable onPress={() => navigation.navigate("MyApplications")} hitSlop={8} style={styles.mine} accessibilityRole="button" testID="my-applications"><Text style={styles.mineText}>My applications</Text></Pressable>}
+        title={t("menu.jobs")}
+        subtitle={t("jobs.subtitle")}
+        right={<Pressable onPress={() => navigation.navigate("MyApplications")} hitSlop={8} style={styles.mine} accessibilityRole="button" testID="my-applications"><Text style={styles.mineText}>{t("jobs.myApplications")}</Text></Pressable>}
       />
-      <SearchField value={q} onChangeText={setQ} placeholder="Search jobs or shops" style={styles.search} testID="job-search" />
+      <SearchField value={q} onChangeText={setQ} placeholder={t("jobs.search")} style={styles.search} testID="job-search" />
       {types.length > 1 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.chips}>
-          {["", ...types].map((t) => (
-            <Pressable key={t || "all"} onPress={() => setKind(t)} style={[ui.chip, kind === t && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: kind === t }}>
-              <Text style={[ui.chipText, kind === t && ui.chipTextOn]}>{t || "All"}</Text>
+          {["", ...types].map((k) => (
+            <Pressable key={k || "all"} onPress={() => setKind(k)} style={[ui.chip, kind === k && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: kind === k }}>
+              <Text style={[ui.chipText, kind === k && ui.chipTextOn]}>{k || t("home.all")}</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -55,19 +58,19 @@ export default function JobsScreen({ navigation }: any) {
           keyExtractor={(j) => j.id}
           contentContainerStyle={{ paddingHorizontal: layout.gutter, paddingTop: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl * 2 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} tintColor={colors.ink} colors={[colors.ink]} />}
-          ListEmptyComponent={<EmptyState icon="briefcase-outline" title="No vacancies found" hint={q || kind ? "Try a different search." : "Check back soon. New openings appear here."} />}
+          ListEmptyComponent={<EmptyState icon="briefcase-outline" title={t("jobs.none")} hint={q || kind ? t("jobs.tryOther") : t("jobs.checkBack")} />}
           renderItem={({ item }) => (
-            <Pressable style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("JobDetail", { jobId: item.id })} accessibilityRole="button" accessibilityLabel={`${item.title} at ${item.merchantName}`} testID={`job-${item.id}`}>
+            <Pressable style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("JobDetail", { jobId: item.id })} accessibilityRole="button" accessibilityLabel={t("jobs.atShop", { title: item.title, shop: item.merchantName })} testID={`job-${item.id}`}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.sm }}>
                 <Text style={[type.h3, { flex: 1 }]} numberOfLines={2}>{item.title}</Text>
-                {item.applied ? <Badge label="Applied" tone="success" /> : <Badge label={item.type} tone="primary" />}
+                {item.applied ? <Badge label={t("jobs.applied")} tone="success" /> : <Badge label={item.type} tone="primary" />}
               </View>
               <Text style={type.bodyMuted}>{item.merchantName}</Text>
               {item.description ? <Text style={type.body} numberOfLines={2}>{item.description}</Text> : null}
               <View style={styles.foot}>
                 <Text style={type.price}>{item.pay}</Text>
                 <View style={styles.moreRow}>
-                  <Text style={styles.more}>View and apply</Text>
+                  <Text style={styles.more}>{t("jobs.viewApply")}</Text>
                   <Ionicons name="chevron-forward" size={14} color={colors.amberText} />
                 </View>
               </View>

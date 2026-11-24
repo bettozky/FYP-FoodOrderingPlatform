@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { colors, layout, spacing, font } from "../../../shared/theme/theme";
 import { useReducedMotion } from "../../../shared/motion/useReducedMotion";
+import { useTranslation } from "react-i18next";
 
 // "Hi Demo," with every letter rippling up and down in turn, then "what are you craving?" underneath.
 // The name is in extra-bold type with a different colour per letter. Reduced-motion users get it standing still.
@@ -36,19 +37,22 @@ function Letter({ ch, index, color, bold, reduced }: { ch: string; index: number
 
 export default function WavyGreeting({ name }: { name: string }) {
   const reduced = useReducedMotion();
+  const { t, i18n } = useTranslation();
+  // "Hi " + name + "," in English; each language sets the words before and after the name.
+  const before = t("home.hiBefore"), after = t("home.hiAfter");
   const letters = useMemo(() => {
-    const first = [..."Hi "].map((ch) => ({ ch, bold: false, color: colors.ink }));
+    const first = [...before].map((ch) => ({ ch, bold: false, color: colors.ink }));
     const who = [...name].map((ch, i) => ({ ch, bold: true, color: NAME_COLOURS[i % NAME_COLOURS.length] }));
-    return [...first, ...who, { ch: ",", bold: false, color: colors.ink }];
-  }, [name]);
+    return [...first, ...who, ...[...after].map((ch) => ({ ch, bold: false, color: colors.ink }))];
+  }, [name, before, after, i18n.language]);
   return (
-    <View style={styles.wrap} accessible accessibilityRole="header" accessibilityLabel={`Hi ${name}, what are you craving?`}>
+    <View style={styles.wrap} accessible accessibilityRole="header" accessibilityLabel={t("home.greeting", { name })}>
       <View style={styles.line} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
         {letters.map((l, i) => (
           <Letter key={`${i}-${l.ch}`} ch={l.ch} index={i} color={l.color} bold={l.bold} reduced={reduced} />
         ))}
       </View>
-      <Text style={styles.second} importantForAccessibility="no-hide-descendants">what are you craving?</Text>
+      <Text style={styles.second} importantForAccessibility="no-hide-descendants">{t("home.craving")}</Text>
     </View>
   );
 }

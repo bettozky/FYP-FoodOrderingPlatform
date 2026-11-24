@@ -19,11 +19,13 @@ import { DrawerEdge, MenuButton } from "../../../shared/components/SideDrawer";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius, spacing, type, shadow, font, layout, ui } from "../../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
 
 type StoreStatus = "online" | "dine_in" | "offline";
 
 export default function MerchantDashboardScreen({ navigation }: any) {
   const { logout } = useAuth();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets(); // keeps the header clear of the clock / battery / notch
   const { orders, reservations, profile, badges, refresh } = useLive();
   const pendingCount = orders.filter((o) => o.status === "awaiting_merchant" || o.status === "preparing").length;
@@ -56,27 +58,27 @@ export default function MerchantDashboardScreen({ navigation }: any) {
   const statusConfig = {
     online: {
       index: 0,
-      label: "Online",
+      label: t("store.online"),
       color: colors.herb,
       bgColor: colors.herbLight,
       borderColor: colors.herbBorder,
-      description: "Accepting delivery, takeaway and dine-in orders.",
+      description: t("store.onlineHint"),
     },
     dine_in: {
       index: 1,
-      label: "Dine-In",
+      label: t("store.dineIn"),
       color: colors.amberText,
       bgColor: colors.amberTint,
       borderColor: colors.amberBorder,
-      description: "Delivery paused. Table orders and reservations only.",
+      description: t("store.dineInHint"),
     },
     offline: {
       index: 2,
-      label: "Offline",
+      label: t("store.offline"),
       color: colors.chiliText,
       bgColor: colors.chiliSoft,
       borderColor: colors.chiliBorder,
-      description: "Store closed. Not accepting new orders.",
+      description: t("store.offlineHint"),
     },
   };
 
@@ -126,32 +128,32 @@ export default function MerchantDashboardScreen({ navigation }: any) {
           <MenuButton badge={badges.unread + badges.newApplicants} />
           <Avatar uri={profile?.logo} name={profile?.name} size={46} />
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.hello} numberOfLines={1}>Merchant dashboard</Text>
+            <Text style={styles.hello} numberOfLines={1}>{t("dash.title")}</Text>
             <Text style={styles.storeName} numberOfLines={1}>{profile?.name ?? ""}</Text>
           </View>
-          <Pressable style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]} onPress={logout} hitSlop={4} accessibilityRole="button" accessibilityLabel="Log out" testID="logout">
+          <Pressable style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]} onPress={logout} hitSlop={4} accessibilityRole="button" accessibilityLabel={t("drawer.logout")} testID="logout">
             <Ionicons name="log-out-outline" size={20} color={colors.ink} />
           </Pressable>
         </View>
 
         {/* ---------- today at a glance ---------- */}
         <View style={styles.hero}>
-          <Text style={styles.heroLabel}>Today</Text>
+          <Text style={styles.heroLabel}>{t("dash.today")}</Text>
           <View style={styles.heroStats}>
-            <Stat icon="receipt-outline" value={String(stats.orders)} label="Orders" />
+            <Stat icon="receipt-outline" value={String(stats.orders)} label={t("dash.orders")} />
             <View style={styles.heroDivider} />
-            <Stat icon="cash-outline" value={`RM ${stats.revenue.toFixed(0)}`} label="Revenue" />
+            <Stat icon="cash-outline" value={`RM ${stats.revenue.toFixed(0)}`} label={t("dash.revenue")} />
             <View style={styles.heroDivider} />
-            <Stat icon="timer-outline" value={`${stats.avgPrepMinutes}m`} label="Avg. prep" />
+            <Stat icon="timer-outline" value={t("dash.minutes", { n: stats.avgPrepMinutes })} label={t("dash.avgPrep")} />
           </View>
         </View>
 
         {/* ---------- rating ---------- */}
-        <Pressable style={({ pressed }) => [styles.ratingCard, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("MerchantReviews")} accessibilityRole="button" accessibilityLabel="Customer reviews" testID="rating-card">
+        <Pressable style={({ pressed }) => [styles.ratingCard, pressed && { opacity: 0.85 }]} onPress={() => navigation.navigate("MerchantReviews")} accessibilityRole="button" accessibilityLabel={t("drawer.reviews")} testID="rating-card">
           <Ionicons name="star" size={26} color={colors.turmeric} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.cardTitle}>{rating?.average ? `${rating.average.toFixed(1)} / 5` : "No ratings yet"}</Text>
-            <Text style={styles.hint}>{rating ? `${rating.count} review${rating.count === 1 ? "" : "s"}${rating.unanswered ? ` · ${rating.unanswered} waiting for your reply` : ""}` : "Loading…"}</Text>
+            <Text style={styles.cardTitle}>{rating?.average ? `${rating.average.toFixed(1)} / 5` : t("dash.noRatings")}</Text>
+            <Text style={styles.hint}>{rating ? `${t("dash.reviews", { count: rating.count })}${rating.unanswered ? ` · ${t("dash.unanswered", { count: rating.unanswered })}` : ""}` : `${t("common.loading")}…`}</Text>
           </View>
           <Ionicons name="chevron-forward" size={17} color={colors.stoneSoft} />
         </Pressable>
@@ -159,7 +161,7 @@ export default function MerchantDashboardScreen({ navigation }: any) {
         {/* ---------- store status ---------- */}
         <View style={styles.card}>
           <View style={styles.cardHead}>
-            <Text style={styles.cardTitle}>Store status</Text>
+            <Text style={styles.cardTitle}>{t("store.title")}</Text>
             <View style={[styles.dot, { backgroundColor: activeMode.color }]} />
           </View>
           <View style={styles.segmentedTrack} onLayout={handleLayout}>
@@ -186,24 +188,24 @@ export default function MerchantDashboardScreen({ navigation }: any) {
 
         {/* ---------- manage: the same screens, grouped the iOS way ---------- */}
         <View style={styles.groups}>
-          <NavGroup title="Orders">
-            <NavRow icon="receipt-outline" title="Incoming orders" subtitle={`${pendingCount} active order${pendingCount !== 1 ? "s" : ""}`} badge={pendingCount} onPress={() => navigation.navigate("MerchantOrderQueue")} />
-            <NavRow icon="calendar-outline" title="Table reservations" subtitle="Bookings, seating and pre-orders" badge={pendingReservations} onPress={() => navigation.navigate("MerchantReservations")} />
+          <NavGroup title={t("dash.groupOrders")}>
+            <NavRow icon="receipt-outline" title={t("drawer.orders")} subtitle={t("dash.activeOrders", { count: pendingCount })} badge={pendingCount} onPress={() => navigation.navigate("MerchantOrderQueue")} />
+            <NavRow icon="calendar-outline" title={t("drawer.reservations")} subtitle={t("dash.reservationsHint")} badge={pendingReservations} onPress={() => navigation.navigate("MerchantReservations")} />
           </NavGroup>
-          <NavGroup title="Your shop">
-            <NavRow icon="restaurant-outline" title="Menu management" subtitle="Dishes, prices, stock and sold-out" onPress={() => navigation.navigate("MerchantMenu")} />
-            <NavRow icon="pricetags-outline" title="Promotions & vouchers" subtitle="Discount codes, limits and cost" onPress={() => navigation.navigate("MerchantVouchers")} />
-            <NavRow icon="megaphone-outline" title="Announcements" subtitle="Post promos and notices to customers" onPress={() => navigation.navigate("MerchantAnnouncements")} />
-            <NavRow icon="storefront-outline" title="Shop profile & photos" subtitle="Profile photo and banner" onPress={() => navigation.navigate("ShopProfile")} />
+          <NavGroup title={t("dash.groupShop")}>
+            <NavRow icon="restaurant-outline" title={t("dash.menu")} subtitle={t("dash.menuHint")} onPress={() => navigation.navigate("MerchantMenu")} />
+            <NavRow icon="pricetags-outline" title={t("drawer.vouchers")} subtitle={t("dash.vouchersHint")} onPress={() => navigation.navigate("MerchantVouchers")} />
+            <NavRow icon="megaphone-outline" title={t("drawer.announcements")} subtitle={t("dash.announcementsHint")} onPress={() => navigation.navigate("MerchantAnnouncements")} />
+            <NavRow icon="storefront-outline" title={t("drawer.shopProfile")} subtitle={t("dash.shopHint")} onPress={() => navigation.navigate("ShopProfile")} />
           </NavGroup>
-          <NavGroup title="Insights">
-            <NavRow icon="stats-chart-outline" title="Sales reports & analytics" subtitle="Revenue, profit and best sellers" onPress={() => navigation.navigate("MerchantAnalytics")} />
-            <NavRow icon="analytics-outline" title="Prep forecast" subtitle="How much of each dish to prep tomorrow" onPress={() => navigation.navigate("MerchantForecast")} />
-            <NavRow icon="star-outline" title="Customer reviews" subtitle="Read feedback and reply" onPress={() => navigation.navigate("MerchantReviews")} />
+          <NavGroup title={t("dash.groupInsights")}>
+            <NavRow icon="stats-chart-outline" title={t("dash.analytics")} subtitle={t("dash.analyticsHint")} onPress={() => navigation.navigate("MerchantAnalytics")} />
+            <NavRow icon="analytics-outline" title={t("drawer.forecast")} subtitle={t("dash.forecastHint")} onPress={() => navigation.navigate("MerchantForecast")} />
+            <NavRow icon="star-outline" title={t("drawer.reviews")} subtitle={t("dash.reviewsHint")} onPress={() => navigation.navigate("MerchantReviews")} />
           </NavGroup>
-          <NavGroup title="Hiring">
-            <NavRow icon="briefcase-outline" title="Job board" subtitle="Recruit waitstaff, cooks and cashiers" onPress={() => navigation.navigate("MerchantJobBoard")} />
-            <NavRow icon="people-outline" title="Applicants" subtitle="CVs and applications from students" badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
+          <NavGroup title={t("dash.groupHiring")}>
+            <NavRow icon="briefcase-outline" title={t("dash.jobs")} subtitle={t("dash.jobsHint")} onPress={() => navigation.navigate("MerchantJobBoard")} />
+            <NavRow icon="people-outline" title={t("drawer.applicants")} subtitle={t("dash.applicantsHint")} badge={badges.newApplicants} onPress={() => navigation.navigate("MerchantApplicants")} />
           </NavGroup>
         </View>
       </ScrollView>

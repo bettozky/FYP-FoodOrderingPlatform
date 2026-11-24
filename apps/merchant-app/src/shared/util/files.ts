@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import i18n from "i18next";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 
@@ -28,7 +29,7 @@ export async function form(fields: Record<string, string | number | boolean | st
 export async function pickImage(source: "library" | "camera", aspect: [number, number] = [1, 1]): Promise<LocalFile | null> {
   if (Platform.OS !== "web") {
     const perm = source === "camera" ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) throw new Error(source === "camera" ? "Allow camera access in your phone settings to take a photo." : "Allow photo access in your phone settings to choose a picture.");
+    if (!perm.granted) throw new Error(source === "camera" ? i18n.t("errors.camera") : i18n.t("errors.photos"));
   }
   const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect, quality: 0.85 };
   const r = source === "camera" ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);

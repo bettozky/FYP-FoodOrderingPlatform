@@ -11,12 +11,14 @@ import { colors, radius, spacing, type, ui, font, layout } from "../../shared/th
 import ReviewCard from "./ReviewCard";
 import ReviewEditor from "./ReviewEditor";
 import type { PendingItem, ReviewItem } from "./types";
+import { useTranslation } from "react-i18next";
 
 type Tab = "todo" | "mine";
 type Editing = { kind: "new"; item: PendingItem } | { kind: "edit"; review: ReviewItem } | null;
 
 // "My reviews": dishes I have received but not rated yet, and the reviews I have written (edit or delete them).
 export default function MyReviewsScreen({ navigation, route }: any) {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>(route?.params?.tab === "mine" ? "mine" : "todo");
   const [pending, setPending] = useState<PendingItem[] | null>(null);
   const [mine, setMine] = useState<ReviewItem[] | null>(null);
@@ -52,7 +54,7 @@ export default function MyReviewsScreen({ navigation, route }: any) {
   };
 
   const remove = async (r: ReviewItem) => {
-    if (!(await confirmAsync("Delete this review?", "It will disappear for everyone. You can review the dish again afterwards.", "Delete"))) return;
+    if (!(await confirmAsync(t("myReviews.deleteTitle"), t("myReviews.deleteText"), t("common.delete")))) return;
     try { await api("DELETE", `/reviews/${r.id}`); await load(); } catch (e) { setError(errorText(e)); }
   };
 
@@ -60,11 +62,11 @@ export default function MyReviewsScreen({ navigation, route }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="My reviews" subtitle="Rate what you ate and manage what you wrote." />
+      <ScreenHeader title={t("menu.myReviews")} subtitle={t("myReviews.subtitle")} />
       <View style={styles.tabs}>
-        {([["todo", `To review${pending?.length ? ` (${pending.length})` : ""}`], ["mine", `My reviews${mine?.length ? ` (${mine.length})` : ""}`]] as [Tab, string][]).map(([t, label]) => (
-          <Pressable key={t} onPress={() => setTab(t)} style={[ui.chip, tab === t && ui.chipOn]} accessibilityRole="tab" accessibilityState={{ selected: tab === t }} testID={`tab-${t}`}>
-            <Text style={[ui.chipText, tab === t && ui.chipTextOn]}>{label}</Text>
+        {([["todo", `${t("myReviews.toReview")}${pending?.length ? ` (${pending.length})` : ""}`], ["mine", `${t("menu.myReviews")}${mine?.length ? ` (${mine.length})` : ""}`]] as [Tab, string][]).map(([k, label]) => (
+          <Pressable key={k} onPress={() => setTab(k)} style={[ui.chip, tab === k && ui.chipOn]} accessibilityRole="tab" accessibilityState={{ selected: tab === k }} testID={`tab-${k}`}>
+            <Text style={[ui.chipText, tab === k && ui.chipTextOn]}>{label}</Text>
           </Pressable>
         ))}
       </View>
@@ -74,18 +76,18 @@ export default function MyReviewsScreen({ navigation, route }: any) {
 
         {!loading && tab === "todo" ? (
           pending!.length === 0 ? (
-            <EmptyState icon="happy-outline" title="You are all caught up" hint="Dishes you have received will show up here so you can rate them." />
+            <EmptyState icon="happy-outline" title={t("myReviews.caughtUp")} hint={t("myReviews.caughtUpHint")} />
           ) : (
             pending!.map((p) => (
               <View key={`${p.orderId}-${p.dishId}`} style={styles.row} testID={`todo-${p.dishId}`}>
                 <DishImage image={p.image ?? ""} size={52} shape="circle" label={p.dishName} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={type.h3} numberOfLines={1}>{p.dishName}</Text>
-                  <Text style={type.small} numberOfLines={1}>{p.merchantName} · order #{p.orderId}</Text>
+                  <Text style={type.small} numberOfLines={1}>{p.merchantName} · {t("myReviews.orderNo", { id: p.orderId })}</Text>
                 </View>
-                <Pressable style={styles.rateBtn} onPress={() => setEditing({ kind: "new", item: p })} accessibilityRole="button" accessibilityLabel={`Rate ${p.dishName}`} testID={`rate-${p.dishId}`}>
+                <Pressable style={styles.rateBtn} onPress={() => setEditing({ kind: "new", item: p })} accessibilityRole="button" accessibilityLabel={t("track.rateTitle", { name: p.dishName })} testID={`rate-${p.dishId}`}>
                   <Ionicons name="star" size={14} color={colors.ink} />
-                  <Text style={styles.rateText}>Rate</Text>
+                  <Text style={styles.rateText}>{t("myReviews.rate")}</Text>
                 </Pressable>
               </View>
             ))
@@ -94,7 +96,7 @@ export default function MyReviewsScreen({ navigation, route }: any) {
 
         {!loading && tab === "mine" ? (
           mine!.length === 0 ? (
-            <EmptyState icon="star-outline" title="No reviews yet" hint="After you receive an order, rate the dishes to help other students choose." />
+            <EmptyState icon="star-outline" title={t("reviews.none")} hint={t("myReviews.noneHint")} />
           ) : (
             mine!.map((r) => (
               <ReviewCard
@@ -104,13 +106,13 @@ export default function MyReviewsScreen({ navigation, route }: any) {
                 footer={
                   <View style={styles.actions}>
                     <Pressable onPress={() => setEditing({ kind: "edit", review: r })} style={styles.action} accessibilityRole="button" testID={`edit-review-${r.id}`}>
-                      <Ionicons name="create-outline" size={16} color={colors.ink} /><Text style={styles.actionText}>Edit</Text>
+                      <Ionicons name="create-outline" size={16} color={colors.ink} /><Text style={styles.actionText}>{t("myReviews.edit")}</Text>
                     </Pressable>
                     <Pressable onPress={() => remove(r)} style={styles.action} accessibilityRole="button" testID={`delete-review-${r.id}`}>
-                      <Ionicons name="trash-outline" size={16} color={colors.danger} /><Text style={[styles.actionText, { color: colors.danger }]}>Delete</Text>
+                      <Ionicons name="trash-outline" size={16} color={colors.danger} /><Text style={[styles.actionText, { color: colors.danger }]}>{t("common.delete")}</Text>
                     </Pressable>
                     <Pressable onPress={() => r.dishId && navigation.navigate("DishDetail", { dishId: r.dishId })} style={[styles.action, { marginLeft: "auto" }]} accessibilityRole="button">
-                      <Text style={styles.actionText}>View dish</Text><Ionicons name="chevron-forward" size={14} color={colors.ink} />
+                      <Text style={styles.actionText}>{t("myReviews.viewDish")}</Text><Ionicons name="chevron-forward" size={14} color={colors.ink} />
                     </Pressable>
                   </View>
                 }
@@ -122,10 +124,10 @@ export default function MyReviewsScreen({ navigation, route }: any) {
 
       <ReviewEditor
         visible={!!editing}
-        title={editing?.kind === "edit" ? "Edit your review" : `Rate ${editing?.kind === "new" ? editing.item.dishName : ""}`}
+        title={editing?.kind === "edit" ? t("myReviews.editTitle") : t("track.rateTitle", { name: editing?.kind === "new" ? editing.item.dishName : "" })}
         subtitle={editing?.kind === "edit" ? editing.review.dishName : editing?.kind === "new" ? editing.item.merchantName : undefined}
         initial={editing?.kind === "edit" ? { rating: editing.review.rating, comment: editing.review.comment } : undefined}
-        submitLabel={editing?.kind === "edit" ? "Save changes" : "Submit review"}
+        submitLabel={editing?.kind === "edit" ? t("myReviews.saveChanges") : t("track.submitReview")}
         onSubmit={submit}
         onClose={() => setEditing(null)}
       />

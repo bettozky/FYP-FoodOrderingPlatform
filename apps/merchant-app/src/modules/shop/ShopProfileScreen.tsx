@@ -7,11 +7,13 @@ import { LocalFile, form } from "../../shared/util/files";
 import { confirmAsync } from "../../shared/util/confirm";
 import { colors, spacing, type, font } from "../../shared/theme/theme";
 import { useLive } from "../orders/LiveDataContext";
+import { useTranslation } from "react-i18next";
 
 // The shop's profile photo (logo) and banner. Customers see them on the shop card and the shop page.
 // A photo is uploaded as soon as it is chosen.
 export default function ShopProfileScreen() {
   const { profile, refresh } = useLive();
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
@@ -21,7 +23,7 @@ export default function ShopProfileScreen() {
     try {
       await api("POST", "/merchant/shop-photo", await form({ kind }, { file }));
       await refresh();
-      setMsg(kind === "logo" ? "Profile photo updated." : "Banner updated.");
+      setMsg(kind === "logo" ? t("shop.logoUpdated") : t("shop.bannerUpdated"));
     } catch (e) {
       setErr(errorText(e));
     } finally {
@@ -29,12 +31,12 @@ export default function ShopProfileScreen() {
     }
   };
   const remove = async (kind: "logo" | "cover") => {
-    if (!(await confirmAsync(kind === "logo" ? "Remove the profile photo?" : "Remove the banner?", "Customers will see the default picture instead.", "Remove"))) return;
+    if (!(await confirmAsync(kind === "logo" ? t("shop.removeLogo") : t("shop.removeBanner"), t("shop.removeBody"), t("photo.remove")))) return;
     setBusy(true); setErr(""); setMsg("");
     try {
       await api("DELETE", `/merchant/shop-photo?kind=${kind}`);
       await refresh();
-      setMsg("Removed.");
+      setMsg(t("shop.removed"));
     } catch (e) {
       setErr(errorText(e));
     } finally {
@@ -44,12 +46,12 @@ export default function ShopProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Shop profile & photos" subtitle={profile?.name ?? ""} />
+      <ScreenHeader title={t("drawer.shopProfile")} subtitle={profile?.name ?? ""} />
       <ScrollView contentContainerStyle={styles.wrap}>
-        <Text style={type.bodyMuted}>Good photos help hungry students pick your shop. Choose from your gallery or take one now; it is shrunk automatically.</Text>
-        <PhotoField label="Profile photo (logo)" shape="round" aspect={[1, 1]} current={profile?.logo} busy={busy} onPick={(f) => upload("logo", f)} onRemove={() => remove("logo")} />
-        <PhotoField label="Banner photo" aspect={[16, 9]} current={profile?.cover} busy={busy} onPick={(f) => upload("cover", f)} onRemove={() => remove("cover")} />
-        <Text style={type.small}>Dish photos are set on the Menu page: tap a dish, then "Edit".</Text>
+        <Text style={type.bodyMuted}>{t("shop.intro")}</Text>
+        <PhotoField label={t("shop.logo")} shape="round" aspect={[1, 1]} current={profile?.logo} busy={busy} onPick={(f) => upload("logo", f)} onRemove={() => remove("logo")} />
+        <PhotoField label={t("shop.banner")} aspect={[16, 9]} current={profile?.cover} busy={busy} onPick={(f) => upload("cover", f)} onRemove={() => remove("cover")} />
+        <Text style={type.small}>{t("shop.dishPhotos")}</Text>
         {msg ? <Text style={{ color: colors.herb, fontSize: 14 }}>{msg}</Text> : null}
         {err ? <Text style={{ color: colors.chiliText, fontSize: 14 }}>{err}</Text> : null}
       </ScrollView>

@@ -6,6 +6,7 @@ import { colors, spacing, type } from "../../shared/theme/theme";
 import RatingSummary from "./RatingSummary";
 import ReviewCard from "./ReviewCard";
 import type { Breakdown, ReviewItem } from "./types";
+import { useTranslation } from "react-i18next";
 
 const PAGE = 10;
 
@@ -14,6 +15,7 @@ const PAGE = 10;
  * and a "Show more" button. Shop reviews can be filtered to one dish with `dishId`.
  */
 export default function ReviewsList({ merchantId, dishId, showDish = true }: { merchantId?: string; dishId?: string; showDish?: boolean }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [summary, setSummary] = useState<{ average: number | null; count: number; breakdown?: Breakdown } | null>(null);
   const [total, setTotal] = useState(0);
@@ -47,7 +49,7 @@ export default function ReviewsList({ merchantId, dishId, showDish = true }: { m
 
   if (!summary && loading) return <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} />;
   if (error && !summary) return <Text style={styles.error}>{error}</Text>;
-  if (!summary || summary.count === 0) return <EmptyState icon="star-outline" title="No reviews yet" hint="Reviews appear after customers receive and rate their food." />;
+  if (!summary || summary.count === 0) return <EmptyState icon="star-outline" title={t("reviews.none")} hint={t("reviews.noneHint")} />;
 
   return (
     <View>
@@ -55,7 +57,7 @@ export default function ReviewsList({ merchantId, dishId, showDish = true }: { m
       {items.map((r) => <ReviewCard key={r.id} review={showDish ? r : { ...r, dishName: undefined }} />)}
       {items.length < total ? (
         <Pressable style={styles.more} onPress={() => load(items.length)} disabled={loading} accessibilityRole="button" testID="more-reviews">
-          {loading ? <ActivityIndicator color={colors.ink} /> : <Text style={type.h3}>Show more reviews</Text>}
+          {loading ? <ActivityIndicator color={colors.ink} /> : <Text style={type.h3}>{t("reviews.more")}</Text>}
         </Pressable>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import i18n, { locale } from "../../shared/i18n";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
@@ -11,7 +12,7 @@ import { colors, radius, spacing, type, ui, font } from "../../shared/theme/them
 // order's live "ready in" estimate from the server.
 const CHOICES = [5, 10, 15];
 
-const clock = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const clock = (ms: number) => new Date(ms).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
 
 export default function OnMyWayCard({ order, onChange }: { order: Order; onChange?: () => void }) {
   const [minutes, setMinutes] = useState(5);
@@ -54,11 +55,11 @@ export default function OnMyWayCard({ order, onChange }: { order: Order; onChang
           <Ionicons name="walk" size={18} color={colors.ink} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={type.h3}>Ready when you arrive</Text>
+          <Text style={type.h3}>{i18n.t("arrival.title")}</Text>
           {readyIn !== null ? (
             <Text style={type.small}>Your food: ready in about {readyIn} min</Text>
           ) : (
-            <Text style={type.small}>Your food is ready at the counter</Text>
+            <Text style={type.small}>{i18n.t("arrival.readyCounter")}</Text>
           )}
         </View>
       </View>
@@ -72,7 +73,7 @@ export default function OnMyWayCard({ order, onChange }: { order: Order; onChang
             readyIn <= arriveIn! ? (
               <View style={[styles.fit, { backgroundColor: colors.herbLight }]}>
                 <Ionicons name="checkmark-circle" size={16} color={colors.herb} />
-                <Text style={[styles.fitText, { color: colors.herb }]}>Your food should be ready when you get there.</Text>
+                <Text style={[styles.fitText, { color: colors.herb }]}>{i18n.t("arrival.fits")}</Text>
               </View>
             ) : (
               <View style={[styles.fit, { backgroundColor: colors.amberTint }]}>
@@ -82,26 +83,26 @@ export default function OnMyWayCard({ order, onChange }: { order: Order; onChang
             )
           ) : null}
           <Pressable onPress={() => setEditing(true)} hitSlop={8} accessibilityRole="button">
-            <Text style={ui.link}>Change my time</Text>
+            <Text style={ui.link}>{i18n.t("arrival.change")}</Text>
           </Pressable>
         </>
       ) : (
         <>
           <Text style={type.bodyMuted}>
-            {arriveIn !== null && arriveIn <= 0 && !editing ? "You should be at the stall now. Running late? Send a new time." : "Tell the stall when you're on your way so your food is fresh when you get there."}
+            {arriveIn !== null && arriveIn <= 0 && !editing ? i18n.t("arrival.late") : i18n.t("arrival.tell")}
           </Text>
           <View style={styles.choices}>
             {CHOICES.map((c) => {
               const on = minutes === c;
               return (
                 <Pressable key={c} onPress={() => setMinutes(c)} style={[ui.chip, styles.choice, on && ui.chipOn]} accessibilityRole="radio" accessibilityState={{ selected: on }} testID={`arrive-${c}`}>
-                  <Text style={[ui.chipText, on && ui.chipTextOn]}>{c} min</Text>
+                  <Text style={[ui.chipText, on && ui.chipTextOn]}>{i18n.t("deals.min", { m: c })}</Text>
                 </Pressable>
               );
             })}
           </View>
           <Pressable style={[ui.buttonDark, { minHeight: 48 }, busy && { opacity: 0.6 }]} onPress={send} disabled={busy} accessibilityRole="button" testID="im-on-my-way">
-            <Text style={ui.buttonDarkText}>{busy ? "Telling the stall…" : `I'm ${minutes} min away`}</Text>
+            <Text style={ui.buttonDarkText}>{busy ? i18n.t("arrival.telling") : i18n.t("arrival.away", { min: minutes })}</Text>
           </Pressable>
         </>
       )}

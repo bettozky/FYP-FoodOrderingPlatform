@@ -8,6 +8,8 @@ import { api, errorText } from "../../../shared/api/client";
 import type { MerchantProfile } from "../../../shared/api/types";
 import { colors, radius, shadow, spacing, font } from "../../../shared/theme/theme";
 import { DAYS, DayHours, DayKey } from "../../onboarding/signup/types";
+import i18n from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
 
 const DAY_NUMBER: Record<DayKey, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -32,17 +34,17 @@ function tidyTime(v: string): string {
 
 /** Consecutive days with the same hours become one line: "Mon–Fri 09:00–21:00". */
 function summary(rows: DayHours[]): string[] {
-  const label = (h: DayHours) => (h.closed ? "Closed" : `${h.open}–${h.close}`);
+  const label = (h: DayHours) => (h.closed ? i18n.t("hours.closed") : `${h.open}–${h.close}`);
   const out: string[] = [];
   let start = 0;
   rows.forEach((h, i) => {
     const next = rows[i + 1];
     if (next && label(next) === label(h)) return;
-    const a = DAYS[start]!.label.slice(0, 3), b = DAYS[i]!.label.slice(0, 3);
+    const a = DAYS[start]!.short, b = DAYS[i]!.short;
     out.push(`${start === i ? a : `${a}–${b}`}  ${label(h)}`);
     start = i + 1;
   });
-  return out.length === 1 && !rows[0]!.closed ? [`Every day  ${label(rows[0]!)}`] : out;
+  return out.length === 1 && !rows[0]!.closed ? [`${i18n.t("hours.everyDay")}  ${label(rows[0]!)}`] : out;
 }
 
 function check(rows: DayHours[]): { errors: Record<string, string>; message: string } {
@@ -50,16 +52,17 @@ function check(rows: DayHours[]): { errors: Record<string, string>; message: str
   for (const h of rows) {
     if (h.closed) continue;
     const name = DAYS.find((d) => d.key === h.day)!.label;
-    if (!TIME.test(h.open) || !TIME.test(h.close)) errors[h.day] = `${name}: use 24-hour times like 09:00 and 21:30.`;
-    else if (h.open === h.close) errors[h.day] = `${name}: opening and closing time cannot be the same.`;
+    if (!TIME.test(h.open) || !TIME.test(h.close)) errors[h.day] = i18n.t("hours.badTime", { day: name });
+    else if (h.open === h.close) errors[h.day] = i18n.t("hours.sameTime", { day: name });
   }
   const first = Object.values(errors)[0];
   if (first) return { errors, message: first };
-  if (rows.every((h) => h.closed)) return { errors, message: "Open at least one day. To close for a while, set Store status to Offline." };
+  if (rows.every((h) => h.closed)) return { errors, message: i18n.t("hours.allClosed") };
   return { errors, message: "" };
 }
 
 export default function OpeningHoursCard({ profile, onSaved }: { profile: MerchantProfile | null; onSaved: () => void }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [rows, setRows] = useState<DayHours[] | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -105,7 +108,7 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
       await api("PATCH", "/merchant/me", { weeklyHours: tidy.filter((h) => !h.closed).map((h) => ({ day: DAY_NUMBER[h.day], open: h.open, close: h.close })) });
       setDirty(false);
       setExpanded(false); // fold it away again once saved
-      setMsg({ text: "Saved. Customers see open or closed based on these hours.", bad: false });
+      setMsg({ text: t("hours.saved"), bad: false });
       onSaved();
     } catch (e) {
       setMsg({ text: errorText(e), bad: true });
@@ -121,29 +124,29 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
         onPress={() => setExpanded((v) => !v)}
         accessibilityRole="button"
         accessibilityState={{ expanded }}
-        accessibilityLabel={`Opening hours, ${expanded ? "hide" : "show and edit"}`}
+        accessibilityLabel={expanded ? t("hours.a11yHide") : t("hours.a11yShow")}
         testID="hours-toggle"
       >
-        <Text style={s.title} numberOfLines={1}>Opening hours</Text>
+        <Text style={s.title} numberOfLines={1}>{t("hours.title")}</Text>
         <Text numberOfLines={1} style={[s.pill, { color: profile?.openNow ? colors.herb : colors.chiliText, backgroundColor: profile?.openNow ? colors.herbLight : colors.chiliSoft }]}>
-          {profile?.openNow ? "Open now" : "Closed now"}
+          {profile?.openNow ? t("drawer.openNow") : t("drawer.closedNow")}
         </Text>
         <View style={{ flex: 1 }} />
-        <Text style={s.toggleText}>{expanded ? "Hide" : "Edit"}</Text>
+        <Text style={s.toggleText}>{expanded ? t("hours.hide") : t("common.edit")}</Text>
         <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={18} color={colors.ink} />
       </Pressable>
 
       {!expanded ? (
-        <Pressable onPress={() => setExpanded(true)} style={s.summaryRow} accessibilityRole="button" accessibilityLabel="Edit opening hours" testID="hours-summary">
+        <Pressable onPress={() => setExpanded(true)} style={s.summaryRow} accessibilityRole="button" accessibilityLabel={t("hours.editA11y")} testID="hours-summary">
           {summary(rows).map((line) => <Text key={line} style={s.summary}>{line}</Text>)}
-          {dirty ? <Text style={[s.hint, { color: colors.amberText }]}>You have unsaved changes. Tap to finish.</Text> : null}
+          {dirty ? <Text style={[s.hint, { color: colors.amberText }]}>{t("hours.unsaved")}</Text> : null}
         </Pressable>
       ) : (
         <>
           <View style={s.rowBetween}>
-            <Text style={s.hint}>Turn a day off to close that day.</Text>
+            <Text style={s.hint}>{t("hours.turnOff")}</Text>
             <Pressable onPress={copyMonday} hitSlop={8} accessibilityRole="button" testID="hours-copy">
-              <Text style={s.link}>Copy Monday to all</Text>
+              <Text style={s.link}>{t("hours.copyMonday")}</Text>
             </Pressable>
           </View>
           <View style={s.days}>
@@ -152,33 +155,33 @@ export default function OpeningHoursCard({ profile, onSaved }: { profile: Mercha
               const bad = !!errors[h.day];
               return (
                 <View key={h.day} style={[s.dayRow, i > 0 && s.dayLine]}>
-                  <Text style={[s.dayLabel, h.closed && { color: colors.stoneText }]}>{name.slice(0, 3)}</Text>
+                  <Text style={[s.dayLabel, h.closed && { color: colors.stoneText }]}>{DAYS[i]!.short}</Text>
                   {h.closed ? (
-                    <Text style={[s.closed, { flex: 1 }]}>Closed</Text>
+                    <Text style={[s.closed, { flex: 1 }]}>{t("hours.closed")}</Text>
                   ) : (
                     <View style={s.times}>
                       <TextInput style={[s.time, bad && s.timeBad]} value={h.open} onChangeText={(v) => setDay(i, { open: v })} onBlur={() => tidyTime(h.open) !== h.open && setDay(i, { open: tidyTime(h.open) })}
-                        placeholder="09:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={`${name} opens`} testID={`hours-open-${h.day}`} />
+                        placeholder="09:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={t("hours.opens", { day: name })} testID={`hours-open-${h.day}`} />
                       <Text style={s.closed}>–</Text>
                       <TextInput style={[s.time, bad && s.timeBad]} value={h.close} onChangeText={(v) => setDay(i, { close: v })} onBlur={() => tidyTime(h.close) !== h.close && setDay(i, { close: tidyTime(h.close) })}
-                        placeholder="21:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={`${name} closes`} testID={`hours-close-${h.day}`} />
+                        placeholder="21:00" placeholderTextColor={colors.textFaint} keyboardType="numbers-and-punctuation" maxLength={5} accessibilityLabel={t("hours.closes", { day: name })} testID={`hours-close-${h.day}`} />
                     </View>
                   )}
                   <Switch value={!h.closed} onValueChange={(on) => setDay(i, { closed: !on })} trackColor={{ false: colors.stoneLine, true: colors.herb }} thumbColor={colors.white}
-                    accessibilityLabel={`Open on ${name}`} testID={`hours-day-${h.day}`} />
+                    accessibilityLabel={t("hours.openOn", { day: name })} testID={`hours-day-${h.day}`} />
                 </View>
               );
             })}
           </View>
-          <Text style={s.hint}>Closing after midnight is fine, e.g. 18:00 – 02:00.</Text>
+          <Text style={s.hint}>{t("hours.midnight")}</Text>
           <View style={s.actions}>
             {dirty ? (
               <Pressable style={s.ghostBtn} onPress={discard} disabled={busy} accessibilityRole="button" testID="hours-discard">
-                <Text style={s.ghostText}>Discard</Text>
+                <Text style={s.ghostText}>{t("hours.discard")}</Text>
               </Pressable>
             ) : null}
             <Pressable style={[s.saveBtn, (!dirty || busy) && { opacity: 0.5 }]} onPress={save} disabled={!dirty || busy} accessibilityRole="button" accessibilityState={{ disabled: !dirty || busy, busy }} testID="hours-save">
-              <Text style={s.saveText}>{busy ? "Saving…" : "Save hours"}</Text>
+              <Text style={s.saveText}>{busy ? t("common.saving") : t("hours.save")}</Text>
             </Pressable>
           </View>
         </>

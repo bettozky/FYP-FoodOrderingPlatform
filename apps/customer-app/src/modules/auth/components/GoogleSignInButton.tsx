@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
+import { useTranslation } from "react-i18next";
 import { colors, radius, spacing, font } from "../../../shared/theme/theme";
 
 // Lets the browser pop-up hand its result back to the app when Google redirects to us.
@@ -19,6 +20,7 @@ export const googleSignInAvailable = !!webClientId && (Platform.OS === "web" || 
 type Props = { onToken: (idToken: string) => void; onError: (message: string) => void; disabled?: boolean; label?: string };
 
 function Inner({ onToken, onError, disabled, label }: Props) {
+  const { t } = useTranslation();
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({ webClientId, androidClientId, iosClientId });
 
   useEffect(() => {
@@ -26,9 +28,9 @@ function Inner({ onToken, onError, disabled, label }: Props) {
     if (response.type === "success") {
       const token = response.params?.id_token ?? response.authentication?.idToken;
       if (token) onToken(token);
-      else onError("Google did not send a sign-in token. Please try again.");
+      else onError(t("auth.googleNoToken"));
     } else if (response.type === "error") {
-      onError(response.error?.message || "Google sign-in failed. Please try again.");
+      onError(response.error?.message || t("auth.googleFailed"));
     }
     // "dismiss" / "cancel": the person closed the Google window, so nothing to say.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,11 +42,11 @@ function Inner({ onToken, onError, disabled, label }: Props) {
       onPress={() => promptAsync()}
       disabled={!request || disabled}
       accessibilityRole="button"
-      accessibilityLabel="Continue with Google"
+      accessibilityLabel={label ?? t("auth.googleContinue")}
       testID="google-button"
     >
       <Ionicons name="logo-google" size={18} color={colors.ink} />
-      <Text style={styles.text}>{label ?? "Continue with Google"}</Text>
+      <Text style={styles.text}>{label ?? t("auth.googleContinue")}</Text>
     </Pressable>
   );
 }

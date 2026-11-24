@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import i18n from "i18next";
 import {
   Image,
   Pressable,
@@ -47,7 +48,7 @@ export default function DishRecommendationCard({
         />
       ) : (
         <View style={styles.placeholder}>
-          <Text style={styles.muted}>Photo unavailable</Text>
+          <Text style={styles.muted}>{i18n.t("ai.noPhoto")}</Text>
         </View>
       )}
 
@@ -75,7 +76,7 @@ export default function DishRecommendationCard({
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Add ${dish.name} to cart`}
+        accessibilityLabel={i18n.t("dish.addToCartLabel", { name: dish.name })}
         disabled={disabled || unavailable}
         onPress={() => onAdd(recommendation)}
         style={[
@@ -85,10 +86,10 @@ export default function DishRecommendationCard({
       >
         <Text style={styles.buttonText}>
           {unavailable
-            ? "Unavailable"
+            ? i18n.t("ai.unavailable")
             : disabled
-              ? "Please wait…"
-              : "Add to cart"}
+              ? i18n.t("ai.wait")
+              : i18n.t("ai.addToCart")}
         </Text>
       </Pressable>
 

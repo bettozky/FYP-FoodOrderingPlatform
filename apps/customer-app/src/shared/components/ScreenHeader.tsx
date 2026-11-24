@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from "i18next";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -28,7 +29,7 @@ export default function ScreenHeader({ title, subtitle, showBack = true, right, 
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.6 }]}
             testID="back"
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={i18n.t("common.back")}
           >
             <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />
           </Pressable>

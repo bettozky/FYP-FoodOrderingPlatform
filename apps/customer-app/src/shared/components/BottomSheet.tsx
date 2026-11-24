@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleShee
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, font, layout, radius, shadow, spacing } from "../theme/theme";
+import i18n from "../i18n";
 
 // The one bottom sheet: slides up over a dimmed page, with a grab handle, an optional title and close button,
 // and room for the home indicator. Tap outside or press back to close. Content scrolls when it is tall.
@@ -22,13 +23,13 @@ export default function BottomSheet({ visible, onClose, title, children, footer,
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" />
+        <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel={i18n.t("common.close")} />
         <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }, style]} testID={testID} accessibilityViewIsModal>
           <View style={styles.handle} />
           {title ? (
             <View style={styles.head}>
               <Text style={styles.title} accessibilityRole="header" numberOfLines={2}>{title}</Text>
-              <Pressable onPress={onClose} hitSlop={10} style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]} accessibilityRole="button" accessibilityLabel="Close">
+              <Pressable onPress={onClose} hitSlop={10} style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]} accessibilityRole="button" accessibilityLabel={i18n.t("common.close")}>
                 <Ionicons name="close" size={18} color={colors.ink} />
               </Pressable>
             </View>

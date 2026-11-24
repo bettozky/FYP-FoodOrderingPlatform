@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import i18n from "../../../shared/i18n";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import Svg, { Rect, Path, Circle } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,10 +22,10 @@ import { colors, radius, spacing, type, shadow, font, layout } from "../../../sh
 // OpenStreetMap view with an animated rider marker.
 
 const STAGES: { key: DeliveryStatus; label: string }[] = [
-  { key: "assigned", label: "Rider assigned" },
-  { key: "picked_up", label: "Picked up" },
-  { key: "en_route", label: "On the way" },
-  { key: "delivered", label: "Delivered" },
+  { key: "assigned", get label() { return i18n.t("tracking.assigned"); } },
+  { key: "picked_up", get label() { return i18n.t("tracking.pickedUp"); } },
+  { key: "en_route", get label() { return i18n.t("tracking.onTheWay"); } },
+  { key: "delivered", get label() { return i18n.t("status.delivered"); } },
 ];
 
 function stageIndex(status: DeliveryStatus) {
@@ -124,7 +125,7 @@ export default function LiveTrackingScreen({ route }: any) {
         <RouteMap progress={progress} />
         <View style={styles.previewNote} testID="route-preview-note">
           <Ionicons name="information-circle-outline" size={14} color={colors.white} />
-          <Text style={styles.previewNoteText}>Route preview only. The phone app shows the live road map.</Text>
+          <Text style={styles.previewNoteText}>{i18n.t("tracking.preview")}</Text>
         </View>
         <View style={[styles.topRow, { top: insets.top + spacing.sm }]}>
           {navigation.canGoBack() && (
@@ -134,7 +135,7 @@ export default function LiveTrackingScreen({ route }: any) {
           )}
           <View style={styles.livePill}>
             <View style={styles.liveDot} />
-            <Text style={styles.livePillText}>Live</Text>
+            <Text style={styles.livePillText}>{i18n.t("home.live")}</Text>
           </View>
         </View>
       </View>
@@ -146,8 +147,8 @@ export default function LiveTrackingScreen({ route }: any) {
               <Text style={styles.riderAvatarText}>{tracking?.rider ? tracking.rider.name.charAt(0) : "?"}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={type.h3}>{tracking?.rider ? tracking.rider.name : "Finding a rider…"}</Text>
-              <Text style={type.bodyMuted}>Your delivery partner · Order #{orderId}</Text>
+              <Text style={type.h3}>{tracking?.rider ? tracking.rider.name : i18n.t("tracking.finding")}</Text>
+              <Text style={type.bodyMuted}>{i18n.t("tracking.partner", { id: orderId })}</Text>
             </View>
           </View>
 

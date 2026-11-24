@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { canPickFiles, pickFile, PickKind } from "./pickFile";
 import type { PickedFile } from "./types";
+import i18n from "../../../shared/i18n";
 
 export function FieldError({ text, testID }: { text?: string; testID?: string }) {
   if (!text) return null;
@@ -123,7 +124,7 @@ export function UploadTile({
         onPress={choose}
         style={[styles.tile, file ? styles.tileDone : styles.tileEmpty, !!error && styles.inputError]}
         accessibilityRole="button"
-        accessibilityLabel={file ? `${label}: ${file.name}. Tap to replace.` : `Upload ${label}`}
+        accessibilityLabel={file ? i18n.t("signup.replaceA11y", { label, name: file.name }) : i18n.t("signup.uploadA11y", { label })}
         testID={testID}
       >
         {isImage ? (
@@ -134,11 +135,11 @@ export function UploadTile({
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={type.h3}>{label}</Text>
           <Text style={type.small} numberOfLines={1}>
-            {file ? `${file.name} · ${kb(file.size)}` : kind === "image" ? "JPG or PNG, up to 2 MB" : "PDF, JPG or PNG, up to 2 MB"}
+            {file ? `${file.name} · ${kb(file.size)}` : kind === "image" ? i18n.t("signup.imgHint") : i18n.t("signup.docHint")}
           </Text>
         </View>
         {file ? (
-          <Pressable onPress={() => onChange(null)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Remove ${label}`}>
+          <Pressable onPress={() => onChange(null)} hitSlop={10} accessibilityRole="button" accessibilityLabel={i18n.t("signup.removeA11y", { label })}>
             <Ionicons name="close" size={18} color={colors.stoneText} />
           </Pressable>
         ) : null}
@@ -146,10 +147,10 @@ export function UploadTile({
       {privateNote ? (
         <View style={styles.privateRow}>
           <Ionicons name="lock-closed-outline" size={13} color={colors.stoneText} />
-          <Text style={type.small}>Private, only the admin sees this</Text>
+          <Text style={type.small}>{i18n.t("signup.private")}</Text>
         </View>
       ) : null}
-      {!canPickFiles && !file ? <Text style={type.small}>You can add this after approval.</Text> : null}
+      {!canPickFiles && !file ? <Text style={type.small}>{i18n.t("signup.addLater")}</Text> : null}
       <FieldError text={error || notice} />
     </View>
   );

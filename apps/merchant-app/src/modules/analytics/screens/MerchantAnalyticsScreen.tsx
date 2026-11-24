@@ -13,6 +13,16 @@ import { api } from "../../../shared/api/client";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import Badge from "../../../shared/components/Badge";
 import { colors, radius, spacing, type, font, layout, shadow, ui } from "../../../shared/theme/theme";
+import i18n, { locale } from "../../../shared/i18n";
+import { useTranslation } from "react-i18next";
+
+// Chart labels come from the server in English ("Mon", "Wk1", "10am"); show day and week names in the app language.
+const DAY_KEY: Record<string, string> = { Sun: "sun", Mon: "mon", Tue: "tue", Wed: "wed", Thu: "thu", Fri: "fri", Sat: "sat" };
+const barLabel = (l: string) => {
+  if (DAY_KEY[l]) return i18n.t(`days.${DAY_KEY[l]}Short` as "days.monShort");
+  const wk = l.match(/^Wk(\d)$/);
+  return wk ? i18n.t("analytics.week", { n: wk[1] }) : l;
+};
 
 type TimePeriod = "daily" | "weekly" | "monthly";
 
@@ -27,6 +37,7 @@ interface BestSellerItem {
 }
 
 export default function MerchantAnalyticsScreen() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<TimePeriod>("monthly");
   const [trackWidth, setTrackWidth] = useState<number>(0);
   const slideAnim = useRef(new Animated.Value(2)).current; // Default to Monthly (index 2)
@@ -83,8 +94,8 @@ export default function MerchantAnalyticsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScreenHeader
-        title="Sales & analytics"
-        subtitle="Revenue, cost breakdown, and customer traffic insights"
+        title={t("dash.analytics")}
+        subtitle={t("analytics.subtitle")}
       />
 
       <ScrollView contentContainerStyle={styles.wrap}>
@@ -112,7 +123,7 @@ export default function MerchantAnalyticsScreen() {
                 period === "daily" && { color: colors.primary, fontWeight: "700" },
               ]}
             >
-              Daily
+              {t("analytics.daily")}
             </Text>
           </Pressable>
 
@@ -126,7 +137,7 @@ export default function MerchantAnalyticsScreen() {
                 period === "weekly" && { color: colors.primary, fontWeight: "700" },
               ]}
             >
-              Weekly
+              {t("analytics.weekly")}
             </Text>
           </Pressable>
 
@@ -140,7 +151,7 @@ export default function MerchantAnalyticsScreen() {
                 period === "monthly" && { color: colors.primary, fontWeight: "700" },
               ]}
             >
-              Monthly
+              {t("analytics.monthly")}
             </Text>
           </Pressable>
         </View>
@@ -149,50 +160,50 @@ export default function MerchantAnalyticsScreen() {
         <View style={styles.statsGrid}>
           {/* Revenue */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Gross revenue</Text>
+            <Text style={type.small}>{t("analytics.gross")}</Text>
             <Text style={[styles.statValue, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.revenue.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Text style={{ fontSize: 12, color: (currentMetrics.revenueGrowthPct ?? 0) >= 0 ? colors.herb : colors.chiliText, ...font.displayBold }}>
-              {currentMetrics.revenueGrowthPct === null ? "No previous period to compare" : `${currentMetrics.revenueGrowthPct >= 0 ? "+" : ""}${currentMetrics.revenueGrowthPct}% vs previous ${period.replace("ly", "")}`}
+              {currentMetrics.revenueGrowthPct === null ? t("analytics.noPrevious") : t(`analytics.vs_${period}`, { pct: `${currentMetrics.revenueGrowthPct >= 0 ? "+" : ""}${currentMetrics.revenueGrowthPct}` })}
             </Text>
           </View>
 
           {/* Operating Cost */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Total cost & fees</Text>
+            <Text style={type.small}>{t("analytics.cost")}</Text>
             <Text style={[styles.statValue, { color: colors.chiliText }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.cost.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
             <Text style={{ fontSize: 11, color: colors.stoneText }}>
-              COGS + Promos + Fees
+              {t("analytics.costParts")}
             </Text>
           </View>
 
           {/* Net Profit */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Net profit (margin)</Text>
+            <Text style={type.small}>{t("analytics.net")}</Text>
             <Text style={[styles.statValue, { color: colors.herb }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.profit.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Badge label={`${currentMetrics.profitMargin} Margin`} tone="success" />
+            <Badge label={t("analytics.margin", { pct: currentMetrics.profitMargin })} tone="success" />
           </View>
 
           {/* Average Order Value */}
           <View style={styles.statCard}>
-            <Text style={type.small}>Average order value</Text>
+            <Text style={type.small}>{t("analytics.aov")}</Text>
             <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
               RM {currentMetrics.avgOrderValue.toFixed(2)}
             </Text>
-            <Text style={{ fontSize: 11, color: colors.stoneText }}>Per transaction</Text>
+            <Text style={{ fontSize: 11, color: colors.stoneText }}>{t("analytics.perTx")}</Text>
           </View>
         </View>
 
         {/* ================= 3. CUSTOMER TRAFFIC BREAKDOWN ================= */}
         <View style={styles.card}>
-          <Text style={type.h3}>Customer traffic & order volume</Text>
+          <Text style={type.h3}>{t("analytics.traffic")}</Text>
           <Text style={type.bodyMuted}>
-            Total volume: {currentMetrics.trafficOrders} orders placed
+            {t("analytics.volume", { n: currentMetrics.trafficOrders })}
           </Text>
 
           <View style={styles.trafficRow}>
@@ -200,11 +211,11 @@ export default function MerchantAnalyticsScreen() {
             <View style={styles.trafficBlock}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Ionicons name="restaurant-outline" size={18} color={colors.amberText} />
-                <Text style={type.body}>Dine-In Orders</Text>
+                <Text style={type.body}>{t("analytics.dineIn")}</Text>
               </View>
               <Text style={styles.trafficCount}>{currentMetrics.dineInTraffic}</Text>
               <Text style={type.small}>
-                {currentMetrics.trafficOrders ? ((currentMetrics.dineInTraffic / currentMetrics.trafficOrders) * 100).toFixed(0) : 0}% of total traffic
+                {t("analytics.share", { pct: currentMetrics.trafficOrders ? ((currentMetrics.dineInTraffic / currentMetrics.trafficOrders) * 100).toFixed(0) : 0 })}
               </Text>
             </View>
 
@@ -212,11 +223,11 @@ export default function MerchantAnalyticsScreen() {
             <View style={styles.trafficBlock}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Ionicons name="bicycle-outline" size={18} color={colors.amberText} />
-                <Text style={type.body}>Delivery orders</Text>
+                <Text style={type.body}>{t("analytics.delivery")}</Text>
               </View>
               <Text style={styles.trafficCount}>{currentMetrics.deliveryTraffic}</Text>
               <Text style={type.small}>
-                {currentMetrics.trafficOrders ? ((currentMetrics.deliveryTraffic / currentMetrics.trafficOrders) * 100).toFixed(0) : 0}% of total traffic
+                {t("analytics.share", { pct: currentMetrics.trafficOrders ? ((currentMetrics.deliveryTraffic / currentMetrics.trafficOrders) * 100).toFixed(0) : 0 })}
               </Text>
             </View>
           </View>
@@ -224,8 +235,8 @@ export default function MerchantAnalyticsScreen() {
 
         {/* ================= 4. REVENUE TREND VISUAL CHART ================= */}
         <View style={styles.card}>
-          <Text style={type.h3}>Revenue trend overview</Text>
-          <Text style={type.bodyMuted}>Comparison across {period} intervals</Text>
+          <Text style={type.h3}>{t("analytics.trend")}</Text>
+          <Text style={type.bodyMuted}>{t(`analytics.across_${period}`)}</Text>
 
           <View style={styles.chartContainer}>
             {currentMetrics.chartBars.map((bar, idx) => (
@@ -236,7 +247,7 @@ export default function MerchantAnalyticsScreen() {
                 <View style={styles.barTrack}>
                   <View style={[styles.barFill, { height: bar.heightPct as any }]} />
                 </View>
-                <Text style={styles.chartLabel}>{bar.label}</Text>
+                <Text style={styles.chartLabel}>{barLabel(bar.label)}</Text>
               </View>
             ))}
           </View>
@@ -244,9 +255,9 @@ export default function MerchantAnalyticsScreen() {
 
         {/* ================= 5. BEST-SELLING ITEMS (RESPONSIVE PHONE FIX) ================= */}
         <View style={styles.card}>
-          <Text style={type.h3}>Best-Selling Items & Growth</Text>
+          <Text style={type.h3}>{t("analytics.best")}</Text>
           <Text style={type.bodyMuted}>
-            Dish popularity and growth against the previous period
+            {t("analytics.bestHint")}
           </Text>
 
           <View style={{ marginTop: spacing.sm, gap: spacing.md }}>
@@ -269,7 +280,7 @@ export default function MerchantAnalyticsScreen() {
                           {item.name}
                         </Text>
                         <Text style={type.small}>
-                          {item.category} · {item.soldQty} orders
+                          {item.category} · {t("analytics.orders", { n: item.soldQty })}
                         </Text>
                       </View>
                     </View>

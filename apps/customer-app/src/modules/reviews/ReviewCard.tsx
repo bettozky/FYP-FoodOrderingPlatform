@@ -3,11 +3,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { colors, radius, spacing, type, ui } from "../../shared/theme/theme";
 import { StarRow } from "./Stars";
 import type { ReviewItem } from "./types";
+import { useTranslation } from "react-i18next";
+import { locale } from "../../shared/i18n";
 
-export const reviewDate = (ts: number) => new Date(ts).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+export const reviewDate = (ts: number) => new Date(ts).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
 
 /** One review, with the shop's reply underneath when there is one. `footer` is for buttons (edit / delete). */
 export default function ReviewCard({ review, showShop, footer }: { review: ReviewItem; showShop?: boolean; footer?: React.ReactNode }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.card} testID={`review-${review.id}`}>
       <View style={styles.top}>
@@ -15,13 +18,13 @@ export default function ReviewCard({ review, showShop, footer }: { review: Revie
         <StarRow rating={review.rating} />
       </View>
       <Text style={type.small}>
-        {review.dishName ? `${review.dishName} · ` : ""}{reviewDate(review.createdAt)}{review.editedAt ? " · edited" : ""}
+        {review.dishName ? `${review.dishName} · ` : ""}{reviewDate(review.createdAt)}{review.editedAt ? ` · ${t("reviews.edited")}` : ""}
       </Text>
-      {review.hidden ? <Text style={styles.hidden}>Hidden by ScootMeal. Only you can see this review.</Text> : null}
+      {review.hidden ? <Text style={styles.hidden}>{t("reviews.hidden")}</Text> : null}
       {review.comment ? <Text style={[type.bodyMuted, { marginTop: 2 }]}>{review.comment}</Text> : null}
       {review.reply ? (
         <View style={styles.reply}>
-          <Text style={styles.replyHead}>Reply from the shop</Text>
+          <Text style={styles.replyHead}>{t("reviews.reply")}</Text>
           <Text style={type.bodyMuted}>{review.reply.text}</Text>
         </View>
       ) : null}

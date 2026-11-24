@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../shared/api/client";
 import { colors, layout, radius, spacing, font } from "../../shared/theme/theme";
 import type { Announcement } from "./AnnouncementsScreen";
+import i18n from "../../shared/i18n";
 
 /** A slim card on Home showing the newest (pinned first) announcement. Hidden when there is none. */
 export default function AnnouncementStrip({ onOpen }: { onOpen: () => void }) {
@@ -13,7 +14,7 @@ export default function AnnouncementStrip({ onOpen }: { onOpen: () => void }) {
   }, []);
   if (!top) return null;
   return (
-    <Pressable style={styles.card} onPress={onOpen} accessibilityRole="button" accessibilityLabel={`Announcement: ${top.title}. Open all announcements`} testID="announcement-strip">
+    <Pressable style={styles.card} onPress={onOpen} accessibilityRole="button" accessibilityLabel={i18n.t("news.stripLabel", { title: top.title })} testID="announcement-strip">
       <Ionicons name="megaphone-outline" size={20} color={colors.amberText} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.title} numberOfLines={1}>{top.title}</Text>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import i18n from "../../shared/i18n";
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,7 +33,7 @@ export default function PickupBuzzer({ notice, busy, error, onCollected, onShowW
   const { counter, area } = counterParts(d.stallNo);
   const buzzedAt = Number(d.buzzedAt ?? notice.createdAt);
   const buzzCount = Number(d.buzzCount ?? 1);
-  const label = d.mode === "dine_in" ? "Dine-in" : "Takeaway";
+  const label = d.mode === "dine_in" ? i18n.t("mode.dineIn") : i18n.t("mode.takeaway");
 
   // Ring until collected. A new buzz from the stall un-mutes and starts the ring again.
   useEffect(() => {
@@ -65,7 +66,7 @@ export default function PickupBuzzer({ notice, busy, error, onCollected, onShowW
             style={styles.muteBtn}
             hitSlop={10}
             accessibilityRole="button"
-            accessibilityLabel={muted ? "Turn the buzzer sound back on" : "Stop the buzzer sound"}
+            accessibilityLabel={muted ? i18n.t("buzzer.soundOn") : i18n.t("buzzer.soundOff")}
             testID="buzzer-mute"
           >
             <Ionicons name={muted ? "volume-mute" : "volume-high"} size={20} color={colors.white} />
@@ -81,11 +82,11 @@ export default function PickupBuzzer({ notice, busy, error, onCollected, onShowW
               <Ionicons name="notifications" size={58} color={colors.herb} />
             </View>
           </PulseRing>
-          <Text style={styles.ready} accessibilityRole="header">Your food is ready!</Text>
-          <Text style={styles.small}>Order number</Text>
+          <Text style={styles.ready} accessibilityRole="header">{i18n.t("buzzer.ready")}</Text>
+          <Text style={styles.small}>{i18n.t("buzzer.orderNumber")}</Text>
           <Text style={styles.orderNo} adjustsFontSizeToFit numberOfLines={1} testID="buzzer-order-no">#{String(d.orderId ?? "")}</Text>
           <View style={styles.where}>
-            <Text style={styles.stall} numberOfLines={2}>{d.merchantName ?? "Your stall"}</Text>
+            <Text style={styles.stall} numberOfLines={2}>{d.merchantName ?? i18n.t("buzzer.yourStall")}</Text>
             <View style={styles.counterRow}>
               <Ionicons name="location" size={18} color={colors.turmericLight} />
               <Text style={styles.counter}>Collect at {counter}{area ? ` · ${area}` : ""}</Text>
@@ -106,13 +107,13 @@ export default function PickupBuzzer({ notice, busy, error, onCollected, onShowW
             testID="buzzer-collected"
           >
             <Ionicons name="checkmark-circle" size={22} color={colors.herb} />
-            <Text style={styles.collectedText}>{busy ? "Saving..." : "Collected"}</Text>
+            <Text style={styles.collectedText}>{busy ? i18n.t("picker.saving") : i18n.t("buzzer.collected")}</Text>
           </Pressable>
           <Pressable style={styles.showWhere} onPress={() => onShowWhere(d.merchantId)} accessibilityRole="button" testID="buzzer-show-where">
             <Ionicons name="map-outline" size={18} color={colors.white} />
-            <Text style={styles.showWhereText}>Show me where</Text>
+            <Text style={styles.showWhereText}>{i18n.t("buzzer.showWhere")}</Text>
           </Pressable>
-          <Text style={styles.hint}>Keeps buzzing until you tap Collected.</Text>
+          <Text style={styles.hint}>{i18n.t("buzzer.hint")}</Text>
         </View>
       </View>
     </Modal>
@@ -125,7 +126,7 @@ export function BuzzerMiniBar({ notice, onOpen }: { notice: AppNotification; onO
   const d = notice.data ?? {};
   return (
     <View pointerEvents="box-none" style={[styles.miniWrap, { bottom: insets.bottom + 96 }]}>
-      <Pressable style={styles.mini} onPress={onOpen} accessibilityRole="button" accessibilityLabel="Food ready. Open the buzzer" testID="buzzer-mini">
+      <Pressable style={styles.mini} onPress={onOpen} accessibilityRole="button" accessibilityLabel={i18n.t("buzzer.miniLabel")} testID="buzzer-mini">
         <PulseRing size={30} color={colors.white}>
           <Ionicons name="notifications" size={18} color={colors.white} />
         </PulseRing>
@@ -133,7 +134,7 @@ export function BuzzerMiniBar({ notice, onOpen }: { notice: AppNotification; onO
           <Text style={styles.miniTitle} numberOfLines={1}>#{String(d.orderId ?? "")} is ready</Text>
           <Text style={styles.miniSub} numberOfLines={1}>{d.merchantName} · {counterParts(d.stallNo).counter}</Text>
         </View>
-        <Text style={styles.miniOpen}>Open</Text>
+        <Text style={styles.miniOpen}>{i18n.t("buzzer.open")}</Text>
       </Pressable>
     </View>
   );

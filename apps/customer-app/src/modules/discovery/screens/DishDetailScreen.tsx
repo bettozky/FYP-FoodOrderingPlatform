@@ -20,6 +20,10 @@ import { PopOnChange } from "../../../shared/motion/PulseRing";
 import { Skeleton } from "../../../shared/motion/Skeleton";
 import { dietFit } from "../../diet/diet";
 import { useDiet } from "../../diet/useDiet";
+import { dietWords } from "../../diet/dietWords";
+import { useTranslation } from "react-i18next";
+import i18n from "../../../shared/i18n";
+import { allergenList } from "../../../shared/i18n/labels";
 
 // Dish detail, from Badrul's mock-up (Oct 2026):
 // back · stall name (opens the stall menu) · cart → big round picture → name, description, price
@@ -31,14 +35,15 @@ import { useDiet } from "../../diet/useDiet";
  * a dish with no allergens listed may still have them, so the customer is always told to check if it is serious.
  */
 function allergenNote(dish: Dish, merchant: Merchant): string {
-  if (dish.allergens?.length) return "Listed by the stall. If your allergy is serious, check with them before ordering.";
-  if (merchant.allergens?.length) return `No allergens listed for this dish, but this kitchen uses ${merchant.allergens.join(", ")}. If your allergy is serious, check with the stall.`;
-  if (merchant.allergens) return "The stall says none of the 9 common allergens are used in its kitchen. If your allergy is serious, check with them.";
-  return "This stall has not listed its allergens. Check with the stall.";
+  if (dish.allergens?.length) return i18n.t("dish.allergenListed");
+  if (merchant.allergens?.length) return i18n.t("dish.allergenKitchen", { list: allergenList(merchant.allergens) });
+  if (merchant.allergens) return i18n.t("dish.allergenNone");
+  return i18n.t("dish.allergenUnknown");
 }
 
 export default function DishDetailScreen({ route }: any) {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { dishId } = route.params;
   const { merchantById } = useCatalog();
@@ -74,14 +79,14 @@ export default function DishDetailScreen({ route }: any) {
       <View style={[styles.center, { paddingTop: insets.top }]}>
         {missing ? (
           <>
-            <Text style={type.h3}>This dish isn't available any more.</Text>
+            <Text style={type.h3}>{t("dish.gone")}</Text>
             <Pressable style={[ui.buttonDark, { marginTop: spacing.md }]} onPress={() => navigation.goBack()}>
-              <Text style={ui.buttonDarkText}>Go back</Text>
+              <Text style={ui.buttonDarkText}>{t("common.back")}</Text>
             </Pressable>
           </>
         ) : (
           // Loading: the shape of the page (round picture, name, price) instead of a spinner.
-          <View style={styles.loading} accessible accessibilityLabel="Loading" accessibilityRole="progressbar">
+          <View style={styles.loading} accessible accessibilityLabel={t("common.loading")} accessibilityRole="progressbar">
             <Skeleton width={200} height={200} rounded={100} />
             <Skeleton width="60%" height={24} />
             <Skeleton width="80%" height={12} />
@@ -109,12 +114,12 @@ export default function DishDetailScreen({ route }: any) {
   }
 
   const chips = [
-    dish.style ? (dish.style === "dry" ? "Dry" : "Wet / soup") : null,
+    dish.style ? (dish.style === "dry" ? t("home.dry") : t("home.wet")) : null,
     rating.average !== null ? `${rating.average}★` : `${merchant.rating.toFixed(1)}★`,
-    dish.dietary.includes("spicy") ? "Spicy" : null,
-    dish.dietary.includes("vegetarian") ? "Vegetarian" : null,
-    dish.dietary.includes("plant_based") ? "Plant-based" : null,
-    merchant.tags.includes("Halal-friendly") ? "Halal-friendly" : null,
+    dish.dietary.includes("spicy") ? t("diet.spicy") : null,
+    dish.dietary.includes("vegetarian") ? t("diet.vegetarian") : null,
+    dish.dietary.includes("plant_based") ? t("diet.plantBased") : null,
+    merchant.tags.includes("Halal-friendly") ? t("dish.halalFriendly") : null,
   ].filter(Boolean) as string[];
 
   const toggleOption = (c: string) => setOptions((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
@@ -122,16 +127,16 @@ export default function DishDetailScreen({ route }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
-        <Pressable onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate("MainTabs"))} hitSlop={4} style={ui.iconButton} accessibilityRole="button" accessibilityLabel="Go back" testID="back">
+        <Pressable onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate("MainTabs"))} hitSlop={4} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={t("common.back")} testID="back">
           <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />
         </Pressable>
         <View style={styles.headerRight}>
-          <Pressable onPress={() => toggle(dishId)} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={fav ? "Remove from saved dishes" : "Save this dish"} testID="fav">
+          <Pressable onPress={() => toggle(dishId)} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={fav ? t("dish.unsave") : t("dish.save")} testID="fav">
             <PopOnChange trigger={fav}>
               <Ionicons name={fav ? "heart" : "heart-outline"} size={20} color={fav ? colors.chili : colors.ink} />
             </PopOnChange>
           </Pressable>
-          <Pressable onPress={() => navigation.navigate("Cart")} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={itemCount ? `Cart, ${itemCount} items` : "Cart, empty"}>
+          <Pressable onPress={() => navigation.navigate("Cart")} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={itemCount ? t("home.cartLabel", { count: itemCount }) : t("home.cartEmpty")}>
             <Ionicons name="bag-handle-outline" size={20} color={colors.ink} />
             {itemCount > 0 ? (
               <View style={styles.cartBadge}>
@@ -144,7 +149,7 @@ export default function DishDetailScreen({ route }: any) {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}>
         <FadeInView distance={0} duration={280}>
-          <DishImage image={dish.image} shape="hero" label={dish.name} overlay={dish.soldOut ? "Sold out" : undefined} style={styles.picture} />
+          <DishImage image={dish.image} shape="hero" label={dish.name} overlay={dish.soldOut ? t("dish.soldOut") : undefined} style={styles.picture} />
         </FadeInView>
 
         <View style={styles.body}>
@@ -158,12 +163,12 @@ export default function DishDetailScreen({ route }: any) {
           <Price dish={dish} large />
           {dish.dealPercent ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }} testID="deal-detail">
-              <Text style={{ ...font.displayExtraBold, fontSize: 12, color: colors.chiliText }}>Last-hour deal · {dish.dealPercent}% off</Text>
+              <Text style={{ ...font.displayExtraBold, fontSize: 12, color: colors.chiliText }}>{t("dish.dealOff", { percent: dish.dealPercent })}</Text>
               <EndsChip endsAt={dish.dealEndsAt} />
             </View>
           ) : null}
         </View>
-        <Text style={[type.small, { marginTop: 2 }]}>Per dish · delivery fee added at checkout</Text>
+        <Text style={[type.small, { marginTop: 2 }]}>{t("dish.perDish")}</Text>
 
         <View style={styles.chips}>
           <ReadyChip merchant={merchant} />
@@ -175,26 +180,26 @@ export default function DishDetailScreen({ route }: any) {
           ))}
         </View>
 
-        <DietBanner fit={dietFit(dish, merchant, diet)} onEdit={() => navigation.navigate("Diet")} />
+        <DietBanner fit={dietFit(dish, merchant, diet, dietWords())} onEdit={() => navigation.navigate("Diet")} />
         {!merchant.openNow ? (
           <View style={[styles.note, styles.noteClosed]}>
             <Ionicons name="moon-outline" size={18} color={colors.chiliText} />
-            <Text style={[styles.noteText, { color: colors.chiliText }]}>{merchant.name} is closed right now (opens {merchant.hours.open}), so you can't order yet.</Text>
+            <Text style={[styles.noteText, { color: colors.chiliText }]}>{t("dish.closedNote", { name: merchant.name, time: merchant.hours.open })}</Text>
           </View>
         ) : null}
         <View style={[styles.note, dish.allergens?.length ? styles.noteAllergen : null]} testID="allergen-note">
           <Ionicons name="alert-circle-outline" size={18} color={dish.allergens?.length ? colors.amberText : colors.stoneText} />
           <View style={{ flex: 1, gap: 2 }}>
-            {dish.allergens?.length ? <Text style={styles.noteTitle}>Contains: {dish.allergens.join(", ")}</Text> : null}
+            {dish.allergens?.length ? <Text style={styles.noteTitle}>{t("dish.contains", { list: allergenList(dish.allergens) })}</Text> : null}
             <Text style={styles.noteText}>
-              {allergenNote(dish, merchant)}{merchant.dineInOnly ? " This stall is dine-in only right now." : ""}
+              {allergenNote(dish, merchant)}{merchant.dineInOnly ? ` ${t("dish.dineInOnlyNow")}` : ""}
             </Text>
           </View>
         </View>
 
         {!unavailable && dish.customisations.length > 0 ? (
           <>
-            <Text style={[ui.sectionTitle, styles.section]}>Customise</Text>
+            <Text style={[ui.sectionTitle, styles.section]}>{t("dish.customise")}</Text>
             <View style={styles.optionWrap}>
               {dish.customisations.map((c) => {
                 const on = options.includes(c);
@@ -208,7 +213,7 @@ export default function DishDetailScreen({ route }: any) {
           </>
         ) : null}
 
-        <Text style={[ui.sectionTitle, styles.section]}>Reviews</Text>
+        <Text style={[ui.sectionTitle, styles.section]}>{t("stall.reviews")}</Text>
         <ReviewsList dishId={dishId} showDish={false} />
         </View>
       </ScrollView>
@@ -216,13 +221,13 @@ export default function DishDetailScreen({ route }: any) {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         {!unavailable ? (
           <View style={ui.stepper}>
-            <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} accessibilityRole="button" accessibilityLabel="One less" testID="qty-minus">
+            <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} accessibilityRole="button" accessibilityLabel={t("common.oneLess")} testID="qty-minus">
               <Ionicons name="remove" size={18} color={qty <= 1 ? colors.stoneSoft : colors.ink} />
             </PressableScale>
             <PopOnChange trigger={qty}>
-              <Text style={ui.stepperValue} accessibilityLabel={`Quantity ${qty}`}>{qty}</Text>
+              <Text style={ui.stepperValue} accessibilityLabel={t("common.quantity", { qty })}>{qty}</Text>
             </PopOnChange>
-            <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.min(20, q + 1))} disabled={qty >= 20} accessibilityRole="button" accessibilityLabel="One more" testID="qty-plus">
+            <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.min(20, q + 1))} disabled={qty >= 20} accessibilityRole="button" accessibilityLabel={t("common.oneMore")} testID="qty-plus">
               <Ionicons name="add" size={18} color={qty >= 20 ? colors.stoneSoft : colors.ink} />
             </PressableScale>
           </View>
@@ -237,7 +242,7 @@ export default function DishDetailScreen({ route }: any) {
             testID="add-to-cart"
           >
             <Text style={[ui.buttonAccentText, unavailable && { color: colors.stoneText }, justAdded && { color: colors.white }]} numberOfLines={1}>
-              {dish.soldOut ? "Sold out" : !merchant.openNow ? "Stall is closed" : justAdded ? (compact ? "Added" : "Added to cart") : `${compact ? "Add" : "Add to cart"} · RM ${(dish.price * qty).toFixed(2)}`}
+              {dish.soldOut ? t("dish.soldOut") : !merchant.openNow ? t("dish.stallClosed") : justAdded ? (compact ? t("dish.addedShort") : t("dish.added")) : compact ? t("dish.addShort", { price: (dish.price * qty).toFixed(2) }) : t("dish.addToCart", { price: (dish.price * qty).toFixed(2) })}
             </Text>
           </PressableScale>
         </Animated.View>
@@ -255,12 +260,12 @@ function DietBanner({ fit, onEdit }: { fit: ReturnType<typeof dietFit>; onEdit: 
       <Ionicons name={avoid ? "warning-outline" : "help-circle-outline"} size={18} color={avoid ? colors.chiliText : colors.amberText} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={[styles.noteTitle, { color: avoid ? colors.chiliText : colors.amberText }]}>
-          {avoid ? "Doesn't fit your diet profile" : "Check with the stall first"}
+          {avoid ? i18n.t("diet.avoidTitle") : i18n.t("diet.checkTitle")}
         </Text>
         <Text style={styles.noteText}>{fit.reasons.join(" · ")}</Text>
       </View>
-      <Pressable onPress={onEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edit my diet profile">
-        <Text style={[styles.noteTitle, { color: colors.amberText }]}>Edit</Text>
+      <Pressable onPress={onEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel={i18n.t("diet.editProfile")}>
+        <Text style={[styles.noteTitle, { color: colors.amberText }]}>{i18n.t("common.edit")}</Text>
       </Pressable>
     </View>
   );

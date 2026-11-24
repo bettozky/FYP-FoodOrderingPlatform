@@ -1,3 +1,4 @@
+import "./src/shared/i18n"; // load the app language before any screen draws
 import React, { useCallback } from "react";
 import { View } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -13,6 +14,7 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import AppDrawer from "./src/navigation/AppDrawer";
 import { navRef } from "./src/navigation/navRef";
 import { DrawerProvider } from "./src/shared/components/SideDrawer";
+import AssistantBubble from "./src/modules/ai-assistant/AssistantBubble";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -35,6 +37,7 @@ export default function App() {
                   <RootNavigator />
                   <AppDrawer />
                   <PopupHost />
+                  <AssistantBubble />
                 </ChatProvider>
               </CallProvider>
             </View>

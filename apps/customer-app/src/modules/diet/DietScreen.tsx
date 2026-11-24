@@ -7,7 +7,10 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import { errorText } from "../../shared/api/client";
 import { PopOnChange } from "../../shared/motion/PulseRing";
 import { colors, radius, spacing, type, ui, font, layout } from "../../shared/theme/theme";
+import { useTranslation } from "react-i18next";
+import { allergenName } from "../../shared/i18n/labels";
 import { ALLERGENS, DIET_PREFS, EMPTY_DIET, type DietProfile } from "./diet";
+import { prefText } from "./dietWords";
 import { useDiet } from "./useDiet";
 
 // Sprint 3 "diet and allergy profile". Route: navigation.navigate("Diet") (Account → Diet & allergies).
@@ -15,6 +18,7 @@ import { useDiet } from "./useDiet";
 // stall (amber), or hide the ones that do not fit.
 export default function DietScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { diet, save } = useDiet();
   const [draft, setDraft] = useState<DietProfile>(diet ?? EMPTY_DIET);
   const [busy, setBusy] = useState(false);
@@ -34,7 +38,7 @@ export default function DietScreen({ navigation }: any) {
     setMsg("");
     try {
       await save(draft);
-      setMsg("Saved. Stall menus now flag dishes that don't fit.");
+      setMsg(t("diet.saved"));
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -46,7 +50,7 @@ export default function DietScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScreenHeader title="Diet & allergies" subtitle="Set it once, we'll check every menu" />
+      <ScreenHeader title={t("menu.dietAllergies")} subtitle={t("diet.subtitle")} />
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.xxl }]}>
         <View style={styles.hero}>
           <PopOnChange trigger={count}>
@@ -55,25 +59,25 @@ export default function DietScreen({ navigation }: any) {
             </View>
           </PopOnChange>
           <View style={{ flex: 1 }}>
-            <Text style={type.h3}>{count ? `${count} ${count === 1 ? "thing" : "things"} to watch for` : "Nothing set yet"}</Text>
-            <Text style={type.small}>Dishes that don't fit get a red label. Amber means the stall's kitchen uses one of your allergens, so ask first.</Text>
+            <Text style={type.h3}>{count ? t("diet.watchCount", { count }) : t("diet.nothingSet")}</Text>
+            <Text style={type.small}>{t("diet.intro")}</Text>
           </View>
         </View>
 
-        <Text style={styles.section}>I'm allergic to</Text>
+        <Text style={styles.section}>{t("diet.allergicTo")}</Text>
         <View style={styles.chips}>
           {ALLERGENS.map((a) => {
             const on = draft.allergens.includes(a);
             return (
               <Pressable key={a} onPress={() => toggle("allergens", a)} style={[ui.chip, on && styles.chipOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`diet-allergen-${a}`}>
                 {on ? <Ionicons name="close-circle" size={14} color={colors.white} /> : null}
-                <Text style={[ui.chipText, on && { color: colors.white }]}>{a}</Text>
+                <Text style={[ui.chipText, on && { color: colors.white }]}>{allergenName(a)}</Text>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.section}>My diet</Text>
+        <Text style={styles.section}>{t("diet.myDiet")}</Text>
         <View style={{ gap: spacing.sm }}>
           {DIET_PREFS.map((p) => {
             const on = draft.prefs.includes(p.key);
@@ -81,8 +85,8 @@ export default function DietScreen({ navigation }: any) {
               <Pressable key={p.key} onPress={() => toggle("prefs", p.key)} style={[styles.prefRow, on && styles.prefRowOn]} accessibilityRole="checkbox" accessibilityState={{ checked: on }} testID={`diet-pref-${p.key}`}>
                 <Ionicons name={on ? "checkbox" : "square-outline"} size={22} color={on ? colors.herb : colors.stone} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[type.body, { ...font.displayBold }]}>{p.label}</Text>
-                  <Text style={type.small}>{p.hint}</Text>
+                  <Text style={[type.body, { ...font.displayBold }]}>{prefText(p.key).label}</Text>
+                  <Text style={type.small}>{prefText(p.key).hint}</Text>
                 </View>
               </Pressable>
             );
@@ -92,19 +96,19 @@ export default function DietScreen({ navigation }: any) {
         <View style={[styles.prefRow, { marginTop: spacing.lg }]}>
           <Ionicons name="eye-off-outline" size={22} color={colors.ink} />
           <View style={{ flex: 1 }}>
-            <Text style={[type.body, { ...font.displayBold }]}>Hide dishes that don't fit</Text>
-            <Text style={type.small}>Off: show them with a red label instead</Text>
+            <Text style={[type.body, { ...font.displayBold }]}>{t("diet.hide")}</Text>
+            <Text style={type.small}>{t("diet.hideHint")}</Text>
           </View>
           <Switch
             value={draft.hideUnsuitable}
             onValueChange={(v) => setDraft((d) => ({ ...d, hideUnsuitable: v }))}
             trackColor={{ true: colors.herb, false: colors.stoneLine }}
-            accessibilityLabel="Hide dishes that don't fit"
+            accessibilityLabel={t("diet.hide")}
             testID="diet-hide"
           />
         </View>
 
-        <Text style={styles.note}>Allergen labels come from the stalls. If your allergy is serious, always check with the stall before you eat.</Text>
+        <Text style={styles.note}>{t("diet.note")}</Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {msg ? (
@@ -113,8 +117,8 @@ export default function DietScreen({ navigation }: any) {
             <Text style={[type.small, { color: colors.herb, flex: 1 }]}>{msg}</Text>
           </View>
         ) : null}
-        <PrimaryButton label="Save" onPress={onSave} loading={busy} testID="diet-save" />
-        {msg ? <PrimaryButton label="Done" variant="outline" onPress={() => navigation.goBack()} /> : null}
+        <PrimaryButton label={t("common.save")} onPress={onSave} loading={busy} testID="diet-save" />
+        {msg ? <PrimaryButton label={t("common.done")} variant="outline" onPress={() => navigation.goBack()} /> : null}
       </ScrollView>
     </View>
   );

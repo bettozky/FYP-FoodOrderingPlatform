@@ -1,4 +1,5 @@
 import React from "react";
+import i18n from "i18next";
 import { View } from "react-native";
 import { colors, radius } from "../theme/theme";
 
@@ -8,7 +9,7 @@ export default function LocationMap({ lat, lng, height = 150 }: { lat: number; l
   const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`;
   return (
     <View style={{ height, borderRadius: radius.md, overflow: "hidden", backgroundColor: colors.paperDim }} testID="location-map">
-      {React.createElement("iframe", { src, title: "Your location on the map", style: { border: 0, width: "100%", height: "100%" }, loading: "lazy" })}
+      {React.createElement("iframe", { src, title: i18n.t("map.yourLocation"), style: { border: 0, width: "100%", height: "100%" }, loading: "lazy" })}
     </View>
   );
 }
