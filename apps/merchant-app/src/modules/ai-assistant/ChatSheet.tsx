@@ -64,7 +64,6 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
     if (reply) AccessibilityInfo.announceForAccessibility(reply.reply); // screen readers read the answer out
   }
 
-  const [sheetHeight, setSheetHeight] = useState(400); // measured once the sheet is drawn
   const progress = useRef(new Animated.Value(0)).current; // 0 = hidden, 1 = shown
 
   useEffect(() => {
@@ -77,7 +76,7 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
     if (!active) void speech.cancel();
   }, [active]);
 
-  const sheetSlide = progress.interpolate({ inputRange: [0, 1], outputRange: [sheetHeight, 0] });
+  const sheetSlide = progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] });
   const canSend = draft.trim().length > 0 && !loading;
 
   return (
@@ -100,7 +99,6 @@ export default function ChatSheet({ active, chat, onClose }: Props) {
         pointerEvents="box-none"
       >
         <Animated.View
-          onLayout={(e) => setSheetHeight(e.nativeEvent.layout.height)}
           style={[
             styles.sheet,
             { height: Math.min(height * 0.75, 680), paddingBottom: insets.bottom + 12 },

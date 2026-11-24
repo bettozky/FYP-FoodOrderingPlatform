@@ -87,6 +87,7 @@ aiAssistantRouter.post("/chat", async (req, res) => {
       message,
       history,
       context,
+      customerId: user.id,
     });
 
     return res.json(result);

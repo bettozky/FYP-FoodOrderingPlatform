@@ -87,6 +87,7 @@ export function getAssistantContext(customerId: string) {
     refunded: order.refunded,
     paidAt: order.paidAt,
     payBy: order.payBy,
+    paymentMethod: order.paymentMethod ?? null, // cash orders are paid at the stall, not on the Pay screen
     decision: order.decision,
     items: order.items.map((item) => ({
       dishId: item.dishId,
