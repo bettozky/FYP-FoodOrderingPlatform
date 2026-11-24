@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../../shared/theme/theme";
 import { Chips, Field, FieldError, Label, styles as f, ToggleRow, UploadTile } from "./fields";
 import { canPickFiles } from "./pickFile";
 import { ALLERGENS, BUSINESS_TYPES, DAYS, emptyMenuItem, ShopApplication } from "./types";
@@ -310,15 +310,15 @@ export const STEP_COMPONENTS = [AccountStep, BusinessStep, LocationStep, FoodSte
 const s = StyleSheet.create({
   row: { flexDirection: "row", gap: spacing.md },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  link: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.amberText },
+  link: { ...font.displayBold, fontSize: 13, color: colors.amberText },
   pinCard: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, borderRadius: radius.sm, backgroundColor: colors.paperDim, borderWidth: 1, borderColor: colors.paperDim },
   ghostBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 44, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.ink, backgroundColor: colors.paper },
-  ghostText: { fontFamily: fonts.display, fontSize: 14, color: colors.ink },
+  ghostText: { ...font.display, fontSize: 14, color: colors.ink },
   hoursCard: { backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   dayRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 48 },
-  dayLabel: { width: 40, fontFamily: fonts.display },
+  dayLabel: { width: 40, ...font.display },
   times: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  time: { width: 64, textAlign: "center", borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm, paddingVertical: 6, fontFamily: fonts.serifMedium, fontSize: 14, color: colors.text, backgroundColor: colors.surface },
+  time: { width: 64, textAlign: "center", borderWidth: 1, borderColor: colors.stone, borderRadius: radius.sm, paddingVertical: 6, ...font.serifMedium, fontSize: 14, color: colors.text, backgroundColor: colors.surface },
   dishCard: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine },
   reviewRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.md, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.sm },
   note: { flexDirection: "row", gap: spacing.sm, padding: spacing.md, borderRadius: radius.sm, backgroundColor: colors.amberTint },
@@ -327,7 +327,7 @@ const s = StyleSheet.create({
   boxOn: { backgroundColor: colors.ink },
   checkList: { backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.sm, overflow: "hidden" },
   checkRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, minHeight: 56 },
-  checkRowLine: { borderTopWidth: 1, borderTopColor: colors.stoneLine },
+  checkRowLine: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
   checkRowNone: { borderTopWidth: 2, borderTopColor: colors.stone },
   checkRowOn: { backgroundColor: colors.amberTint },
 });

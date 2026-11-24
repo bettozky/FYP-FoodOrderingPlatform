@@ -43,7 +43,7 @@ ScootMeal connects diners with restaurants and stalls so ordering is fast and no
 - Name: **ScootMeal**. Tagline: *Sedap, sampai cepat!* ("Tasty, arrives fast!").
 - Mascot: a nasi lemak parcel in a banana leaf riding a Vespa-style scooter, with steam and speed lines. Malaysian food, delivered fast.
 - Brand colour tokens are fixed in `docs/brand/README.md` and `apps/*/src/shared/theme/theme.ts`: turmeric `#F5A623` (customer app icon and splash), chili `#E8483A`, ink `#15130F` (merchant app background), herb `#2F6F4E`, turmericLight `#FFC24D`, paper `#FFFFFF`.
-- Wordmark and app font: Plus Jakarta Sans ExtraBold, with Inter as fallback.
+- Wordmark: Plus Jakarta Sans ExtraBold (in the logo files only). App UI font: the platform's system font (SF Pro on iPhone, Roboto on Android), chosen in the Nov 2026 premium pass.
 - Customer app identity is turmeric; merchant app identity is ink.
 
 ## Evidence on Hand

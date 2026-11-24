@@ -3,7 +3,7 @@ import i18n, { locale } from "../../shared/i18n";
 import { ScrollView, type ScrollViewInstance, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText } from "../../shared/api/client";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import { useCall } from "../calls/CallContext";
 
 export type ChatKind = "order" | "reservation";
@@ -112,18 +112,18 @@ export default function ChatPanel({ kind, id, onClose, height, avoidKeyboard = t
 const styles = StyleSheet.create({
   wrap: { backgroundColor: colors.bg, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: colors.border },
   head: { flexDirection: "row", alignItems: "center", gap: 8, padding: spacing.md, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
-  title: { fontSize: 16, fontFamily: fonts.displayBold, color: colors.ink },
-  sub: { fontSize: 12, fontFamily: fonts.serif, color: colors.stone },
+  title: { fontSize: 16, ...font.displayBold, color: colors.ink },
+  sub: { fontSize: 12, ...font.serif, color: colors.stone },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.herb, alignItems: "center", justifyContent: "center" },
-  empty: { textAlign: "center", color: colors.stone, fontFamily: fonts.serif, marginTop: spacing.xl, fontSize: 13 },
-  system: { alignSelf: "center", color: colors.stone, fontFamily: fonts.display, fontSize: 12, backgroundColor: colors.paperDim, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
+  empty: { textAlign: "center", color: colors.stone, ...font.serif, marginTop: spacing.xl, fontSize: 13 },
+  system: { alignSelf: "center", color: colors.stone, ...font.display, fontSize: 12, backgroundColor: colors.paperDim, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.pill, overflow: "hidden" },
   bubble: { maxWidth: "80%", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, gap: 2 },
   mine: { alignSelf: "flex-end", backgroundColor: colors.ink, borderBottomRightRadius: 4 },
   theirs: { alignSelf: "flex-start", backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 4 },
-  msgText: { fontSize: 14.5, fontFamily: fonts.serifMedium, color: colors.ink },
-  time: { fontSize: 10.5, fontFamily: fonts.serif, color: colors.textFaint, alignSelf: "flex-end" },
-  error: { color: colors.chili, fontSize: 12, paddingHorizontal: spacing.md, fontFamily: fonts.display },
+  msgText: { fontSize: 15, ...font.serifMedium, color: colors.ink },
+  time: { fontSize: 11, ...font.serif, color: colors.textFaint, alignSelf: "flex-end" },
+  error: { color: colors.chiliText, fontSize: 12, paddingHorizontal: spacing.md, ...font.display },
   inputRow: { flexDirection: "row", gap: 8, padding: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface },
-  input: { flex: 1, backgroundColor: colors.bg, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 9, fontFamily: fonts.serifMedium, fontSize: 14.5, color: colors.ink },
+  input: { flex: 1, minWidth: 0, backgroundColor: colors.bg, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingVertical: 9, ...font.serifMedium, fontSize: 15, color: colors.ink },
   send: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center" },
 });

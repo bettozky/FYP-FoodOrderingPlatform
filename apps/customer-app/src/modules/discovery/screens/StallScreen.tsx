@@ -12,12 +12,15 @@ import ReviewsList from "../../reviews/ReviewsList";
 import ReadyChip from "../components/ReadyChip";
 import BusyNotice from "../../ordering/components/BusyNotice";
 import EmptyState from "../../../shared/components/EmptyState";
-import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, layout, radius, shadow, spacing, type, ui, font } from "../../../shared/theme/theme";
 import { isPhoto, mediaUrl } from "../../../shared/media";
 import PressableScale from "../../../shared/motion/PressableScale";
 import FadeInView from "../../../shared/motion/FadeInView";
 import { PopOnChange } from "../../../shared/motion/PulseRing";
 import { DishRowSkeleton } from "../../../shared/motion/Skeleton";
+import { dietFit } from "../../diet/diet";
+import { useDiet } from "../../diet/useDiet";
+import { dietWords } from "../../diet/dietWords";
 import { useTranslation } from "react-i18next";
 import { allergenList, venueName } from "../../../shared/i18n/labels";
 
@@ -59,9 +62,15 @@ export default function StallScreen({ navigation, route }: any) {
     return (Object.keys(has) as MenuFilter[]).filter((k) => has[k]);
   }, [dishes]);
 
-  const shown = (dishes ?? [])
+  // Sprint 3 diet profile: "Hide dishes that don't fit" takes them off the menu, with a way to show them again.
+  const { diet } = useDiet();
+  const [showHidden, setShowHidden] = useState(false);
+  const matching = (dishes ?? [])
     .filter((d) => filter === "all" || (filter === "vegetarian" ? d.dietary.includes("vegetarian") : d.style === filter))
     .sort((a, b) => Number(a.soldOut) - Number(b.soldOut));
+  const hiding = !!diet?.hideUnsuitable && !showHidden;
+  const hiddenCount = diet?.hideUnsuitable ? matching.filter((d) => dietFit(d, merchant, diet, dietWords()).level === "avoid").length : 0;
+  const shown = hiding ? matching.filter((d) => dietFit(d, merchant, diet, dietWords()).level !== "avoid") : matching;
 
   if (!merchant) {
     return (
@@ -87,10 +96,10 @@ export default function StallScreen({ navigation, route }: any) {
           ) : (
             <Ionicons name="restaurant" size={72} color={colors.ink} style={styles.heroIcon} />
           )}
-          <Pressable style={[ui.iconButton, { position: "absolute", left: spacing.lg, top: insets.top + spacing.sm }]} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("common.back")} testID="back">
-            <Ionicons name="chevron-back" size={20} color={colors.ink} />
+          <Pressable style={[ui.iconButton, { position: "absolute", left: layout.gutter, top: insets.top + spacing.sm }]} onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("common.back")} testID="back">
+            <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />
           </Pressable>
-          <Pressable style={[ui.iconButton, { position: "absolute", right: spacing.lg, top: insets.top + spacing.sm }]} onPress={() => toggleShop(merchant.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={isFavShop(merchant.id) ? t("stall.unsave") : t("stall.save")} testID="fav-stall">
+          <Pressable style={[ui.iconButton, { position: "absolute", right: layout.gutter, top: insets.top + spacing.sm }]} onPress={() => toggleShop(merchant.id)} hitSlop={8} accessibilityRole="button" accessibilityLabel={isFavShop(merchant.id) ? t("stall.unsave") : t("stall.save")} testID="fav-stall">
             <PopOnChange trigger={isFavShop(merchant.id)}>
               <Ionicons name={isFavShop(merchant.id) ? "heart" : "heart-outline"} size={19} color={isFavShop(merchant.id) ? colors.chili : colors.ink} />
             </PopOnChange>
@@ -106,11 +115,13 @@ export default function StallScreen({ navigation, route }: any) {
           </View>
           <Text style={styles.sub}>{[merchant.stallNo, ...merchant.tags].join(" · ")}</Text>
           <View style={styles.chips}>
-            <View style={[ui.infoChip, { backgroundColor: colors.amberTint }]}>
-              <Text style={ui.infoChipText}>{t("stall.rating", { rating: merchant.rating.toFixed(1) })}</Text>
+            <View style={ui.infoChip} accessibilityLabel={t("common.ratedValue", { rating: merchant.rating.toFixed(1) })}>
+              <Ionicons name="star" size={12} color={colors.turmericDeep} />
+              <Text style={ui.infoChipText}>{merchant.rating.toFixed(1)}</Text>
             </View>
             <ReadyChip merchant={merchant} />
             <View style={ui.infoChip}>
+              <Ionicons name={merchant.dineInOnly ? "restaurant-outline" : "bicycle-outline"} size={13} color={colors.ink} />
               <Text style={ui.infoChipText}>{merchant.dineInOnly ? t("stall.dineInOnly") : t("stall.delivery")}</Text>
             </View>
           </View>
@@ -146,6 +157,15 @@ export default function StallScreen({ navigation, route }: any) {
               </ScrollView>
             ) : null}
             <View style={styles.body}>
+              {hiddenCount > 0 ? (
+                <Pressable style={styles.dietNote} onPress={() => setShowHidden((v) => !v)} accessibilityRole="button" testID="diet-hidden-note">
+                  <Ionicons name={showHidden ? "eye-off-outline" : "shield-checkmark"} size={16} color={colors.herb} />
+                  <Text style={styles.dietNoteText}>
+                    {showHidden ? "Showing every dish" : `${hiddenCount} ${hiddenCount === 1 ? "dish" : "dishes"} hidden by your diet profile`}
+                  </Text>
+                  <Text style={styles.dietNoteLink}>{showHidden ? "Hide again" : "Show"}</Text>
+                </Pressable>
+              ) : null}
               {dishes === null && !error ? (
                 <DishRowSkeleton />
               ) : shown.length === 0 ? (
@@ -168,7 +188,7 @@ export default function StallScreen({ navigation, route }: any) {
         ) : null}
 
         {tab === "info" ? (
-          <View style={[styles.body, { gap: spacing.sm }]}>
+          <View style={styles.infoGroup}>
             <InfoRow icon="location-outline" label={t("stall.where")} value={merchant.stallNo} />
             <InfoRow icon="time-outline" label={t("stall.hours")} value={`${merchant.hours.open} – ${merchant.hours.close}`} />
             {merchant.venueCategory ? <InfoRow icon="pricetag-outline" label={t("stall.type")} value={venueName(merchant.venueCategory)} /> : null}
@@ -184,10 +204,11 @@ export default function StallScreen({ navigation, route }: any) {
                     ? t("stall.allergensNone")
                     : t("stall.allergensUnknown")
               }
+              last={!merchant.phone}
             />
             {merchant.phone ? (
-              <Pressable onPress={() => Linking.openURL(`tel:${merchant.phone.replace(/\s/g, "")}`)} accessibilityRole="button" accessibilityLabel={t("stall.call", { name: merchant.name })}>
-                <InfoRow icon="call-outline" label={t("stall.phone")} value={merchant.phone} />
+              <Pressable onPress={() => Linking.openURL(`tel:${merchant.phone.replace(/\s/g, "")}`)} style={({ pressed }) => (pressed ? { backgroundColor: colors.paperDim } : null)} accessibilityRole="button" accessibilityLabel={t("stall.call", { name: merchant.name })}>
+                <InfoRow icon="call-outline" label={t("stall.phone")} value={merchant.phone} last />
               </Pressable>
             ) : null}
           </View>
@@ -213,43 +234,49 @@ export default function StallScreen({ navigation, route }: any) {
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }) {
+function InfoRow({ icon, label, value, last }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; last?: boolean }) {
   return (
-    <View style={styles.infoRow}>
-      <Ionicons name={icon} size={18} color={colors.amberText} />
-      <View style={{ flex: 1 }}>
+    <View style={[styles.infoRow, !last && styles.infoRowLine]}>
+      <View style={styles.infoIcon}>
+        <Ionicons name={icon} size={18} color={colors.ink} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
         <Text style={type.small}>{label}</Text>
-        <Text style={type.body}>{value}</Text>
+        <Text style={[type.body, { fontSize: 15 }]}>{value}</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  dietNote: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.herbLight, borderRadius: radius.md, paddingHorizontal: spacing.md, minHeight: 44, marginBottom: spacing.md },
+  dietNoteText: { flex: 1, ...font.display, fontSize: 14, color: colors.herb },
+  dietNoteLink: { ...font.displayBold, fontSize: 14, color: colors.ink },
   center: { flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center" },
-  hero: { height: 230, paddingHorizontal: spacing.lg },
-  heroIcon: { alignSelf: "center", marginTop: spacing.xl, opacity: 0.6 },
-  heroShade: { backgroundColor: "rgba(0,0,0,0.12)" },
-  infoCard: { ...ui.cardRaised, marginHorizontal: spacing.lg, marginTop: -48, padding: spacing.lg, gap: 4 },
+  hero: { height: 260, paddingHorizontal: layout.gutter },
+  heroIcon: { alignSelf: "center", marginTop: spacing.xxl, opacity: 0.5 },
+  heroShade: { backgroundColor: "rgba(21,19,15,0.10)" },
+  infoCard: { ...ui.cardRaised, marginHorizontal: layout.gutter, marginTop: -56, padding: spacing.xl, gap: 6 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  pill: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
-  pillText: { fontFamily: fonts.displayBold, fontSize: 11 },
-  sub: { fontFamily: fonts.display, fontSize: 12, color: colors.stoneText },
+  pill: { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  pillText: { ...font.displayBold, fontSize: 12 },
+  sub: { ...font.serif, fontSize: 15, color: colors.stoneText },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.sm },
-  closed: { fontFamily: fonts.display, fontSize: 12, color: colors.chiliText, marginTop: spacing.xs },
-  tabs: { flexDirection: "row", marginHorizontal: spacing.lg, marginTop: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.stoneLine },
-  tab: { flex: 1, alignItems: "center", paddingVertical: spacing.md, borderBottomWidth: 2, borderBottomColor: "transparent", marginBottom: -1 },
-  tabOn: { borderBottomColor: colors.turmeric },
-  tabText: { fontFamily: fonts.display, fontSize: 13, color: colors.stoneText },
-  tabTextOn: { fontFamily: fonts.displayBold, color: colors.ink },
-  chipRow: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.md },
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  review: { ...ui.card, padding: spacing.md, marginBottom: spacing.sm, gap: 2 },
-  reviewTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
-  stars: { color: colors.turmericDeep, fontSize: 13 },
-  infoRow: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md },
-  error: { color: colors.chiliText, fontFamily: fonts.display, paddingHorizontal: spacing.lg, marginTop: spacing.md },
-  barWrap: { position: "absolute", left: spacing.lg, right: spacing.lg, bottom: 0 },
+  closed: { ...font.display, fontSize: 14, color: colors.chiliText, marginTop: spacing.xs },
+  // iOS segmented control
+  tabs: { flexDirection: "row", marginHorizontal: layout.gutter, marginTop: spacing.xl, padding: 3, borderRadius: 12, backgroundColor: colors.paperDim },
+  tab: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 36, borderRadius: 9 },
+  tabOn: { backgroundColor: colors.paper, ...shadow.soft },
+  tabText: { ...font.display, fontSize: 14, color: colors.stoneText },
+  tabTextOn: { ...font.displayBold, color: colors.ink },
+  chipRow: { paddingHorizontal: layout.gutter, gap: spacing.sm, paddingTop: spacing.lg },
+  body: { paddingHorizontal: layout.gutter, paddingTop: spacing.lg },
+  infoGroup: { ...ui.group, marginHorizontal: layout.gutter, marginTop: spacing.lg, paddingHorizontal: 0, paddingTop: 0 },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  infoRowLine: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.stoneLine },
+  infoIcon: { width: 32, height: 32, borderRadius: 8, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14, paddingHorizontal: layout.gutter, marginTop: spacing.md },
+  barWrap: { position: "absolute", left: layout.gutter, right: layout.gutter, bottom: 0 },
   barButton: { backgroundColor: colors.turmeric, borderRadius: radius.pill, paddingHorizontal: spacing.lg, minHeight: 44, justifyContent: "center" },
-  barButtonText: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
+  barButtonText: { ...font.displayBold, fontSize: 15, color: colors.ink },
 });

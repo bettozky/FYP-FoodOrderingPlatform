@@ -7,7 +7,7 @@ import PrimaryButton from "../../shared/components/PrimaryButton";
 import { errorText } from "../../shared/api/client";
 import { rm } from "../../shared/util/format";
 import { useReducedMotion } from "../../shared/motion/useReducedMotion";
-import { colors, fonts, radius, spacing, type, ui } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, ui, font, layout } from "../../shared/theme/theme";
 import { useLive } from "../ordering/LiveDataContext";
 import { budgetState, spendingSummary, type BudgetState } from "./spending";
 import { useBudget } from "./useBudget";
@@ -135,7 +135,7 @@ export default function SpendingScreen() {
                 <View key={w.start} style={styles.barCol}>
                   {w.total > 0 ? <Text style={styles.barValue}>{Math.round(w.total)}</Text> : null}
                   <GrowBar height={(w.total / maxWeek) * CHART_H} color={over ? colors.chili : now ? colors.turmeric : colors.stoneSoft} delay={i * 50} />
-                  <Text style={[styles.barLabel, now && { color: colors.ink, fontFamily: fonts.displayBold }]}>{weekLabel(w.label, i)}</Text>
+                  <Text style={[styles.barLabel, now && { color: colors.ink, ...font.displayBold }]}>{weekLabel(w.label, i)}</Text>
                 </View>
               );
             })}
@@ -151,7 +151,7 @@ export default function SpendingScreen() {
                 <View style={styles.dayTrack}>
                   <View style={[styles.dayFill, { height: `${Math.round((d.total / maxDay) * 100)}%` as `${number}%`, backgroundColor: d.isToday ? colors.turmeric : colors.herb }]} />
                 </View>
-                <Text style={[styles.barLabel, d.isToday && { color: colors.ink, fontFamily: fonts.displayBold }]}>{t(DAY_KEYS[i] ?? "spending.mon")}</Text>
+                <Text style={[styles.barLabel, d.isToday && { color: colors.ink, ...font.displayBold }]}>{t(DAY_KEYS[i] ?? "spending.mon")}</Text>
                 <Text style={styles.dayValue}>{d.total ? Math.round(d.total) : "–"}</Text>
               </View>
             ))}
@@ -168,10 +168,10 @@ export default function SpendingScreen() {
               <View key={st.name} style={styles.stallRow}>
                 <View style={[styles.rank, i === 0 && { backgroundColor: colors.turmeric }]}><Text style={styles.rankText}>{i + 1}</Text></View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[type.body, { fontFamily: fonts.displayBold }]} numberOfLines={1}>{st.name}</Text>
+                  <Text style={[type.body, { ...font.displayBold }]} numberOfLines={1}>{st.name}</Text>
                   <Text style={type.small}>{t("spending.orderCount", { count: st.count })}</Text>
                 </View>
-                <Text style={[type.body, { fontFamily: fonts.displayBold }]}>{rm(st.total)}</Text>
+                <Text style={[type.body, { ...font.displayBold }]}>{rm(st.total)}</Text>
               </View>
             ))
           )}
@@ -216,36 +216,36 @@ function GrowBar({ height, color, delay }: { height: number; color: string; dela
 }
 
 const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
+  body: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.md },
   hero: { backgroundColor: colors.ink, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.sm },
-  heroLabel: { fontFamily: fonts.display, fontSize: 13, color: colors.stoneSoft },
-  heroAmount: { fontFamily: fonts.displayExtraBold, fontSize: 40, color: colors.white, letterSpacing: -0.5 },
-  heroSub: { fontFamily: fonts.display, fontSize: 13, color: colors.stoneSoft },
+  heroLabel: { ...font.display, fontSize: 13, color: colors.stoneSoft },
+  heroAmount: { ...font.displayExtraBold, fontSize: 40, color: colors.white, letterSpacing: -0.5 },
+  heroSub: { ...font.display, fontSize: 13, color: colors.stoneSoft },
   heroStats: { flexDirection: "row", marginTop: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.12)" },
-  statValue: { fontFamily: fonts.displayExtraBold, fontSize: 16, color: colors.white },
-  statLabel: { fontFamily: fonts.display, fontSize: 11, color: colors.stoneSoft },
+  statValue: { ...font.displayExtraBold, fontSize: 16, color: colors.white },
+  statLabel: { ...font.display, fontSize: 11, color: colors.stoneSoft },
   track: { height: 10, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.15)", overflow: "hidden" },
   fill: { height: 10, borderRadius: 5 },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: spacing.md },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  link: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink, textDecorationLine: "underline" },
+  link: { ...font.displayBold, fontSize: 13, color: colors.ink, textDecorationLine: "underline" },
   quick: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   customRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  input: { flex: 1, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: 10, fontFamily: fonts.display, color: colors.ink, backgroundColor: colors.paper },
-  error: { fontFamily: fonts.displayBold, color: colors.chili },
+  input: { flex: 1, minWidth: 0, minHeight: 44, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10, fontSize: 16, ...font.serif, color: colors.ink, backgroundColor: colors.paper },
+  error: { ...font.displayBold, color: colors.chiliText },
   chart: { flexDirection: "row", alignItems: "flex-end", height: CHART_H + 40, gap: 6, position: "relative" },
   barCol: { flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 3 },
   bar: { width: "70%", borderTopLeftRadius: 6, borderTopRightRadius: 6, minHeight: 2 },
-  barValue: { fontFamily: fonts.displayBold, fontSize: 10, color: colors.stoneText },
-  barLabel: { fontFamily: fonts.display, fontSize: 10, color: colors.stoneText },
+  barValue: { ...font.displayBold, fontSize: 11, color: colors.stoneText },
+  barLabel: { ...font.display, fontSize: 11, color: colors.stoneText },
   budgetLine: { position: "absolute", left: 0, right: 0, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: colors.chili },
-  budgetLineText: { position: "absolute", right: 0, top: -15, fontFamily: fonts.displayBold, fontSize: 10, color: colors.chiliText },
+  budgetLineText: { position: "absolute", right: 0, top: -15, ...font.displayBold, fontSize: 11, color: colors.chiliText },
   days: { flexDirection: "row", gap: 6 },
   dayCol: { flex: 1, alignItems: "center", gap: 4 },
   dayTrack: { width: 18, height: 70, borderRadius: 9, backgroundColor: colors.paperDim, justifyContent: "flex-end", overflow: "hidden" },
   dayFill: { width: 18, borderRadius: 9 },
-  dayValue: { fontFamily: fonts.displayBold, fontSize: 10.5, color: colors.ink },
+  dayValue: { ...font.displayBold, fontSize: 11, color: colors.ink },
   stallRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   rank: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
-  rankText: { fontFamily: fonts.displayExtraBold, fontSize: 12, color: colors.ink },
+  rankText: { ...font.displayExtraBold, fontSize: 12, color: colors.ink },
 });

@@ -67,5 +67,5 @@ export default function ReviewsList({ merchantId, dishId, showDish = true }: { m
 
 const styles = StyleSheet.create({
   more: { minHeight: 44, alignItems: "center", justifyContent: "center" },
-  error: { color: colors.danger, fontSize: 13, textAlign: "center", marginTop: spacing.md },
+  error: { color: colors.chiliText, fontSize: 13, textAlign: "center", marginTop: spacing.md },
 });

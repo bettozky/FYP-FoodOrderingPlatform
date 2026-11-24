@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors, radius, spacing, fonts } from "../theme/theme";
+import { colors, radius, spacing, font } from "../theme/theme";
 
 type Props = {
   label: string;
@@ -32,5 +32,5 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     maxWidth: "100%",
   },
-  label: { fontSize: 12, fontFamily: fonts.displayBold, flexShrink: 1 },
+  label: { fontSize: 12, ...font.displayBold, flexShrink: 1 },
 });

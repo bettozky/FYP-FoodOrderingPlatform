@@ -6,7 +6,7 @@ import { api, errorText } from "../../shared/api/client";
 import type { Dish, Order } from "../../shared/api/types";
 import DishImage from "../../shared/components/DishImage";
 import PrimaryButton from "../../shared/components/PrimaryButton";
-import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font } from "../../shared/theme/theme";
 import { RatingWord, StarPicker } from "../reviews/Stars";
 
 // Week task 3, pop-up 1: "Review your order", shown once an order is completed.
@@ -138,10 +138,10 @@ export const popupStyles = StyleSheet.create({
   icon: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center" },
   title: { ...type.h2, textAlign: "center" },
   body: { ...type.body, textAlign: "center", color: colors.stoneText },
-  later: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink, textDecorationLine: "underline" },
-  hint: { fontFamily: fonts.serif, fontSize: 12, color: colors.stoneText, textAlign: "center" },
-  error: { fontFamily: fonts.display, color: colors.chiliText, textAlign: "center" },
-  input: { alignSelf: "stretch", minHeight: 64, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.md, padding: spacing.md, fontFamily: fonts.serif, fontSize: 14, color: colors.ink, textAlignVertical: "top" },
+  later: { ...font.displayBold, fontSize: 14, color: colors.ink, textDecorationLine: "underline" },
+  hint: { ...font.serif, fontSize: 12, color: colors.stoneText, textAlign: "center" },
+  error: { ...font.display, color: colors.chiliText, textAlign: "center" },
+  input: { alignSelf: "stretch", minHeight: 64, borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.md, padding: spacing.md, ...font.serif, fontSize: 14, color: colors.ink, textAlignVertical: "top" },
 });
 
 const styles = StyleSheet.create({
@@ -150,6 +150,6 @@ const styles = StyleSheet.create({
   list: { alignSelf: "stretch", maxHeight: 340 },
   row: { borderWidth: 1, borderColor: colors.stoneLine, borderRadius: radius.lg, padding: spacing.md, gap: spacing.sm, alignItems: "center" },
   rowTop: { flexDirection: "row", alignItems: "center", gap: spacing.md, alignSelf: "stretch" },
-  dish: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.ink },
-  link: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.amberText },
+  dish: { ...font.displayBold, fontSize: 14, color: colors.ink },
+  link: { ...font.displayBold, fontSize: 13, color: colors.amberText },
 });

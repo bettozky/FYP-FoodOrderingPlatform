@@ -9,7 +9,7 @@ import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { api, errorText } from "../../../shared/api/client";
 import { confirmAsync } from "../../../shared/util/confirm";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout } from "../../../shared/theme/theme";
 import { ApplicationStatus, DAY_LABEL, fmtDate, fmtWhen, STATUS_LABEL, STATUS_TONE } from "../applicationStatus";
 import { locale } from "../../../shared/i18n";
 import { useTranslation } from "react-i18next";
@@ -164,7 +164,7 @@ export default function MerchantApplicantDetailScreen({ route }: any) {
               {a.status !== "shortlisted" && a.status !== "hired" ? <Pressable style={[styles.act, styles.actAlt]} onPress={() => decide("shortlisted")} accessibilityRole="button" testID="act-shortlist"><Text style={styles.actText}>{t("applicant.shortlist")}</Text></Pressable> : null}
               <Pressable style={[styles.act, styles.actAlt]} onPress={() => { setError(""); setIv(true); }} accessibilityRole="button" testID="act-interview"><Text style={styles.actText}>{t("jobs.stInterview")}</Text></Pressable>
               {a.status !== "hired" ? <Pressable style={[styles.act, styles.actGo]} onPress={() => decide("hired")} accessibilityRole="button" testID="act-hire"><Text style={[styles.actText, { color: colors.white }]}>{t("applicant.hire")}</Text></Pressable> : null}
-              {a.status !== "rejected" ? <Pressable style={[styles.act, styles.actNo]} onPress={() => decide("rejected")} accessibilityRole="button" testID="act-reject"><Text style={[styles.actText, { color: colors.chili }]}>{t("applicant.reject")}</Text></Pressable> : null}
+              {a.status !== "rejected" ? <Pressable style={[styles.act, styles.actNo]} onPress={() => decide("rejected")} accessibilityRole="button" testID="act-reject"><Text style={[styles.actText, { color: colors.chiliText }]}>{t("applicant.reject")}</Text></Pressable> : null}
             </View>
           )}
         </View>
@@ -189,26 +189,26 @@ export default function MerchantApplicantDetailScreen({ route }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, gap: spacing.sm },
+  wrap: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, gap: spacing.sm },
   top: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
   contactRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
   contact: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 38, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
-  contactText: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  section: { fontSize: 13, fontWeight: "700", color: colors.stoneText, textTransform: "uppercase", letterSpacing: 0.5, marginTop: spacing.lg },
+  contactText: { fontSize: 14, fontWeight: "700", color: colors.ink },
+  section: { fontSize: 13, fontWeight: "700", color: colors.stoneText, marginTop: spacing.lg },
   infoRow: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start" },
   doc: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
-  openText: { fontWeight: "700", color: colors.turmericDeep },
+  openText: { fontWeight: "700", color: colors.amberText },
   interview: { flexDirection: "row", gap: spacing.sm, backgroundColor: colors.amberTint, borderRadius: radius.sm, padding: spacing.sm, marginTop: spacing.sm },
   noteInput: { minHeight: 46, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, color: colors.ink, backgroundColor: colors.surface },
   saveNote: { alignSelf: "flex-start", minHeight: 36, justifyContent: "center", paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border },
-  error: { color: colors.chili, fontSize: 13.5 },
-  footer: { position: "absolute", left: 0, right: 0, bottom: 0, padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bg },
+  error: { color: colors.chiliText, fontSize: 14 },
+  footer: { position: "absolute", left: 0, right: 0, bottom: 0, padding: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft, backgroundColor: colors.bg },
   actions: { flexDirection: "row", gap: spacing.sm },
   act: { flex: 1, minHeight: 46, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", borderWidth: 1 },
   actAlt: { borderColor: colors.border, backgroundColor: colors.surface },
   actGo: { borderColor: colors.herb, backgroundColor: colors.herb },
   actNo: { borderColor: colors.chiliBorder, backgroundColor: colors.chiliSoft },
-  actText: { fontWeight: "700", fontSize: 13.5, color: colors.ink },
+  actText: { fontWeight: "700", fontSize: 14, color: colors.ink },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", padding: spacing.lg },
   modal: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
 });

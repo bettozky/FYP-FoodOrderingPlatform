@@ -15,7 +15,10 @@
     "minAgo": "{{n}} min lalu",
     "hAgo": "{{n}} jam lalu",
     "dAgo": "{{n}} hari lalu",
-    "close": "Tutup"
+    "close": "Tutup",
+    "ratedValue": "Penilaian {{rating}}",
+    "done": "Selesai",
+    "edit": "Sunting"
   },
   "language": {
     "title": "Bahasa",
@@ -119,12 +122,17 @@
     "logout": "Log keluar",
     "spending": "Perbelanjaan & bajet",
     "jobs": "Kerja",
-    "paymentMethods": "Kaedah pembayaran"
+    "paymentMethods": "Kaedah pembayaran",
+    "dietAllergies": "Diet & alahan"
   },
   "account": {
     "editPhoto": "Sunting foto profil",
     "student": "Pelajar",
-    "member": "Ahli {{tier}} · {{points}} mata"
+    "member": "Ahli {{tier}} · {{points}} mata",
+    "editProfileLabel": "{{name}}, {{email}}. Sunting profil",
+    "rewards": "Ganjaran",
+    "groupFood": "Makanan",
+    "groupMore": "Lagi"
   },
   "home": {
     "there": "kawan",
@@ -180,7 +188,16 @@
     "loadingPlaces": "Memuatkan tempat…",
     "howItWorks": "Cara ia berfungsi",
     "howTitle": "Pesan dahulu. Bayar hanya selepas gerai setuju.",
-    "browseStalls": "Lihat gerai"
+    "browseStalls": "Lihat gerai",
+    "howSub": "Tiada caj untuk permintaan yang ditolak oleh gerai.",
+    "sortLabel": "Susun hidangan",
+    "clearFilters": "Kosongkan penapis",
+    "sortBy": "Susun ikut",
+    "sortRecommended": "Disyorkan",
+    "sortNearest": "Terdekat",
+    "sortRating": "Penilaian tertinggi",
+    "sortPrice": "Harga terendah",
+    "trySearching": "Cuba cari"
   },
   "busy": {
     "quiet": "Lengang",
@@ -192,7 +209,29 @@
     "vegetarian": "Vegetarian",
     "plantBased": "Berasaskan tumbuhan",
     "spicy": "Pedas",
-    "allergyFree": "Bebas alergen"
+    "allergyFree": "Bebas alergen",
+    "subtitle": "Tetapkan sekali, kami semak setiap menu",
+    "watchCount_one": "{{count}} perkara untuk diawasi",
+    "watchCount_other": "{{count}} perkara untuk diawasi",
+    "nothingSet": "Belum ditetapkan",
+    "intro": "Hidangan yang tidak sesuai diberi label merah. Kuning bermaksud dapur gerai menggunakan salah satu alergen anda, jadi tanya dahulu.",
+    "allergicTo": "Saya alah kepada",
+    "myDiet": "Diet saya",
+    "vegetarianHint": "Tiada daging atau makanan laut",
+    "plantBasedHint": "Tiada daging, makanan laut, telur atau susu",
+    "noSpicy": "Tiada makanan pedas",
+    "noSpicyHint": "Tandakan hidangan pedas",
+    "hide": "Sembunyikan hidangan yang tidak sesuai",
+    "hideHint": "Mati: tunjukkan dengan label merah",
+    "note": "Label alergen datang daripada gerai. Jika alahan anda serius, sentiasa semak dengan gerai sebelum makan.",
+    "saved": "Disimpan. Menu gerai kini menandakan hidangan yang tidak sesuai.",
+    "contains": "Mengandungi {{list}}",
+    "notPlantBased": "Bukan berasaskan tumbuhan",
+    "notVegetarian": "Bukan vegetarian",
+    "kitchenUses": "Dapur menggunakan {{list}}",
+    "avoidTitle": "Tidak sesuai dengan profil diet anda",
+    "checkTitle": "Semak dengan gerai dahulu",
+    "editProfile": "Sunting profil diet saya"
   },
   "mode": {
     "delivery": "Penghantaran",
@@ -292,7 +331,10 @@
     "customise": "Ubah suai",
     "stallClosed": "Gerai tutup",
     "added": "Ditambah ✓",
-    "addToCart": "Tambah ke troli · RM {{price}}"
+    "addToCart": "Tambah ke troli · RM {{price}}",
+    "dietWarning": "Amaran diet: {{reasons}}",
+    "addedShort": "Ditambah",
+    "addShort": "Tambah · RM {{price}}"
   },
   "cart": {
     "title": "Troli anda",
@@ -403,7 +445,8 @@
     "noneHint": "Pesanan anda dan status langsungnya dipaparkan di sini.",
     "againFrom": "Pesan lagi dari {{name}}",
     "adding": "Sedang menambah…",
-    "again": "Pesan lagi"
+    "again": "Pesan lagi",
+    "findFood": "Cari sesuatu untuk dimakan"
   },
   "track": {
     "order": "Pesanan",
@@ -642,7 +685,12 @@
     "rule": "1 mata bagi setiap RM 1 untuk pesanan yang selesai",
     "minSpend": "Belanja minimum RM {{amount}}",
     "noMin": "Tiada belanja minimum",
-    "applyAtCheckout": "Guna semasa pembayaran"
+    "applyAtCheckout": "Guna semasa pembayaran",
+    "ptsUnit": "mata",
+    "useAtCheckout": "Guna semasa\npembayaran",
+    "vouchers": "Baucar",
+    "noVouchers": "Tiada baucar buat masa ini",
+    "noVouchersHint": "Gerai menambah tawaran dari semasa ke semasa. Ia dipaparkan di sini dan semasa pembayaran."
   },
   "saved": {
     "subtitle": "Tekan ikon hati pada mana-mana hidangan atau gerai untuk menyimpannya di sini.",
@@ -758,7 +806,8 @@
     "openNow": "Buka sekarang",
     "closedNow": "Tutup sekarang",
     "noBookings": "Belum ada tempahan",
-    "noBookingsHint": "Pilih tempat untuk menempah meja."
+    "noBookingsHint": "Pilih tempat untuk menempah meja.",
+    "seeVenues": "Lihat tempat"
   },
   "picker": {
     "lblHome": "Rumah",
@@ -993,6 +1042,7 @@
     "openCartAsk": "{{name}} ditambah ke troli. Buka troli anda?",
     "openingPay": "Membuka bayaran.",
     "openingCart": "Membuka troli anda.",
-    "pickOrder": "Bayar pesanan ini: {{label}}"
+    "pickOrder": "Bayar pesanan ini: {{label}}",
+    "typing": "Pembantu sedang menaip"
   }
 }

@@ -3,7 +3,7 @@ import i18n from "../../shared/i18n";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api, errorText, serverTime } from "../../shared/api/client";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import { startRing, stopRing } from "../../shared/util/ringtone";
 import { createVoiceSession, SignalType, VoiceSession, voiceNoteKey } from "../../shared/voice/voice";
 import { useAuth } from "../auth/AuthContext";
@@ -252,13 +252,13 @@ export function useCall() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.ink, justifyContent: "space-between", paddingVertical: 72, paddingHorizontal: spacing.xl },
   top: { alignItems: "center", gap: spacing.md },
-  kicker: { color: colors.turmeric, fontFamily: fonts.displayExtraBold, letterSpacing: 1.4, fontSize: 12 },
+  kicker: { color: colors.turmeric, ...font.displayExtraBold, letterSpacing: 1.4, fontSize: 12 },
   avatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", marginTop: spacing.xl },
-  avatarText: { fontSize: 52, fontFamily: fonts.displayExtraBold, color: colors.ink },
-  name: { color: colors.white, fontSize: 26, fontFamily: fonts.displayExtraBold, textAlign: "center" },
-  status: { color: colors.stoneSoft, fontSize: 18, fontFamily: fonts.display },
-  small: { color: colors.stone, fontSize: 12.5, fontFamily: fonts.serif, textAlign: "center", maxWidth: 320 },
+  avatarText: { fontSize: 52, ...font.displayExtraBold, color: colors.ink },
+  name: { color: colors.white, fontSize: 26, ...font.displayExtraBold, textAlign: "center" },
+  status: { color: colors.stoneSoft, fontSize: 18, ...font.display },
+  small: { color: colors.stone, fontSize: 13, ...font.serif, textAlign: "center", maxWidth: 320 },
   actions: { flexDirection: "row", justifyContent: "center", gap: 56 },
   round: { width: 68, height: 68, borderRadius: 34, alignItems: "center", justifyContent: "center" },
-  roundLabel: { color: colors.stoneSoft, fontSize: 12.5, fontFamily: fonts.display },
+  roundLabel: { color: colors.stoneSoft, fontSize: 13, ...font.display },
 });

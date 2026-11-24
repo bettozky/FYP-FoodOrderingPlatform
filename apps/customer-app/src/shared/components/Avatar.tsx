@@ -1,7 +1,7 @@
 import React from "react";
 import i18n from "i18next";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { colors, fonts } from "../theme/theme";
+import { colors, font } from "../theme/theme";
 import { isPhoto, mediaUrl } from "../media";
 
 /** A round profile picture: the uploaded photo, an emoji, or the first letter of the name. */
@@ -21,5 +21,5 @@ export default function Avatar({ uri, name, size = 52 }: { uri?: string | null; 
 
 const styles = StyleSheet.create({
   box: { backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  letter: { fontFamily: fonts.displayBold, color: colors.ink },
+  letter: { ...font.displayBold, color: colors.ink },
 });

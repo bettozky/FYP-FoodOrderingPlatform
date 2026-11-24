@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { Merchant } from "../../../shared/api/types";
 import { BUSY_STYLE, busyOf, waitOf } from "../canteenMap";
-import { fonts } from "../../../shared/theme/theme";
+import { font } from "../../../shared/theme/theme";
 import i18n from "../../../shared/i18n";
 
 // Feature 2: "Ready in 8 min" for a stall, coloured like the canteen map (green / amber / red / grey).
@@ -30,8 +30,8 @@ export default function ReadyChip({ merchant, variant = "chip" }: { merchant: Me
 
 const styles = StyleSheet.create({
   chip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
-  chipText: { fontFamily: fonts.displayBold, fontSize: 12 },
+  chipText: { ...font.displayBold, fontSize: 12 },
   inline: { flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 1 },
-  inlineText: { fontFamily: fonts.displayBold, fontSize: 11.5, flexShrink: 1 },
+  inlineText: { ...font.displayBold, fontSize: 12, flexShrink: 1 },
   dot: { width: 7, height: 7, borderRadius: 4 },
 });

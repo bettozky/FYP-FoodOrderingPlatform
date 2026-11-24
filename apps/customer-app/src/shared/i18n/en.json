@@ -15,7 +15,10 @@
     "minAgo": "{{n}} min ago",
     "hAgo": "{{n}} h ago",
     "dAgo": "{{n}} d ago",
-    "close": "Close"
+    "close": "Close",
+    "ratedValue": "Rated {{rating}}",
+    "done": "Done",
+    "edit": "Edit"
   },
   "language": {
     "title": "Language",
@@ -119,12 +122,17 @@
     "logout": "Log out",
     "spending": "Spending & budget",
     "jobs": "Jobs",
-    "paymentMethods": "Payment methods"
+    "paymentMethods": "Payment methods",
+    "dietAllergies": "Diet & allergies"
   },
   "account": {
     "editPhoto": "Edit profile photo",
     "student": "Student",
-    "member": "{{tier}} member · {{points}} pts"
+    "member": "{{tier}} member · {{points}} pts",
+    "editProfileLabel": "{{name}}, {{email}}. Edit profile",
+    "rewards": "Rewards",
+    "groupFood": "Food",
+    "groupMore": "More"
   },
   "home": {
     "there": "there",
@@ -182,7 +190,16 @@
     "loadingPlaces": "Loading places…",
     "howItWorks": "How it works",
     "howTitle": "Order first. Pay only after the stall says yes.",
-    "browseStalls": "Browse stalls"
+    "browseStalls": "Browse stalls",
+    "howSub": "Nothing is charged for a request the stall turns down.",
+    "sortLabel": "Sort dishes",
+    "clearFilters": "Clear filters",
+    "sortBy": "Sort by",
+    "sortRecommended": "Recommended",
+    "sortNearest": "Nearest",
+    "sortRating": "Top rated",
+    "sortPrice": "Lowest price",
+    "trySearching": "Try searching for"
   },
   "busy": {
     "quiet": "Quiet",
@@ -194,7 +211,29 @@
     "vegetarian": "Vegetarian",
     "plantBased": "Plant-based",
     "spicy": "Spicy",
-    "allergyFree": "Allergy-free"
+    "allergyFree": "Allergy-free",
+    "subtitle": "Set it once, we'll check every menu",
+    "watchCount_one": "{{count}} thing to watch for",
+    "watchCount_other": "{{count}} things to watch for",
+    "nothingSet": "Nothing set yet",
+    "intro": "Dishes that don't fit get a red label. Amber means the stall's kitchen uses one of your allergens, so ask first.",
+    "allergicTo": "I'm allergic to",
+    "myDiet": "My diet",
+    "vegetarianHint": "No meat or seafood",
+    "plantBasedHint": "No meat, seafood, egg or milk",
+    "noSpicy": "No spicy food",
+    "noSpicyHint": "Flag dishes marked spicy",
+    "hide": "Hide dishes that don't fit",
+    "hideHint": "Off: show them with a red label instead",
+    "note": "Allergen labels come from the stalls. If your allergy is serious, always check with the stall before you eat.",
+    "saved": "Saved. Stall menus now flag dishes that don't fit.",
+    "contains": "Contains {{list}}",
+    "notPlantBased": "Not plant-based",
+    "notVegetarian": "Not vegetarian",
+    "kitchenUses": "Kitchen uses {{list}}",
+    "avoidTitle": "Doesn't fit your diet profile",
+    "checkTitle": "Check with the stall first",
+    "editProfile": "Edit my diet profile"
   },
   "mode": {
     "delivery": "Delivery",
@@ -295,7 +334,10 @@
     "customise": "Customise",
     "stallClosed": "Stall is closed",
     "added": "Added ✓",
-    "addToCart": "Add to cart · RM {{price}}"
+    "addToCart": "Add to cart · RM {{price}}",
+    "dietWarning": "Diet warning: {{reasons}}",
+    "addedShort": "Added",
+    "addShort": "Add · RM {{price}}"
   },
   "cart": {
     "title": "Your cart",
@@ -407,7 +449,8 @@
     "noneHint": "Your orders and their live status show up here.",
     "againFrom": "Order again from {{name}}",
     "adding": "Adding…",
-    "again": "Order again"
+    "again": "Order again",
+    "findFood": "Find something to eat"
   },
   "track": {
     "order": "Order",
@@ -648,7 +691,12 @@
     "rule": "1 pt for every RM 1 on completed orders",
     "minSpend": "Min spend RM {{amount}}",
     "noMin": "No minimum spend",
-    "applyAtCheckout": "Apply at checkout"
+    "applyAtCheckout": "Apply at checkout",
+    "ptsUnit": "pts",
+    "useAtCheckout": "Use at\ncheckout",
+    "vouchers": "Vouchers",
+    "noVouchers": "No vouchers right now",
+    "noVouchersHint": "Stalls add offers from time to time. They show up here and at checkout."
   },
   "saved": {
     "subtitle": "Tap the heart on any dish or stall to save it here.",
@@ -766,7 +814,8 @@
     "openNow": "Open now",
     "closedNow": "Closed now",
     "noBookings": "No bookings yet",
-    "noBookingsHint": "Pick a venue to reserve a table."
+    "noBookingsHint": "Pick a venue to reserve a table.",
+    "seeVenues": "See venues"
   },
   "picker": {
     "lblHome": "Home",
@@ -1004,6 +1053,7 @@
     "openCartAsk": "Added {{name}} to your cart. Open your cart?",
     "openingPay": "Opening payment.",
     "openingCart": "Opening your cart.",
-    "pickOrder": "Pay this order: {{label}}"
+    "pickOrder": "Pay this order: {{label}}",
+    "typing": "The assistant is typing"
   }
 }

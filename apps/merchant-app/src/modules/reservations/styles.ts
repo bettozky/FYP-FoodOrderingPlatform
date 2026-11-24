@@ -1,35 +1,13 @@
 import { StyleSheet } from "react-native";
-import { colors, radius, spacing, fonts } from "../../shared/theme/theme";
+import { colors, layout, radius, spacing, font, ui } from "../../shared/theme/theme";
 
 export const merchantReservationStyles = StyleSheet.create({
-  container: {
-    paddingHorizontal: spacing?.lg || 24,
-    paddingBottom: spacing?.xxl || 48,
-    gap: spacing?.md || 16,
-  },
+  container: { paddingHorizontal: layout.gutter, paddingBottom: spacing.xxl * 1.5, gap: spacing.md, width: "100%", maxWidth: layout.maxWidth, alignSelf: "center" },
 
   /* --- 1. Table Floor Status Bar --- */
-  floorOverviewCard: {
-    backgroundColor: colors?.surface || colors.white,
-    borderRadius: radius?.md || 10,
-    padding: spacing?.md || 16,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-    gap: 10,
-  },
-  floorGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  tablePill: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius?.sm || 6,
-    borderWidth: 1,
-    alignItems: "center",
-    minWidth: 80,
-  },
+  floorOverviewCard: { ...ui.card, padding: spacing.lg, gap: spacing.md },
+  floorGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  tablePill: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.sm, borderWidth: 1, alignItems: "center", minWidth: 76 },
   tableAvailable: {
     backgroundColor: colors.herbLight,
     borderColor: colors.herbBorder,
@@ -38,54 +16,19 @@ export const merchantReservationStyles = StyleSheet.create({
     backgroundColor: colors.amberTint,
     borderColor: colors.amberBorder,
   },
-  tablePillTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  tablePillSub: {
-    fontSize: 10,
-    color: colors?.textMuted || colors.stoneText,
-  },
+  tablePillTitle: { fontSize: 14, ...font.displayBold },
+  tablePillSub: { fontSize: 12, ...font.display, color: colors.stoneText },
 
   /* --- 2. Filter Tabs --- */
-  tabRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  tabBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: radius?.pill || 9999,
-    backgroundColor: colors?.surface || colors.white,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-  },
-  tabBtnActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    color: colors?.text || colors.ink,
-  },
-  tabTextActive: {
-    color: colors.white,
-    fontWeight: "700",
-  },
+  tabRow: { ...ui.segTrack, marginBottom: spacing.md },
+  tabBtn: { ...ui.segItem },
+  tabBtnActive: { ...ui.segItemOn },
+  tabText: { ...ui.segText },
+  tabTextActive: { ...ui.segTextOn },
 
   /* --- 3. Reservation Card --- */
-  card: {
-    backgroundColor: colors?.surface || colors.white,
-    borderRadius: radius?.md || 10,
-    padding: spacing?.md || 16,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-    gap: 12,
-  },
-  cardPending: {
-    borderColor: colors.turmericDeep,
-    backgroundColor: colors.amberTint,
-  },
+  card: { ...ui.card, padding: spacing.lg, marginBottom: spacing.md, gap: spacing.sm },
+  cardPending: { borderColor: colors.amberBorder, backgroundColor: colors.amberTint },
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -93,64 +36,18 @@ export const merchantReservationStyles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 6,
   },
-  timerBadge: {
-    backgroundColor: colors.chiliSoft,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  timerText: {
-    color: colors.chiliText,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  paxBadge: {
-    backgroundColor: colors.surfaceAlt,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  paxText: {
-    color: colors.stoneText,
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  timerBadge: { backgroundColor: colors.chiliSoft, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  timerText: { color: colors.chiliText, fontSize: 13, ...font.displayBold, fontVariant: ["tabular-nums"] },
+  paxBadge: { backgroundColor: colors.paperDim, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  paxText: { color: colors.stoneText, fontSize: 13, ...font.displayBold },
 
   /* --- 4. Customer & Liaison Section --- */
-  customerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: colors?.bg || colors.bg,
-    padding: 10,
-    borderRadius: radius?.sm || 6,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-  },
-  callBtn: {
-    backgroundColor: colors.herb,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius?.pill || 9999,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  callBtnText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  customerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md },
+  callBtn: { backgroundColor: colors.ink, borderRadius: radius.pill, minHeight: 36, paddingHorizontal: spacing.lg, flexDirection: "row", alignItems: "center", gap: 6 },
+  callBtnText: { color: colors.white, fontSize: 14, ...font.displayBold },
 
   /* --- 5. Pre-Order Dishes Box --- */
-  preOrderBox: {
-    backgroundColor: colors.bg,
-    borderRadius: radius?.sm || 6,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-    gap: 6,
-  },
+  preOrderBox: { backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md, gap: 6 },
   preOrderItemRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -166,80 +63,16 @@ export const merchantReservationStyles = StyleSheet.create({
   },
 
   /* --- 7. Action Button Rows --- */
-  actionRow: {
-    flexDirection: "row",
-    gap: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors?.border || colors.border,
-    paddingTop: 12,
-  },
-  confirmBtn: {
-    flex: 2,
-    backgroundColor: colors.primary,
-    paddingVertical: 10,
-    borderRadius: radius?.md || 8,
-    alignItems: "center",
-  },
-  confirmBtnText: {
-    color: colors.white,
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  rescheduleBtn: {
-    flex: 1.5,
-    backgroundColor: colors?.bg || colors.bg,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-    paddingVertical: 10,
-    borderRadius: radius?.md || 8,
-    alignItems: "center",
-  },
-  rescheduleBtnText: {
-    color: colors?.text || colors.ink,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  declineBtn: {
-    flex: 1,
-    backgroundColor: colors.chiliSoft,
-    borderWidth: 1,
-    borderColor: colors.chiliBorder,
-    paddingVertical: 10,
-    borderRadius: radius?.md || 8,
-    alignItems: "center",
-  },
-  declineBtnText: {
-    color: colors.chiliText,
-    fontSize: 13,
-    fontWeight: "700",
-  },
+  actionRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft, paddingTop: spacing.md, marginTop: spacing.xs },
+  confirmBtn: { flex: 1, minHeight: 44, backgroundColor: colors.ink, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing.md },
+  confirmBtnText: { color: colors.white, fontSize: 15, ...font.displayBold },
+  rescheduleBtn: { flex: 1, minHeight: 44, backgroundColor: colors.paper, borderWidth: 1, borderColor: colors.stoneSoft, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing.md },
+  rescheduleBtnText: { color: colors.ink, fontSize: 15, ...font.displayBold },
+  declineBtn: { flex: 1, minHeight: 44, backgroundColor: colors.chiliSoft, borderWidth: 1, borderColor: colors.chiliBorder, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing.md },
+  declineBtnText: { color: colors.chiliText, fontSize: 15, ...font.displayBold },
 
   /* --- 8. Modals (Assign Table / Reschedule) --- */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  modalCard: {
-    backgroundColor: colors?.surface || colors.white,
-    borderRadius: radius?.lg || 12,
-    padding: 24,
-    width: "100%",
-    maxWidth: 440,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-    gap: 14,
-  },
-  input: {
-    backgroundColor: colors?.bg || colors.bg,
-    borderWidth: 1,
-    borderColor: colors?.border || colors.border,
-    borderRadius: radius?.sm || 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: colors?.text || colors.ink,
-  },
+  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: "center", alignItems: "center", padding: spacing.lg },
+  modalCard: { backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, width: "100%", maxWidth: 480, maxHeight: "90%" },
+  input: { ...ui.input },
 });

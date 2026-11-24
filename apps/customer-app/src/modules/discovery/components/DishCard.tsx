@@ -2,11 +2,14 @@ import React, { useRef, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Dish, Merchant } from "../../../shared/api/types";
-import { colors, shadow, spacing, type, fonts, ui } from "../../../shared/theme/theme";
+import { colors, spacing, ui, font } from "../../../shared/theme/theme";
 import DishImage, { softTint } from "../../../shared/components/DishImage";
 import { readyText } from "./ReadyChip";
 import { useFavourites } from "../../favourites/FavouritesContext";
 import PressableScale from "../../../shared/motion/PressableScale";
+import { dietFit } from "../../diet/diet";
+import { useDiet } from "../../diet/useDiet";
+import { dietWords } from "../../diet/dietWords";
 import { useTranslation } from "react-i18next";
 
 // One dish, in the two layouts from Badrul's mock-up (Oct 2026):
@@ -39,6 +42,18 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
   const overlay = dish.soldOut ? t("dish.soldOut") : closed ? t("stall.closed") : undefined;
   const btnScale = useRef(new Animated.Value(1)).current;
   const tint = softTint(merchant?.color);
+  // Sprint 3 diet profile: red "Contains Peanuts", or amber "Kitchen uses ..." (ask the stall first).
+  const { diet } = useDiet();
+  const fit = dietFit(dish, merchant, diet, dietWords());
+  const dietFlag =
+    fit.level !== "ok" ? (
+      <View style={[styles.flag, fit.level === "avoid" ? styles.flagAvoid : styles.flagCheck]} testID={`diet-flag-${dish.id}`}>
+        <Ionicons name={fit.level === "avoid" ? "warning" : "help-circle"} size={12} color={fit.level === "avoid" ? colors.chiliText : colors.amberText} />
+        <Text style={[styles.flagText, { color: fit.level === "avoid" ? colors.chiliText : colors.amberText }]} numberOfLines={1}>
+          {fit.reasons.join(" · ")}
+        </Text>
+      </View>
+    ) : null;
 
   async function handleAdd() {
     const ok = await onAdd?.();
@@ -65,7 +80,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
           accessibilityLabel={t("dish.addToCartLabel", { name: dish.name })}
           testID={`add-${dish.id}`}
         >
-          <Ionicons name={justAdded ? "checkmark" : "add"} size={18} color={justAdded ? colors.white : colors.ink} />
+          <Ionicons name={justAdded ? "checkmark" : "add"} size={20} color={justAdded ? colors.white : colors.ink} />
         </Pressable>
       </Animated.View>
     ) : null;
@@ -85,16 +100,17 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
     </Pressable>
   ) : null;
 
-  const label = `${dish.name}, RM ${dish.price.toFixed(2)}${merchant && showMerchant ? `, ${t("dish.from", { shop: merchant.name })}` : ""}${overlay ? `, ${overlay}` : ""}`;
+  const label = `${dish.name}, RM ${dish.price.toFixed(2)}${merchant && showMerchant ? `, ${t("dish.from", { shop: merchant.name })}` : ""}${overlay ? `, ${overlay}` : ""}${fit.reasons.length ? `. ${t("dish.dietWarning", { reasons: fit.reasons.join(", ") })}` : ""}`;
 
   if (variant === "grid") {
     return (
       <PressableScale scaleTo={0.97} onPress={onPress} style={[styles.gridCard, width ? { width } : { flex: 1 }]} accessibilityRole="button" accessibilityLabel={label} testID={`dish-${dish.id}`}>
         <View style={styles.gridImageWrap}>
-          <DishImage image={dish.image} size={104} tint={tint} overlay={overlay} style={styles.gridImage} />
+          <DishImage image={dish.image} size={120} tint={tint} overlay={overlay} style={styles.gridImage} />
           {merchant ? (
             <View style={styles.rating}>
-              <Text style={styles.ratingText}>{merchant.rating.toFixed(1)}★</Text>
+              <Ionicons name="star" size={11} color={colors.turmericDeep} />
+              <Text style={styles.ratingText}>{merchant.rating.toFixed(1)}</Text>
             </View>
           ) : null}
           {heart}
@@ -106,6 +122,7 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
         </View>
         <View style={styles.gridInfo}>
           <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
+          {dietFlag}
           {merchant && showMerchant ? (
             <Text style={styles.meta} numberOfLines={2}>{merchant.name} · {readyText(merchant).toLowerCase()}</Text>
           ) : null}
@@ -120,10 +137,11 @@ export default function DishCard({ dish, merchant, onPress, onAdd, variant = "ro
 
   return (
     <PressableScale scaleTo={0.98} onPress={onPress} style={styles.rowCard} accessibilityRole="button" accessibilityLabel={label} testID={`dish-${dish.id}`}>
-      <DishImage image={dish.image} size={68} tint={tint} overlay={overlay} />
+      <DishImage image={dish.image} size={84} tint={tint} overlay={overlay} />
       <View style={styles.rowInfo}>
         <Text style={styles.name} numberOfLines={2}>{dish.name}</Text>
         {dish.description ? <Text style={styles.desc} numberOfLines={2}>{dish.description}</Text> : null}
+        {dietFlag}
         {merchant && showMerchant ? (
           <Text style={styles.meta} numberOfLines={1}>
             {merchant.name} · {merchant.openNow ? `${merchant.distanceKm} km` : t("stall.opensAt", { time: merchant.hours.open }).toLowerCase()}
@@ -153,26 +171,31 @@ export function Price({ dish, large }: { dish: Dish; large?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  gridCard: { ...ui.card, overflow: "hidden", padding: spacing.sm, ...shadow.soft },
+  // Grid tile: photo bleeds to the card edge on top, text below. No shadow; the hairline border does the work.
+  gridCard: { ...ui.card, overflow: "hidden" },
   gridImageWrap: { position: "relative" },
-  gridImage: { width: "100%", height: 104 },
-  rating: { position: "absolute", top: 6, left: 6, backgroundColor: colors.paper, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2 },
-  ratingText: { fontFamily: fonts.displayBold, fontSize: 10.5, color: colors.ink },
-  heartGrid: { ...ui.iconButton, position: "absolute", top: 6, right: 6, width: 28, height: 28, borderRadius: 14 },
-  gridInfo: { paddingTop: spacing.sm, paddingHorizontal: 2, gap: 2, flex: 1 },
-  bottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: spacing.xs },
+  gridImage: { width: "100%", height: undefined, aspectRatio: 4 / 3, borderRadius: 0 },
+  rating: { position: "absolute", top: 8, left: 8, flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: colors.paper, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  ratingText: { ...font.displayBold, fontSize: 12, color: colors.ink, fontVariant: ["tabular-nums"] },
+  heartGrid: { ...ui.iconButton, position: "absolute", top: 8, right: 8, width: 32, height: 32, borderRadius: 16 },
+  gridInfo: { padding: spacing.md, paddingTop: 10, gap: 3, flex: 1 },
+  bottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: "auto", paddingTop: spacing.sm },
 
   rowCard: { ...ui.card, flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.md, marginBottom: spacing.md },
-  rowInfo: { flex: 1, minWidth: 0, gap: 2 },
+  rowInfo: { flex: 1, minWidth: 0, gap: 3 },
   rowSide: { alignItems: "center", justifyContent: "center", gap: spacing.sm },
-  heartRow: { width: 28, height: 28, alignItems: "center", justifyContent: "center" },
+  heartRow: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
   // Sprint 3 last-hour deals
-  dealBadge: { position: "absolute", left: 6, bottom: 6, backgroundColor: colors.chili, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2 },
-  dealBadgeText: { fontFamily: fonts.displayExtraBold, fontSize: 11, color: colors.white },
-  priceRow: { flexDirection: "row", alignItems: "baseline", gap: 5, flexWrap: "wrap" },
-  was: { fontFamily: fonts.display, fontSize: 11.5, color: colors.stoneText, textDecorationLine: "line-through" },
+  dealBadge: { position: "absolute", left: 8, bottom: 8, backgroundColor: colors.chili, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  dealBadgeText: { ...font.displayExtraBold, fontSize: 12, color: colors.white },
+  priceRow: { flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" },
+  was: { ...font.display, fontSize: 13, color: colors.stoneText, textDecorationLine: "line-through" },
 
-  name: { ...type.h3, fontFamily: fonts.displayBold, fontSize: 14 },
-  desc: { fontFamily: fonts.serif, fontSize: 12, lineHeight: 16, color: colors.stoneText },
-  meta: { fontFamily: fonts.display, fontSize: 11.5, color: colors.stoneText },
+  name: { ...font.displayBold, fontSize: 16, lineHeight: 21, color: colors.ink, letterSpacing: -0.1 },
+  desc: { ...font.serif, fontSize: 14, lineHeight: 19, color: colors.stoneText },
+  meta: { ...font.display, fontSize: 13, lineHeight: 17, color: colors.stoneText },
+  flag: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", maxWidth: "100%", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3, marginTop: 2 },
+  flagAvoid: { backgroundColor: colors.chiliSoft },
+  flagCheck: { backgroundColor: colors.amberTint },
+  flagText: { ...font.displayBold, fontSize: 12, flexShrink: 1 },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Pressable, Animated } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Pressable, Animated, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,11 +13,14 @@ import DishImage from "../../../shared/components/DishImage";
 import ReadyChip from "../components/ReadyChip";
 import { Price } from "../components/DishCard";
 import { EndsChip } from "../components/LastHourDeals";
-import { colors, radius, spacing, type, fonts, ui } from "../../../shared/theme/theme";
+import { colors, layout, spacing, type, ui, font } from "../../../shared/theme/theme";
 import PressableScale from "../../../shared/motion/PressableScale";
 import FadeInView from "../../../shared/motion/FadeInView";
 import { PopOnChange } from "../../../shared/motion/PulseRing";
 import { Skeleton } from "../../../shared/motion/Skeleton";
+import { dietFit } from "../../diet/diet";
+import { useDiet } from "../../diet/useDiet";
+import { dietWords } from "../../diet/dietWords";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../shared/i18n";
 import { allergenList } from "../../../shared/i18n/labels";
@@ -54,6 +57,9 @@ export default function DishDetailScreen({ route }: any) {
   const fav = isFav(dishId);
   const [justAdded, setJustAdded] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
+  const { diet } = useDiet(); // Sprint 3 diet profile
+  // Narrow phones (under 360pt): the stepper leaves less room, so the button says "Add" instead of "Add to cart".
+  const compact = useWindowDimensions().width < 360;
 
   useEffect(() => {
     api<{ dishes: Dish[] }>("GET", "/dishes")
@@ -120,60 +126,69 @@ export default function DishDetailScreen({ route }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <Pressable onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate("MainTabs"))} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={t("common.back")} testID="back">
-          <Ionicons name="chevron-back" size={20} color={colors.ink} />
-        </Pressable>
-        <Pressable style={styles.headerTitle} onPress={() => navigation.navigate("Stall", { merchantId: merchant.id })} accessibilityRole="link" accessibilityLabel={t("dish.seeMenu", { name: merchant.name })} testID="open-stall">
-          <Text style={styles.headerText} numberOfLines={1}>{merchant.name}</Text>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
+        <Pressable onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate("MainTabs"))} hitSlop={4} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={t("common.back")} testID="back">
+          <Ionicons name="chevron-back" size={22} color={colors.ink} style={{ marginLeft: -2 }} />
         </Pressable>
         <View style={styles.headerRight}>
           <Pressable onPress={() => toggle(dishId)} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={fav ? t("dish.unsave") : t("dish.save")} testID="fav">
             <PopOnChange trigger={fav}>
-              <Ionicons name={fav ? "heart" : "heart-outline"} size={18} color={fav ? colors.chili : colors.ink} />
+              <Ionicons name={fav ? "heart" : "heart-outline"} size={20} color={fav ? colors.chili : colors.ink} />
             </PopOnChange>
           </Pressable>
           <Pressable onPress={() => navigation.navigate("Cart")} hitSlop={8} style={ui.iconButton} accessibilityRole="button" accessibilityLabel={itemCount ? t("home.cartLabel", { count: itemCount }) : t("home.cartEmpty")}>
-            <Ionicons name="bag-handle-outline" size={18} color={colors.ink} />
+            <Ionicons name="bag-handle-outline" size={20} color={colors.ink} />
+            {itemCount > 0 ? (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{itemCount}</Text>
+              </View>
+            ) : null}
           </Pressable>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={[styles.body, { paddingBottom: 110 + insets.bottom }]}>
-        <FadeInView distance={24} duration={360}>
-          <DishImage image={dish.image} size={200} shape="circle" label={dish.name} overlay={dish.soldOut ? t("dish.soldOut") : undefined} style={styles.picture} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}>
+        <FadeInView distance={0} duration={280}>
+          <DishImage image={dish.image} shape="hero" label={dish.name} overlay={dish.soldOut ? t("dish.soldOut") : undefined} style={styles.picture} />
         </FadeInView>
 
-        <Text style={[type.h1, styles.centerText, { marginTop: spacing.lg }]} accessibilityRole="header">{dish.name}</Text>
-        {dish.description ? <Text style={[styles.desc, styles.centerText]}>{dish.description}</Text> : null}
-        <View style={{ marginTop: spacing.sm, alignItems: "center", gap: 6 }}>
+        <View style={styles.body}>
+        <Text style={[type.h1, { fontSize: 28, lineHeight: 34 }]} accessibilityRole="header">{dish.name}</Text>
+        <Pressable style={({ pressed }) => [styles.stallLink, pressed && { opacity: 0.6 }]} onPress={() => navigation.navigate("Stall", { merchantId: merchant.id })} hitSlop={6} accessibilityRole="link" accessibilityLabel={`See the menu of ${merchant.name}`} testID="open-stall">
+          <Text style={styles.stallLinkText} numberOfLines={1}>{merchant.name}</Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.amberText} />
+        </Pressable>
+        {dish.description ? <Text style={styles.desc}>{dish.description}</Text> : null}
+        <View style={{ marginTop: spacing.lg, gap: 6 }}>
           <Price dish={dish} large />
           {dish.dealPercent ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }} testID="deal-detail">
-              <Text style={{ fontFamily: fonts.displayExtraBold, fontSize: 12, color: colors.chiliText }}>{t("dish.dealOff", { percent: dish.dealPercent })}</Text>
+              <Text style={{ ...font.displayExtraBold, fontSize: 12, color: colors.chiliText }}>{t("dish.dealOff", { percent: dish.dealPercent })}</Text>
               <EndsChip endsAt={dish.dealEndsAt} />
             </View>
           ) : null}
         </View>
-        <Text style={[type.small, styles.centerText]}>{t("dish.perDish")}</Text>
+        <Text style={[type.small, { marginTop: 2 }]}>{t("dish.perDish")}</Text>
 
         <View style={styles.chips}>
           <ReadyChip merchant={merchant} />
           {chips.map((c) => (
-            <View key={c} style={[ui.infoChip, c.endsWith("★") && { backgroundColor: colors.amberTint }]}>
-              <Text style={ui.infoChipText}>{c}</Text>
+            <View key={c} style={ui.infoChip}>
+              {c.endsWith("★") ? <Ionicons name="star" size={12} color={colors.turmericDeep} /> : null}
+              <Text style={ui.infoChipText}>{c.endsWith("★") ? c.slice(0, -1) : c}</Text>
             </View>
           ))}
         </View>
 
+        <DietBanner fit={dietFit(dish, merchant, diet, dietWords())} onEdit={() => navigation.navigate("Diet")} />
         {!merchant.openNow ? (
           <View style={[styles.note, styles.noteClosed]}>
-            <Ionicons name="moon-outline" size={15} color={colors.chiliText} />
+            <Ionicons name="moon-outline" size={18} color={colors.chiliText} />
             <Text style={[styles.noteText, { color: colors.chiliText }]}>{t("dish.closedNote", { name: merchant.name, time: merchant.hours.open })}</Text>
           </View>
         ) : null}
         <View style={[styles.note, dish.allergens?.length ? styles.noteAllergen : null]} testID="allergen-note">
-          <Ionicons name="alert-circle-outline" size={15} color={dish.allergens?.length ? colors.amberText : colors.stoneText} />
+          <Ionicons name="alert-circle-outline" size={18} color={dish.allergens?.length ? colors.amberText : colors.stoneText} />
           <View style={{ flex: 1, gap: 2 }}>
             {dish.allergens?.length ? <Text style={styles.noteTitle}>{t("dish.contains", { list: allergenList(dish.allergens) })}</Text> : null}
             <Text style={styles.noteText}>
@@ -200,19 +215,20 @@ export default function DishDetailScreen({ route }: any) {
 
         <Text style={[ui.sectionTitle, styles.section]}>{t("stall.reviews")}</Text>
         <ReviewsList dishId={dishId} showDish={false} />
+        </View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         {!unavailable ? (
           <View style={ui.stepper}>
             <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} accessibilityRole="button" accessibilityLabel={t("common.oneLess")} testID="qty-minus">
-              <Ionicons name="remove" size={17} color={qty <= 1 ? colors.stoneSoft : colors.ink} />
+              <Ionicons name="remove" size={18} color={qty <= 1 ? colors.stoneSoft : colors.ink} />
             </PressableScale>
             <PopOnChange trigger={qty}>
               <Text style={ui.stepperValue} accessibilityLabel={t("common.quantity", { qty })}>{qty}</Text>
             </PopOnChange>
             <PressableScale scaleTo={0.85} style={ui.stepperButton} onPress={() => setQty((q) => Math.min(20, q + 1))} disabled={qty >= 20} accessibilityRole="button" accessibilityLabel={t("common.oneMore")} testID="qty-plus">
-              <Ionicons name="add" size={17} color={qty >= 20 ? colors.stoneSoft : colors.ink} />
+              <Ionicons name="add" size={18} color={qty >= 20 ? colors.stoneSoft : colors.ink} />
             </PressableScale>
           </View>
         ) : null}
@@ -226,7 +242,7 @@ export default function DishDetailScreen({ route }: any) {
             testID="add-to-cart"
           >
             <Text style={[ui.buttonAccentText, unavailable && { color: colors.stoneText }, justAdded && { color: colors.white }]} numberOfLines={1}>
-              {dish.soldOut ? t("dish.soldOut") : !merchant.openNow ? t("dish.stallClosed") : justAdded ? t("dish.added") : t("dish.addToCart", { price: (dish.price * qty).toFixed(2) })}
+              {dish.soldOut ? t("dish.soldOut") : !merchant.openNow ? t("dish.stallClosed") : justAdded ? (compact ? t("dish.addedShort") : t("dish.added")) : compact ? t("dish.addShort", { price: (dish.price * qty).toFixed(2) }) : t("dish.addToCart", { price: (dish.price * qty).toFixed(2) })}
             </Text>
           </PressableScale>
         </Animated.View>
@@ -235,25 +251,47 @@ export default function DishDetailScreen({ route }: any) {
   );
 }
 
+/** Sprint 3 diet profile: red "Not for you" or amber "Ask the stall" at the top of the dish, from the saved profile. */
+function DietBanner({ fit, onEdit }: { fit: ReturnType<typeof dietFit>; onEdit: () => void }) {
+  if (fit.level === "ok") return null;
+  const avoid = fit.level === "avoid";
+  return (
+    <View style={[styles.note, { backgroundColor: avoid ? colors.chiliSoft : colors.amberTint }]} testID="diet-banner" accessibilityRole="alert">
+      <Ionicons name={avoid ? "warning-outline" : "help-circle-outline"} size={18} color={avoid ? colors.chiliText : colors.amberText} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[styles.noteTitle, { color: avoid ? colors.chiliText : colors.amberText }]}>
+          {avoid ? i18n.t("diet.avoidTitle") : i18n.t("diet.checkTitle")}
+        </Text>
+        <Text style={styles.noteText}>{fit.reasons.join(" · ")}</Text>
+      </View>
+      <Pressable onPress={onEdit} hitSlop={8} accessibilityRole="button" accessibilityLabel={i18n.t("diet.editProfile")}>
+        <Text style={[styles.noteTitle, { color: colors.amberText }]}>{i18n.t("common.edit")}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: colors.bg, alignItems: "center", justifyContent: "center", padding: spacing.xl },
   loading: { width: "100%", alignItems: "center", gap: spacing.md },
-  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  headerTitle: { flex: 1, alignItems: "center", minHeight: 38, justifyContent: "center" },
-  headerText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  // Back / save / cart float over the photo.
+  header: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: layout.gutter },
   headerRight: { flexDirection: "row", gap: spacing.sm },
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  picture: { alignSelf: "center", marginTop: spacing.md },
-  centerText: { textAlign: "center" },
-  desc: { fontFamily: fonts.serif, fontSize: 13, lineHeight: 19, color: colors.stoneText, marginTop: spacing.xs, paddingHorizontal: spacing.md },
-  chips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: spacing.sm, marginTop: spacing.md },
-  note: { ...ui.card, flexDirection: "row", gap: spacing.sm, alignItems: "flex-start", padding: spacing.md, marginTop: spacing.lg },
+  cartBadge: { position: "absolute", top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.turmeric, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.paper },
+  cartBadgeText: { ...font.displayBold, fontSize: 11, color: colors.ink },
+  picture: { width: "100%", aspectRatio: 1.25 },
+  body: { paddingHorizontal: layout.gutter, paddingTop: spacing.xl },
+  stallLink: { flexDirection: "row", alignItems: "center", gap: 2, alignSelf: "flex-start", marginTop: spacing.xs, minHeight: 28 },
+  stallLinkText: { ...font.displayBold, fontSize: 15, color: colors.amberText },
+  desc: { ...font.serif, fontSize: 16, lineHeight: 23, color: colors.stoneText, marginTop: spacing.sm },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.lg },
+  note: { ...ui.card, flexDirection: "row", gap: spacing.md, alignItems: "flex-start", padding: spacing.lg, marginTop: spacing.lg },
   noteClosed: { backgroundColor: colors.chiliSoft, borderColor: colors.chiliBorder },
-  noteText: { flex: 1, fontFamily: fonts.display, fontSize: 12, lineHeight: 17, color: colors.stoneText },
-  noteAllergen: { backgroundColor: colors.amberTint },
-  noteTitle: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  section: { marginTop: spacing.xl, marginBottom: spacing.sm },
+  noteText: { flex: 1, ...font.serif, fontSize: 14, lineHeight: 20, color: colors.stoneText },
+  noteAllergen: { backgroundColor: colors.amberTint, borderColor: colors.amberBorder },
+  noteTitle: { ...font.displayBold, fontSize: 15, color: colors.ink },
+  section: { marginTop: layout.section, marginBottom: spacing.md },
   optionWrap: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  footer: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.stoneLine, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
+  footer: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: layout.gutter, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
   buttonOff: { backgroundColor: colors.paperDim },
 });

@@ -7,7 +7,7 @@ import EmptyState from "../../../shared/components/EmptyState";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { confirmAsync } from "../../../shared/util/confirm";
-import { colors, radius, spacing, type } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, layout } from "../../../shared/theme/theme";
 import { locale } from "../../../shared/i18n";
 import { useTranslation } from "react-i18next";
 
@@ -90,11 +90,11 @@ export default function MerchantReviewsScreen() {
                 </View>
               ) : null}
               <View style={styles.actions}>
-                <Pressable onPress={() => openReply(r)} style={styles.action} accessibilityRole="button" testID={`reply-${r.id}`}>
+                <Pressable onPress={() => openReply(r)} hitSlop={8} style={styles.action} accessibilityRole="button" testID={`reply-${r.id}`}>
                   <Ionicons name="chatbubble-outline" size={15} color={colors.ink} /><Text style={styles.actionText}>{r.reply ? t("reviews.editReply") : t("reviews.reply")}</Text>
                 </Pressable>
                 {r.reply ? (
-                  <Pressable onPress={() => removeReply(r)} style={styles.action} accessibilityRole="button">
+                  <Pressable onPress={() => removeReply(r)} hitSlop={8} style={styles.action} accessibilityRole="button">
                     <Ionicons name="trash-outline" size={15} color={colors.chili} /><Text style={[styles.actionText, { color: colors.chili }]}>{t("reviews.removeReply")}</Text>
                   </Pressable>
                 ) : null}
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   chip: { minHeight: 34, paddingHorizontal: 14, justifyContent: "center", borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: { fontSize: 13, color: colors.ink },
-  list: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 3 },
+  list: { paddingHorizontal: layout.gutter, paddingVertical: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xxl * 3 },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.sm, gap: 2 },
   top: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   reply: { marginTop: spacing.sm, backgroundColor: colors.bg, borderRadius: radius.sm, padding: spacing.sm, gap: 2 },
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.sm },
   action: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 32 },
   actionText: { fontSize: 13, color: colors.ink },
-  error: { color: colors.chili, fontSize: 13, paddingHorizontal: spacing.lg },
+  error: { color: colors.chiliText, fontSize: 13, paddingHorizontal: spacing.lg },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", padding: spacing.lg },
   modal: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
   input: { minHeight: 90, textAlignVertical: "top", borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, color: colors.ink },

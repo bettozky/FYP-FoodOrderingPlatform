@@ -9,7 +9,7 @@ import Badge from "../../../shared/components/Badge";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import { confirmAsync } from "../../../shared/util/confirm";
 import { mmss, useCountdown } from "../../../shared/util/format";
-import { colors, radius, spacing, type, fonts } from "../../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout, ui } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
 import ArrivingBadge from "../../arrival/ArrivingBadge";
@@ -173,8 +173,8 @@ export default function MerchantOrderQueueScreen() {
       <ScreenHeader title={tr("drawer.orders")} subtitle={tr("orders.activeCount", { n: active.length })} />
       <View style={styles.seg}>
         {(["active", "done"] as const).map((t) => (
-          <Pressable key={t} style={[styles.segBtn, tab === t && styles.segOn]} onPress={() => setTab(t)}>
-            <Text style={[styles.segText, tab === t && { color: colors.white }]}>{t === "active" ? tr("orders.active") : tr("orders.history")}</Text>
+          <Pressable key={t} style={[styles.segBtn, tab === t && styles.segOn]} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }}>
+            <Text style={[styles.segText, tab === t && ui.segTextOn]}>{t === "active" ? tr("orders.active") : tr("orders.history")}</Text>
           </Pressable>
         ))}
       </View>
@@ -190,22 +190,22 @@ export default function MerchantOrderQueueScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  seg: { flexDirection: "row", backgroundColor: colors.paperDim, borderRadius: radius.pill, padding: 3, marginHorizontal: spacing.lg, marginBottom: spacing.md },
-  segBtn: { flex: 1, alignItems: "center", paddingVertical: 9, borderRadius: radius.pill },
-  segOn: { backgroundColor: colors.ink },
-  segText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border, gap: 8 },
+  list: { paddingHorizontal: layout.gutter, paddingBottom: spacing.xxl * 1.5, width: "100%", maxWidth: layout.maxWidth, alignSelf: "center" },
+  seg: { ...ui.segTrack, marginHorizontal: layout.gutter, marginBottom: spacing.md },
+  segBtn: { ...ui.segItem },
+  segOn: { ...ui.segItemOn },
+  segText: { ...ui.segText },
+  card: { ...ui.card, padding: spacing.lg, marginBottom: spacing.md, gap: spacing.sm },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.sm },
-  group: { backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.sm, gap: 6 },
-  groupHead: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
+  group: { backgroundColor: colors.paperDim, borderRadius: radius.sm, padding: spacing.md, gap: spacing.sm },
+  groupHead: { ...font.displayBold, fontSize: 14, color: colors.amberText },
   itemRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  smallBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill },
-  smallBtnText: { color: colors.white, fontFamily: fonts.displayBold, fontSize: 12 },
+  smallBtn: { backgroundColor: colors.ink, minHeight: 36, justifyContent: "center", paddingHorizontal: spacing.lg, borderRadius: radius.pill },
+  smallBtnText: { color: colors.white, ...font.displayBold, fontSize: 14 },
   buzzBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.turmeric },
-  oosBtn: { paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.chili },
-  oosText: { color: colors.chili, fontFamily: fonts.displayBold, fontSize: 11 },
-  timer: { fontFamily: fonts.displayBold, color: colors.turmericDeep },
-  warn: { fontFamily: fonts.display, color: colors.turmericDeep, fontSize: 13 },
-  error: { color: colors.chili, fontFamily: fonts.display },
+  oosBtn: { minHeight: 32, justifyContent: "center", paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.chiliBorder, backgroundColor: colors.chiliSoft },
+  oosText: { color: colors.chiliText, ...font.displayBold, fontSize: 13 },
+  timer: { ...font.displayBold, fontSize: 14, color: colors.amberText, fontVariant: ["tabular-nums"] },
+  warn: { ...font.display, color: colors.amberText, fontSize: 14 },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14 },
 });

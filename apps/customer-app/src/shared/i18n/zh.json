@@ -15,7 +15,10 @@
     "minAgo": "{{n}} 分钟前",
     "hAgo": "{{n}} 小时前",
     "dAgo": "{{n}} 天前",
-    "close": "关闭"
+    "close": "关闭",
+    "ratedValue": "评分 {{rating}}",
+    "done": "完成",
+    "edit": "编辑"
   },
   "language": {
     "title": "语言",
@@ -119,12 +122,17 @@
     "logout": "退出登录",
     "spending": "消费与预算",
     "jobs": "工作",
-    "paymentMethods": "付款方式"
+    "paymentMethods": "付款方式",
+    "dietAllergies": "饮食与过敏"
   },
   "account": {
     "editPhoto": "编辑头像",
     "student": "学生",
-    "member": "{{tier}} 会员 · {{points}} 积分"
+    "member": "{{tier}} 会员 · {{points}} 积分",
+    "editProfileLabel": "{{name}}，{{email}}。编辑资料",
+    "rewards": "奖励",
+    "groupFood": "美食",
+    "groupMore": "更多"
   },
   "home": {
     "there": "朋友",
@@ -180,7 +188,16 @@
     "loadingPlaces": "加载地点中…",
     "howItWorks": "如何运作",
     "howTitle": "先下单，摊位答应后才付款。",
-    "browseStalls": "浏览摊位"
+    "browseStalls": "浏览摊位",
+    "howSub": "摊位拒绝的订单不会收费。",
+    "sortLabel": "菜品排序",
+    "clearFilters": "清除筛选",
+    "sortBy": "排序方式",
+    "sortRecommended": "推荐",
+    "sortNearest": "最近",
+    "sortRating": "评分最高",
+    "sortPrice": "价格最低",
+    "trySearching": "试试搜索"
   },
   "busy": {
     "quiet": "人少",
@@ -192,7 +209,29 @@
     "vegetarian": "素食",
     "plantBased": "纯植物",
     "spicy": "辣",
-    "allergyFree": "无过敏原"
+    "allergyFree": "无过敏原",
+    "subtitle": "设置一次，我们会检查每份菜单",
+    "watchCount_one": "需要注意 {{count}} 项",
+    "watchCount_other": "需要注意 {{count}} 项",
+    "nothingSet": "尚未设置",
+    "intro": "不适合的菜品会显示红色标签。琥珀色表示摊位厨房使用了你的某种过敏原，请先询问。",
+    "allergicTo": "我对以下过敏",
+    "myDiet": "我的饮食",
+    "vegetarianHint": "不含肉类或海鲜",
+    "plantBasedHint": "不含肉类、海鲜、蛋或奶",
+    "noSpicy": "不吃辣",
+    "noSpicyHint": "标出辣味菜品",
+    "hide": "隐藏不适合的菜品",
+    "hideHint": "关闭：改为用红色标签显示",
+    "note": "过敏原标签由摊位提供。如果你的过敏很严重，用餐前请务必向摊位确认。",
+    "saved": "已保存。摊位菜单现在会标出不适合的菜品。",
+    "contains": "含有{{list}}",
+    "notPlantBased": "非纯植物",
+    "notVegetarian": "非素食",
+    "kitchenUses": "厨房使用{{list}}",
+    "avoidTitle": "不符合你的饮食设置",
+    "checkTitle": "请先向摊位确认",
+    "editProfile": "编辑我的饮食设置"
   },
   "mode": {
     "delivery": "外送",
@@ -292,7 +331,10 @@
     "customise": "自选配料",
     "stallClosed": "摊位休息中",
     "added": "已加入 ✓",
-    "addToCart": "加入购物车 · RM {{price}}"
+    "addToCart": "加入购物车 · RM {{price}}",
+    "dietWarning": "饮食提醒：{{reasons}}",
+    "addedShort": "已加入",
+    "addShort": "加入 · RM {{price}}"
   },
   "cart": {
     "title": "购物车",
@@ -403,7 +445,8 @@
     "noneHint": "你的订单和实时状态会显示在这里。",
     "againFrom": "再从 {{name}} 点一次",
     "adding": "加入中…",
-    "again": "再点一次"
+    "again": "再点一次",
+    "findFood": "找点吃的"
   },
   "track": {
     "order": "订单",
@@ -642,7 +685,12 @@
     "rule": "完成的订单每 RM 1 得 1 积分",
     "minSpend": "最低消费 RM {{amount}}",
     "noMin": "没有最低消费",
-    "applyAtCheckout": "结账时使用"
+    "applyAtCheckout": "结账时使用",
+    "ptsUnit": "积分",
+    "useAtCheckout": "结账时\n使用",
+    "vouchers": "优惠券",
+    "noVouchers": "目前没有优惠券",
+    "noVouchersHint": "摊位会不时推出优惠，会显示在这里和结账页面。"
   },
   "saved": {
     "subtitle": "点任何菜或摊位上的爱心，就会收藏在这里。",
@@ -758,7 +806,8 @@
     "openNow": "营业中",
     "closedNow": "休息中",
     "noBookings": "还没有订位",
-    "noBookingsHint": "选一家餐厅来订位。"
+    "noBookingsHint": "选一家餐厅来订位。",
+    "seeVenues": "查看餐厅"
   },
   "picker": {
     "lblHome": "家",
@@ -993,6 +1042,7 @@
     "openCartAsk": "已把 {{name}} 加入购物车。要打开购物车吗？",
     "openingPay": "正在打开付款页面。",
     "openingCart": "正在打开购物车。",
-    "pickOrder": "付这笔订单：{{label}}"
+    "pickOrder": "付这笔订单：{{label}}",
+    "typing": "助手正在输入"
   }
 }

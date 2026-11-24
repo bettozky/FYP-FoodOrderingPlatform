@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Image, StyleSheet, Text, View, ViewStyle } from "react-native";
+import React, { useRef, useState } from "react";
+import { Animated, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { useReducedMotion } from "../motion/useReducedMotion";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius } from "../theme/theme";
+import { colors, radius, font } from "../theme/theme";
 import { isPhoto, mediaUrl } from "../media";
 
 // The one picture used for a dish everywhere (cards, stall menu, dish detail, cart, tracking).
@@ -29,6 +30,12 @@ export const softTint = (hex?: string) => (hex && /^#[0-9a-f]{6}$/i.test(hex) ? 
 
 export default function DishImage({ image, size = 64, shape = "tile", tint = colors.amberTint, label, overlay, style }: Props) {
   const [failed, setFailed] = useState(false);
+  const reduced = useReducedMotion();
+  const fade = useRef(new Animated.Value(0)).current;
+  const onLoad = () => {
+    if (reduced) fade.setValue(1);
+    else Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+  };
   const uri = mediaUrl(image);
   const photo = isPhoto(uri) && !failed;
   const box: ViewStyle =
@@ -45,7 +52,7 @@ export default function DishImage({ image, size = 64, shape = "tile", tint = col
       accessibilityLabel={label}
     >
       {photo ? (
-        <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" onError={() => setFailed(true)} accessibilityIgnoresInvertColors />
+        <Animated.Image source={{ uri }} style={[StyleSheet.absoluteFill, { opacity: fade }]} resizeMode="cover" onLoad={onLoad} onError={() => setFailed(true)} accessibilityIgnoresInvertColors />
       ) : image && !isPhoto(uri) && !image.startsWith("/") ? (
         <Text style={{ fontSize: emojiSize }} allowFontScaling={false}>{image}</Text>
       ) : (
@@ -63,5 +70,5 @@ export default function DishImage({ image, size = 64, shape = "tile", tint = col
 const styles = StyleSheet.create({
   base: { alignItems: "center", justifyContent: "center", overflow: "hidden" },
   overlay: { backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center" },
-  overlayText: { color: colors.white, fontSize: 11, fontFamily: fonts.displayBold, textAlign: "center", paddingHorizontal: 4 },
+  overlayText: { color: colors.white, fontSize: 11, ...font.displayBold, textAlign: "center", paddingHorizontal: 4 },
 });

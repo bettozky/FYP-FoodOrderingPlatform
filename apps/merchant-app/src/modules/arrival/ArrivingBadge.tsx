@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts, radius, spacing } from "../../shared/theme/theme";
+import { colors, radius, spacing, font } from "../../shared/theme/theme";
 import { locale } from "../../shared/i18n";
 import { useTranslation } from "react-i18next";
 
@@ -33,5 +33,5 @@ export default function ArrivingBadge({ arrivingAt, active }: { arrivingAt?: num
 const styles = StyleSheet.create({
   badge: { flexDirection: "row", alignItems: "center", gap: spacing.sm, alignSelf: "flex-start", backgroundColor: colors.turmeric, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 },
   here: { backgroundColor: colors.herb },
-  text: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.ink },
+  text: { ...font.displayBold, fontSize: 13, color: colors.ink },
 });

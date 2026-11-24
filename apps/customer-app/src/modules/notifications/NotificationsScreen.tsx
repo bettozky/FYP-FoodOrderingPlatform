@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppNotification } from "../../shared/api/types";
 import EmptyState from "../../shared/components/EmptyState";
 import ScreenHeader from "../../shared/components/ScreenHeader";
-import { colors, fonts, radius, spacing, type } from "../../shared/theme/theme";
+import { colors, radius, spacing, type, font, layout } from "../../shared/theme/theme";
 import { useLive } from "../ordering/LiveDataContext";
 import { useTranslation } from "react-i18next";
 import { locale } from "../../shared/i18n";
@@ -65,11 +65,11 @@ export default function NotificationsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+  list: { paddingHorizontal: layout.gutter, paddingBottom: spacing.xxl, gap: spacing.sm },
   card: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md },
   main: { flex: 1, flexDirection: "row", gap: spacing.md, minWidth: 0 },
   icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.paperDim, alignItems: "center", justifyContent: "center" },
   dismiss: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
   clearBtn: { minHeight: 36, justifyContent: "center", paddingHorizontal: spacing.sm },
-  clearText: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.ink },
+  clearText: { ...font.displayBold, fontSize: 13, color: colors.ink },
 });

@@ -9,7 +9,7 @@ import Badge from "../../../shared/components/Badge";
 import PrimaryButton from "../../../shared/components/PrimaryButton";
 import ScreenHeader from "../../../shared/components/ScreenHeader";
 import { mmss, useCountdown } from "../../../shared/util/format";
-import { colors, fonts, radius, spacing, type, ui } from "../../../shared/theme/theme";
+import { colors, layout, radius, spacing, type, ui, font } from "../../../shared/theme/theme";
 import { useLive } from "../LiveDataContext";
 import ChatButtons from "../../chat/ChatButton";
 import { itemBadge, orderBadge } from "../orderStatus";
@@ -42,7 +42,7 @@ function PayCard({ order, onPay }: { order: Order; onPay: () => void }) {
         <Ionicons name="checkmark-circle" size={20} color={colors.herb} />
         <View style={{ flex: 1 }}>
           <Text style={type.h3}>{t("track.confirmed", { name: order.merchantName })}</Text>
-          <Text style={[type.bodyMuted, s < 60 && { color: colors.chili }]}>{t("pay.within", { time: mmss(s) })}</Text>
+          <Text style={[type.bodyMuted, s < 60 && { color: colors.chiliText }]}>{t("pay.within", { time: mmss(s) })}</Text>
         </View>
       </View>
       <PrimaryButton label={t("pay.payAmount", { amount: `RM ${order.total.toFixed(2)}` })} onPress={onPay} testID="open-pay" style={{ alignSelf: "stretch" }} />
@@ -172,10 +172,10 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
                     {i.options.length ? <Text style={type.small}>{i.options.join(", ")}</Text> : null}
                     {canRate && (
                       <Pressable onPress={() => setRating({ item: i, stars: 5, comment: "" })} testID={`rate-${i.dishId}`}>
-                        <Text style={styles.rateLink}>★ {t("track.rateDish")}</Text>
+                        <Text style={styles.rateLink}>{t("track.rateDish")}</Text>
                       </Pressable>
                     )}
-                    {order.reviewedDishIds.includes(i.dishId) && ["collected", "delivered"].includes(i.status) && <Text style={type.small}>✓ {t("track.thanksReview")}</Text>}
+                    {order.reviewedDishIds.includes(i.dishId) && ["collected", "delivered"].includes(i.status) && <Text style={type.small}>{t("track.thanksReview")}</Text>}
                   </View>
                   <Badge label={b.label} tone={b.tone} />
                 </View>
@@ -245,20 +245,20 @@ export default function OrderTrackingScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { padding: spacing.lg, paddingBottom: 140, gap: spacing.md },
-  banner: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.amberTint, padding: spacing.lg, borderRadius: radius.lg },
-  group: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.sm },
+  wrap: { paddingHorizontal: layout.gutter, paddingTop: spacing.sm, paddingBottom: 150, gap: spacing.md },
+  banner: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.amberTint, borderWidth: 1, borderColor: colors.amberBorder, padding: spacing.lg, borderRadius: radius.lg },
+  group: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
   groupHead: { flexDirection: "row", alignItems: "center", gap: 6 },
-  groupTitle: { fontFamily: fonts.displayBold, fontSize: 12, color: colors.turmericDeep, textTransform: "uppercase", letterSpacing: 0.6 },
+  groupTitle: { ...font.displayBold, fontSize: 15, color: colors.amberText },
   itemRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  rateLink: { fontFamily: fonts.displayBold, fontSize: 12.5, color: colors.turmericDeep, marginTop: 2 },
-  liveRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
-  liveText: { flex: 1, fontFamily: fonts.display, fontSize: 13, color: colors.turmericDeep },
-  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: 6 },
-  line: { flexDirection: "row", justifyContent: "space-between" },
-  error: { color: colors.chili, fontFamily: fonts.display },
-  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.border },
+  rateLink: { ...font.displayBold, fontSize: 14, color: colors.amberText, marginTop: 2 },
+  liveRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paperDim, borderRadius: radius.md, minHeight: 44, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  liveText: { flex: 1, ...font.display, fontSize: 14, color: colors.amberText },
+  card: { ...ui.card, borderRadius: radius.lg, padding: spacing.lg, gap: 8 },
+  line: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
+  error: { color: colors.chiliText, ...font.display, fontSize: 14 },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: layout.gutter, paddingTop: spacing.md, backgroundColor: colors.paper, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.stoneSoft },
   backdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center", padding: spacing.xl },
-  modalCard: { width: "100%", maxWidth: 380, backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, gap: spacing.sm },
-  input: { backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, minHeight: 70, fontFamily: fonts.serif, fontSize: 15, borderWidth: 1, borderColor: colors.border, textAlignVertical: "top" },
+  modalCard: { width: "100%", maxWidth: 380, backgroundColor: colors.paper, borderRadius: radius.xl, padding: spacing.xl, gap: spacing.md },
+  input: { backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, minHeight: 88, ...font.serif, fontSize: 16, borderWidth: 1, borderColor: colors.stoneLine, textAlignVertical: "top" },
 });
