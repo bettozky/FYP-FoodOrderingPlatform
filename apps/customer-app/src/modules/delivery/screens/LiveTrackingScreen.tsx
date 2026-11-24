@@ -94,6 +94,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
   }
 
   const currentStage = tracking ? stageIndex(tracking.status) : -1;
+  const delivered = tracking?.status === "delivered";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -127,9 +128,10 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
           </View>
         )}
 
-        <View style={styles.livePill}>
-          <View style={styles.liveDot} />
-          <Text style={styles.livePillText}>{i18n.t("home.live")}</Text>
+        {/* Once the food has arrived the pill stops saying "Live" and confirms the delivery instead. */}
+        <View style={[styles.livePill, delivered && styles.livePillDone]} accessible accessibilityLabel={delivered ? i18n.t("status.delivered") : i18n.t("home.live")}>
+          {delivered ? <Ionicons name="checkmark" size={13} color={colors.white} /> : <View style={styles.liveDot} />}
+          <Text style={styles.livePillText}>{delivered ? i18n.t("status.delivered") : i18n.t("home.live")}</Text>
         </View>
       </View>
 
@@ -187,6 +189,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     gap: 6,
   },
+  livePillDone: { backgroundColor: colors.herb },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.turmeric },
   livePillText: { color: colors.paper, fontFamily: fonts.displayBold, fontSize: 12 },
   riderDot: {

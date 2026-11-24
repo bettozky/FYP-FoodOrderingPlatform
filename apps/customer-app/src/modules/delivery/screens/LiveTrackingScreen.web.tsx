@@ -117,6 +117,7 @@ export default function LiveTrackingScreen({ route }: any) {
   }
 
   const currentStage = tracking ? stageIndex(tracking.status) : -1;
+  const delivered = tracking?.status === "delivered";
   const progress = tracking ? Math.max(currentStage, 0) / (STAGES.length - 1) : 0;
 
   return (
@@ -129,13 +130,14 @@ export default function LiveTrackingScreen({ route }: any) {
         </View>
         <View style={[styles.topRow, { top: insets.top + spacing.sm }]}>
           {navigation.canGoBack() && (
-            <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.circleBtn}>
+            <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={styles.circleBtn} accessibilityRole="button" accessibilityLabel={i18n.t("common.back")}>
               <Ionicons name="chevron-back" size={20} color={colors.ink} />
             </Pressable>
           )}
-          <View style={styles.livePill}>
-            <View style={styles.liveDot} />
-            <Text style={styles.livePillText}>{i18n.t("home.live")}</Text>
+          {/* Once the food has arrived the pill stops saying "Live" and confirms the delivery instead. */}
+          <View style={[styles.livePill, delivered && styles.livePillDone]} accessible accessibilityLabel={delivered ? i18n.t("status.delivered") : i18n.t("home.live")}>
+            {delivered ? <Ionicons name="checkmark" size={13} color={colors.white} /> : <View style={styles.liveDot} />}
+            <Text style={styles.livePillText}>{delivered ? i18n.t("status.delivered") : i18n.t("home.live")}</Text>
           </View>
         </View>
       </View>
@@ -215,6 +217,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     gap: 6,
   },
+  livePillDone: { backgroundColor: colors.herb },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.turmeric },
   livePillText: { color: colors.paper, fontFamily: fonts.displayBold, fontSize: 12 },
   wrap: { flex: 1, padding: spacing.lg, marginTop: -20 },
